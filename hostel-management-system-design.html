@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hostel Management Portal — System Design</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #161b26;
+    --bg3: #1e2535;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --teal: #2dd4bf;
+    --amber: #fbbf24;
+    --green: #34d399;
+    --red: #f87171;
+    --pink: #f472b6;
+    --code-bg: #0d1117;
+    --tag-bg: rgba(99,102,241,0.15);
+    --tag-border: rgba(99,102,241,0.35);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  /* Sidebar */
+  nav {
+    width: 260px;
+    min-width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 24px 0;
+    flex-shrink: 0;
+  }
+  nav .logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  nav .logo span {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+  nav .logo h1 { font-size: 14px; font-weight: 600; color: var(--text); }
+  nav a {
+    display: block;
+    padding: 7px 20px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.15s, background 0.15s;
+    border-left: 2px solid transparent;
+  }
+  nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  nav a.active { color: var(--accent2); border-left-color: var(--accent); }
+  nav .nav-section {
+    padding: 14px 20px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+  }
+  nav a.sub { padding-left: 32px; font-size: 12px; }
+  /* Main */
+  main {
+    flex: 1;
+    max-width: 900px;
+    padding: 48px 56px 80px;
+    min-width: 0;
+  }
+  /* Typography */
+  h1 { font-size: 32px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  h2 { font-size: 22px; font-weight: 600; color: #fff; margin: 56px 0 20px; padding-top: 8px; }
+  h3 { font-size: 16px; font-weight: 600; color: var(--text); margin: 32px 0 12px; }
+  h4 { font-size: 14px; font-weight: 600; color: var(--accent2); margin: 24px 0 8px; }
+  p { margin-bottom: 14px; color: var(--text); }
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(45,212,191,0.08) 100%);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+  }
+  .hero .subtitle { color: var(--muted); font-size: 14px; margin-top: 6px; margin-bottom: 0; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--tag-bg); border: 1px solid var(--tag-border);
+    color: var(--accent2); border-radius: 20px; padding: 3px 10px;
+    font-size: 12px; font-weight: 500;
+  }
+  .badge.teal { background: rgba(45,212,191,0.1); border-color: rgba(45,212,191,0.3); color: var(--teal); }
+  .badge.amber { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: var(--amber); }
+  .badge.green { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.3); color: var(--green); }
+  /* Section markers */
+  section { padding-top: 8px; }
+  .section-divider {
+    height: 1px; background: var(--border); margin: 48px 0 0;
+  }
+  /* Cards */
+  .card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .card h4 { margin-top: 0; }
+  /* Decision boxes */
+  .decision {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+  }
+  .decision.teal { border-left-color: var(--teal); }
+  .decision.amber { border-left-color: var(--amber); }
+  .decision.green { border-left-color: var(--green); }
+  .decision.red { border-left-color: var(--red); }
+  .decision-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent2); margin-bottom: 4px;
+  }
+  .decision.teal .decision-label { color: var(--teal); }
+  .decision.amber .decision-label { color: var(--amber); }
+  .decision.green .decision-label { color: var(--green); }
+  .decision.red .decision-label { color: var(--red); }
+  .decision p { margin-bottom: 0; font-size: 14px; }
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  code { font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace; }
+  p code, li code {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 5px; font-size: 13px;
+    color: var(--teal);
+  }
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  thead tr { background: var(--bg3); }
+  th {
+    text-align: left; padding: 10px 14px; color: var(--muted);
+    font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border2);
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  /* Lists */
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; color: var(--text); font-size: 14px; }
+  li strong { color: #fff; }
+  /* Step cards for roadmap */
+  .step {
+    display: flex; gap: 16px; margin-bottom: 12px;
+    align-items: flex-start;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--accent2);
+  }
+  .step-body { flex: 1; }
+  .step-body h4 { margin: 2px 0 4px; }
+  .step-body p { font-size: 13px; color: var(--muted); margin-bottom: 0; }
+  /* Warn / info callouts */
+  .callout {
+    display: flex; gap: 12px; padding: 14px 16px;
+    background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 8px; margin-bottom: 14px;
+  }
+  .callout.info { background: rgba(99,102,241,0.07); border-color: rgba(99,102,241,0.2); }
+  .callout.danger { background: rgba(248,113,113,0.07); border-color: rgba(248,113,113,0.2); }
+  .callout-icon { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+  .callout-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .callout-text strong { color: var(--text); }
+  /* Grid layouts */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media(max-width:700px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+  /* Module pill */
+  .module-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 6px; padding: 4px 10px;
+    font-size: 12px; color: var(--text); margin: 3px;
+  }
+  /* Algo box */
+  .algo {
+    background: #0a0e1a;
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 13px;
+    line-height: 1.8;
+    margin-bottom: 16px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    color: #c9d1e0;
+  }
+  .algo .kw { color: #818cf8; }
+  .algo .fn { color: #2dd4bf; }
+  .algo .cm { color: #4a5568; font-style: italic; }
+  .algo .str { color: #fbbf24; }
+  .algo .num { color: #f87171; }
+  /* RBAC matrix */
+  .tick { color: var(--green); }
+  .cross { color: rgba(255,255,255,0.2); }
+  /* Tag labels */
+  .tag {
+    display: inline-block; padding: 2px 7px; border-radius: 4px;
+    font-size: 11px; font-weight: 600;
+  }
+  .tag.pg { background: rgba(45,212,191,0.15); color: var(--teal); }
+  .tag.node { background: rgba(52,211,153,0.15); color: var(--green); }
+  .tag.react { background: rgba(99,102,241,0.15); color: var(--accent2); }
+  .tag.redis { background: rgba(248,113,113,0.15); color: var(--red); }
+  .tag.phase { background: rgba(251,191,36,0.15); color: var(--amber); }
+  /* Folder tree */
+  .tree { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; }
+  .tree .dir { color: #818cf8; }
+  .tree .file { color: #94a3b8; }
+  .tree .comment { color: #4a5568; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <span>Architecture Doc</span>
+    <h1>Hostel Management Portal</h1>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <a href="#overview">Executive Summary</a>
+  <a href="#tech-stack">Tech Stack Decisions</a>
+
+  <div class="nav-section">Design</div>
+  <a href="#architecture">System Architecture</a>
+  <a href="#database">Database Design</a>
+  <a href="#backend">Backend Design</a>
+  <a href="#frontend">Frontend Design</a>
+
+  <div class="nav-section">Engines</div>
+  <a href="#billing-engine">Billing Engine</a>
+  <a href="#leave-engine">Leave Engine</a>
+  <a href="#complaint-system">Complaint System</a>
+
+  <div class="nav-section">Infrastructure</div>
+  <a href="#jobs">Background Jobs</a>
+  <a href="#notifications">Notifications</a>
+  <a href="#security">Security</a>
+  <a href="#caching">Caching Strategy</a>
+  <a href="#deployment">Deployment</a>
+
+  <div class="nav-section">Delivery</div>
+  <a href="#roadmap">Implementation Roadmap</a>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Hostel Management Portal</h1>
+  <p class="subtitle">Production-grade system design for a single-college hostel + mess management platform.<br>Designed for 2,000 students · 8 hostels · 3 messes · 500 peak concurrent users.</p>
+  <div class="badge-row">
+    <span class="badge">Modular Monolith</span>
+    <span class="badge teal">PostgreSQL</span>
+    <span class="badge amber">Redis + BullMQ</span>
+    <span class="badge green">Next.js 14</span>
+    <span class="badge">Node.js + Express</span>
+    <span class="badge teal">TypeScript end-to-end</span>
+    <span class="badge amber">Prisma ORM</span>
+  </div>
+</div>
+
+<!-- ─── TECH STACK ─── -->
+<section id="tech-stack">
+  <div class="section-divider"></div>
+  <h2>Tech Stack — Decisions &amp; Justifications</h2>
+
+  <h3>Architecture Pattern: Modular Monolith ✓</h3>
+  <div class="decision">
+    <div class="decision-label">Why not Microservices?</div>
+    <p>At 2,000 students with a peak of ~500 concurrent users, microservices would add network latency, distributed transaction complexity, and operational overhead with zero benefit. A modular monolith gives you clean module boundaries (each domain is its own folder/service class) that can be extracted into separate services later if the system ever needs it. Start right, not over-engineered.</p>
+  </div>
+
+  <h3>Database: PostgreSQL ✓ (not MongoDB)</h3>
+  <div class="decision teal">
+    <div class="decision-label">Why PostgreSQL?</div>
+    <p>This system is <strong>fundamentally relational and transactional</strong>. Billing calculations involve joining students → mess_assignments → attendance → leaves → extras — all with strict consistency requirements. MongoDB's flexible schema offers nothing here and costs you JOIN performance, ACID guarantees on multi-collection writes, and proper foreign key constraints. PostgreSQL with Prisma ORM is the right tool.</p>
+  </div>
+
+  <h3>Cache + Queue: Redis ✓</h3>
+  <div class="decision amber">
+    <div class="decision-label">Two roles for Redis</div>
+    <p><strong>Cache:</strong> Dashboard stats, monthly bills once generated, student attendance calendars — all cacheable with TTLs. <strong>Queue:</strong> BullMQ runs on Redis for leave auto-approval, billing generation, and notification dispatch jobs. Redis is the only dependency you need to add beyond PostgreSQL.</p>
+  </div>
+
+  <h3>Frontend: Next.js 14 (App Router) ✓</h3>
+  <div class="decision green">
+    <div class="decision-label">Why Next.js over plain React?</div>
+    <p>Server-side rendering for faster initial loads on mobile connections. Built-in routing eliminates React Router setup. API routes for lightweight server actions. The App Router enables per-layout authentication guards cleanly. React Query handles server state; Zustand handles minimal client state (auth user, notification count).</p>
+  </div>
+
+  <h3>ORM: Prisma ✓</h3>
+  <div class="decision">
+    <div class="decision-label">Type-safe queries + migrations</div>
+    <p>Prisma generates TypeScript types from the schema — no runtime type mismatches in billing calculations. Migration system is battle-tested. The alternative (raw SQL via pg) adds risk when working with complex billing joins. Prisma's query builder is performant enough for this scale.</p>
+  </div>
+
+  <div class="grid3">
+    <div class="card">
+      <h4>File Storage</h4>
+      <p style="font-size:13px;color:var(--muted)">Cloudinary — generous free tier, accepts payment screenshots, returns stable URLs. No infrastructure to manage vs. S3.</p>
+    </div>
+    <div class="card">
+      <h4>Email</h4>
+      <p style="font-size:13px;color:var(--muted)">Resend — 3,000 free emails/month, excellent deliverability, simple API. Perfect for a college deployment.</p>
+    </div>
+    <div class="card">
+      <h4>Validation</h4>
+      <p style="font-size:13px;color:var(--muted)">Zod on both frontend and backend. Single schema definition, shared validation logic, runtime type safety.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── ARCHITECTURE ─── -->
+<section id="architecture">
+  <div class="section-divider"></div>
+  <h2>System Architecture</h2>
+
+  <h3>High-Level Component Map</h3>
+  <pre><code>
+  ┌─────────────────── Client Tier ──────────────────────┐
+  │                                                       │
+  │   Next.js 14 App (Vercel / Render)                   │
+  │   ├── /student  (attendance, leaves, bills, complaints)│
+  │   ├── /incharge (mark attendance, add extras)         │
+  │   ├── /warden   (approvals, payments, reports)        │
+  │   └── /admin    (users, hostels, messes, billing cfg) │
+  │                                                       │
+  └───────────────────────┬───────────────────────────────┘
+                          │ HTTPS / REST API (versioned /api/v1)
+  ┌───────────────────────▼───────────────────────────────┐
+  │              Express API Server (Node.js)              │
+  │                                                       │
+  │   ┌───────────┐  ┌─────────────┐  ┌───────────────┐  │
+  │   │   Auth    │  │  Middleware │  │  Rate Limiter  │  │
+  │   │ JWT/RBAC  │  │ Audit + Log │  │  (express-rls) │  │
+  │   └───────────┘  └─────────────┘  └───────────────┘  │
+  │                                                       │
+  │   ┌─────────────────────────────────────────────────┐ │
+  │   │               Module Layer                      │ │
+  │   │  auth · students · attendance · leaves          │ │
+  │   │  billing · payments · complaints · reports      │ │
+  │   │  notifications · admin · messes · hostels       │ │
+  │   └─────────────────────────────────────────────────┘ │
+  │                                                       │
+  └───────┬─────────────────┬──────────────┬─────────────┘
+          │                 │              │
+  ┌───────▼──────┐  ┌───────▼────┐  ┌─────▼──────────────┐
+  │  PostgreSQL  │  │   Redis    │  │   BullMQ Workers    │
+  │  (primary)   │  │ (cache +   │  │ ├── leaveAutoApprove│
+  │              │  │  queues)   │  │ ├── billingGenerate  │
+  │  Prisma ORM  │  │            │  │ └── notificationSend │
+  └──────────────┘  └────────────┘  └────────────────────┘
+          │                                    │
+  ┌───────▼──────┐                   ┌────────▼──────────┐
+  │  Cloudinary  │                   │  Resend (Email)   │
+  │  (file store)│                   │  In-App notifs    │
+  └──────────────┘                   └───────────────────┘
+  </code></pre>
+
+  <h3>Request Lifecycle</h3>
+  <pre><code>
+  Client Request
+      │
+      ▼
+  Rate Limiter (express-rate-limit)
+      │
+      ▼
+  Auth Middleware (verify JWT, attach req.user)
+      │
+      ▼
+  RBAC Middleware (check role permissions)
+      │
+      ▼
+  Zod Validation (validate request body/params/query)
+      │
+      ▼
+  Controller → Service → Repository (Prisma)
+      │
+      ├── Cache check (Redis) ──── hit → return cached
+      │
+      ▼ miss
+  Database Query (PostgreSQL)
+      │
+      ▼
+  Audit Logger (async, non-blocking)
+      │
+      ▼
+  Response
+  </code></pre>
+</section>
+
+<!-- ─── DATABASE ─── -->
+<section id="database">
+  <div class="section-divider"></div>
+  <h2>Database Design — Full Schema</h2>
+
+  <div class="callout info">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-text"><strong>Design Principles:</strong> All tables use UUID primary keys (avoids enumeration attacks). Soft deletes on all critical tables via <code>deleted_at</code> to preserve billing history. All monetary values stored as <code>DECIMAL(10,2)</code>. Timestamps use <code>TIMESTAMPTZ</code> for timezone safety. Every foreign key has an index.</div>
+  </div>
+
+  <h3>Core Identity Tables</h3>
+  <pre><code class="tree">-- ═══════════════════════════════════════════
+-- USERS  (all system users, single auth table)
+-- ═══════════════════════════════════════════
+users {
+  id            UUID          PK  DEFAULT gen_random_uuid()
+  email         VARCHAR(255)  UNIQUE NOT NULL
+  password_hash VARCHAR(255)  NOT NULL
+  role          ENUM          NOT NULL  -- SUPER_ADMIN | WARDEN | MESS_INCHARGE | STUDENT
+  first_name    VARCHAR(100)  NOT NULL
+  last_name     VARCHAR(100)  NOT NULL
+  phone         VARCHAR(20)
+  is_active     BOOLEAN       DEFAULT true
+  must_change_pwd BOOLEAN     DEFAULT true   -- force change on first login
+  last_login_at TIMESTAMPTZ
+  deleted_at    TIMESTAMPTZ                   -- soft delete
+  created_at    TIMESTAMPTZ   DEFAULT now()
+  updated_at    TIMESTAMPTZ   DEFAULT now()
+
+  INDEX: (email), (role), (is_active)
+}
+
+-- ═══════════════════════════════════════════
+-- STUDENTS  (extends users for student-specific fields)
+-- ═══════════════════════════════════════════
+students {
+  id             UUID         PK
+  user_id        UUID         FK → users  UNIQUE NOT NULL
+  roll_number    VARCHAR(50)  UNIQUE NOT NULL
+  gender         ENUM         NOT NULL  -- MALE | FEMALE
+  department     VARCHAR(100)
+  academic_year  SMALLINT     -- e.g., 2024
+  batch          VARCHAR(20)  -- e.g., "2022-2026"
+  is_active      BOOLEAN      DEFAULT true
+  deleted_at     TIMESTAMPTZ
+  created_at     TIMESTAMPTZ  DEFAULT now()
+
+  INDEX: (roll_number), (user_id), (gender)
+}
+</code></pre>
+
+  <h3>Hostel &amp; Mess Structure</h3>
+  <pre><code class="tree">-- ═══════════════════════════════════════════
+-- HOSTELS
+-- ═══════════════════════════════════════════
+hostels {
+  id         UUID          PK
+  name       VARCHAR(100)  UNIQUE NOT NULL
+  gender     ENUM          NOT NULL  -- MALE | FEMALE
+  is_active  BOOLEAN       DEFAULT true
+  created_at TIMESTAMPTZ
+}
+
+-- ═══════════════════════════════════════════
+-- ROOMS
+-- ═══════════════════════════════════════════
+rooms {
+  id          UUID          PK
+  hostel_id   UUID          FK → hostels
+  room_number VARCHAR(20)   NOT NULL
+  capacity    SMALLINT      DEFAULT 2
+  is_active   BOOLEAN       DEFAULT true
+
+  UNIQUE(hostel_id, room_number)
+  INDEX: (hostel_id)
+}
+
+-- ═══════════════════════════════════════════
+-- HOSTEL_ASSIGNMENTS  (student ↔ room history)
+-- ═══════════════════════════════════════════
+hostel_assignments {
+  id          UUID   PK
+  student_id  UUID   FK → students
+  hostel_id   UUID   FK → hostels
+  room_id     UUID   FK → rooms
+  start_date  DATE   NOT NULL
+  end_date    DATE                    -- NULL = current assignment
+  is_current  BOOLEAN DEFAULT true
+  created_by  UUID   FK → users
+  created_at  TIMESTAMPTZ
+
+  INDEX: (student_id, is_current)
+  INDEX: (room_id, is_current)
+  -- Enforce single current assignment:
+  UNIQUE partial index: (student_id) WHERE is_current = true
+}
+
+-- ═══════════════════════════════════════════
+-- MESSES
+-- ═══════════════════════════════════════════
+messes {
+  id              UUID           PK
+  name            VARCHAR(100)   UNIQUE NOT NULL
+  gender          ENUM           NOT NULL  -- MALE | FEMALE
+  per_day_charge  DECIMAL(10,2)  NOT NULL  -- configurable per mess
+  is_active       BOOLEAN        DEFAULT true
+  created_at      TIMESTAMPTZ
+  updated_at      TIMESTAMPTZ
+}
+
+-- ═══════════════════════════════════════════
+-- MESS_ASSIGNMENTS  (student ↔ mess, no mid-semester switch)
+-- ═══════════════════════════════════════════
+mess_assignments {
+  id          UUID   PK
+  student_id  UUID   FK → students
+  mess_id     UUID   FK → messes
+  start_date  DATE   NOT NULL
+  end_date    DATE                    -- NULL = current
+  is_current  BOOLEAN DEFAULT true
+  created_by  UUID   FK → users
+  created_at  TIMESTAMPTZ
+
+  INDEX: (student_id, is_current)
+  UNIQUE partial index: (student_id) WHERE is_current = true
+}
+
+-- ═══════════════════════════════════════════
+-- INCHARGE_ASSIGNMENTS  (mess_incharge ↔ mess history)
+-- ═══════════════════════════════════════════
+incharge_assignments {
+  id          UUID   PK
+  user_id     UUID   FK → users  (role must be MESS_INCHARGE)
+  mess_id     UUID   FK → messes
+  start_date  DATE   NOT NULL
+  end_date    DATE                    -- NULL = current
+  is_current  BOOLEAN DEFAULT true
+  created_at  TIMESTAMPTZ
+
+  UNIQUE partial index: (mess_id) WHERE is_current = true
+}
+
+-- ═══════════════════════════════════════════
+-- HOSTEL_RENT_CONFIG
+-- ═══════════════════════════════════════════
+hostel_rent_config {
+  id             UUID           PK
+  hostel_id      UUID           FK → hostels
+  academic_year  VARCHAR(10)    NOT NULL  -- e.g., "2024-25"
+  semester       ENUM           NOT NULL  -- FIRST | SECOND
+  amount         DECIMAL(10,2)  NOT NULL
+  due_month      SMALLINT       NOT NULL  -- 1-12: month when this appears on bill
+  created_by     UUID           FK → users
+  created_at     TIMESTAMPTZ
+
+  UNIQUE(hostel_id, academic_year, semester)
+}
+</code></pre>
+
+  <h3>Attendance &amp; Leave</h3>
+  <pre><code class="tree">-- ═══════════════════════════════════════════
+-- ATTENDANCE  (daily per student)
+-- ═══════════════════════════════════════════
+attendance {
+  id          UUID     PK
+  student_id  UUID     FK → students
+  mess_id     UUID     FK → messes
+  date        DATE     NOT NULL
+  breakfast   BOOLEAN  DEFAULT false
+  lunch       BOOLEAN  DEFAULT false
+  dinner      BOOLEAN  DEFAULT false
+  -- is_present is derived: (breakfast OR lunch OR dinner)
+  -- RULE: if present for ANY meal → charged full day
+  marked_by   UUID     FK → users
+  created_at  TIMESTAMPTZ
+  updated_at  TIMESTAMPTZ
+
+  UNIQUE(student_id, date)       -- one record per student per day
+  INDEX: (student_id, date)
+  INDEX: (mess_id, date)
+}
+
+-- ═══════════════════════════════════════════
+-- MESS_DAY_WAIVERS  (incharge marks a whole day as free)
+-- ═══════════════════════════════════════════
+mess_day_waivers {
+  id          UUID          PK
+  mess_id     UUID          FK → messes
+  date        DATE          NOT NULL
+  reason      VARCHAR(255)
+  created_by  UUID          FK → users
+  created_at  TIMESTAMPTZ
+
+  UNIQUE(mess_id, date)
+  INDEX: (mess_id, date)
+}
+
+-- ═══════════════════════════════════════════
+-- LEAVES
+-- ═══════════════════════════════════════════
+leaves {
+  id               UUID          PK
+  student_id       UUID          FK → students
+  start_date       DATE          NOT NULL
+  end_date         DATE          NOT NULL
+  duration         SMALLINT      NOT NULL  -- end - start + 1  (precomputed)
+  reason           TEXT
+  status           ENUM          NOT NULL
+                   -- PENDING | APPROVED | REJECTED | AUTO_APPROVED | CANCELLED
+  applied_on       TIMESTAMPTZ   DEFAULT now()
+  auto_approve_at  TIMESTAMPTZ   NOT NULL   -- applied_on + 2 days
+  actioned_by      UUID          FK → users    NULL
+  actioned_at      TIMESTAMPTZ               NULL
+  return_date      DATE                      NULL  -- student returned early
+  rejection_reason TEXT                      NULL
+  created_at       TIMESTAMPTZ
+  updated_at       TIMESTAMPTZ
+
+  INDEX: (student_id, status)
+  INDEX: (status, auto_approve_at)  -- for auto-approval job
+  INDEX: (start_date, end_date)     -- for billing overlap queries
+}
+
+-- BUSINESS RULE CHECK CONSTRAINTS:
+-- CHECK (end_date >= start_date)
+-- CHECK (start_date >= CURRENT_DATE + INTERVAL '2 days')  -- enforced at app layer
+-- CHECK (duration = end_date - start_date + 1)
+</code></pre>
+
+  <h3>Billing &amp; Payments</h3>
+  <pre><code class="tree">-- ═══════════════════════════════════════════
+-- BILLS  (monthly per student)
+-- ═══════════════════════════════════════════
+bills {
+  id                  UUID           PK
+  student_id          UUID           FK → students
+  billing_month       DATE           NOT NULL  -- first day of the month
+  hostel_rent         DECIMAL(10,2)  DEFAULT 0
+  mess_charges        DECIMAL(10,2)  NOT NULL
+  extras_total        DECIMAL(10,2)  DEFAULT 0
+  adjustments_total   DECIMAL(10,2)  DEFAULT 0  -- credit notes, corrections
+  total_amount        DECIMAL(10,2)  NOT NULL    -- computed total
+  amount_paid         DECIMAL(10,2)  DEFAULT 0
+  balance_due         DECIMAL(10,2)  GENERATED  -- total_amount - amount_paid
+  status              ENUM           NOT NULL
+                      -- GENERATED | PARTIALLY_PAID | PAID
+  is_frozen           BOOLEAN        DEFAULT true  -- frozen = no edits, use adjustments
+  generated_at        TIMESTAMPTZ
+  chargeable_days     SMALLINT       NOT NULL  -- for transparency
+  total_days          SMALLINT       NOT NULL
+  waived_days         SMALLINT       NOT NULL
+  created_at          TIMESTAMPTZ
+
+  UNIQUE(student_id, billing_month)
+  INDEX: (student_id, billing_month)
+  INDEX: (status)
+}
+
+-- ═══════════════════════════════════════════
+-- BILL_LINE_ITEMS  (full audit trail of bill)
+-- ═══════════════════════════════════════════
+bill_line_items {
+  id            UUID           PK
+  bill_id       UUID           FK → bills
+  type          ENUM           NOT NULL
+                -- HOSTEL_RENT | MESS_CHARGE | EXTRA | ADJUSTMENT
+  description   VARCHAR(255)   NOT NULL
+  date          DATE                           NULL
+  quantity      DECIMAL(8,2)   DEFAULT 1
+  unit_price    DECIMAL(10,2)  NOT NULL
+  amount        DECIMAL(10,2)  NOT NULL  -- quantity × unit_price
+  reference_id  UUID                     NULL  -- points to extras / leave id
+
+  INDEX: (bill_id)
+}
+
+-- ═══════════════════════════════════════════
+-- MESS_EXTRA_ITEMS  (menu of chargeable extras)
+-- ═══════════════════════════════════════════
+mess_extra_items {
+  id          UUID          PK
+  mess_id     UUID          FK → messes
+  name        VARCHAR(100)  NOT NULL   -- e.g., "Chicken Curry"
+  unit        VARCHAR(30)   NOT NULL   -- e.g., "cup"
+  price       DECIMAL(10,2) NOT NULL
+  is_active   BOOLEAN       DEFAULT true
+  created_at  TIMESTAMPTZ
+
+  INDEX: (mess_id, is_active)
+}
+
+-- ═══════════════════════════════════════════
+-- STUDENT_EXTRAS  (extras charged to a student)
+-- ═══════════════════════════════════════════
+student_extras {
+  id             UUID          PK
+  student_id     UUID          FK → students
+  mess_id        UUID          FK → messes
+  extra_item_id  UUID          FK → mess_extra_items
+  date           DATE          NOT NULL
+  quantity       DECIMAL(8,2)  NOT NULL
+  unit_price     DECIMAL(10,2) NOT NULL  -- price snapshot at time of entry
+  added_by       UUID          FK → users
+  created_at     TIMESTAMPTZ
+
+  INDEX: (student_id, date)
+  INDEX: (mess_id, date)
+}
+
+-- ═══════════════════════════════════════════
+-- PAYMENTS
+-- ═══════════════════════════════════════════
+payments {
+  id                UUID           PK
+  student_id        UUID           FK → students
+  bill_id           UUID           FK → bills     NULL  -- can be advance
+  amount            DECIMAL(10,2)  NOT NULL
+  payment_date      DATE           NOT NULL
+  reference_number  VARCHAR(100)   NOT NULL
+  screenshot_url    VARCHAR(500)   NOT NULL
+  status            ENUM           NOT NULL  -- PENDING | VERIFIED | REJECTED
+  verified_by       UUID           FK → users   NULL
+  verified_at       TIMESTAMPTZ              NULL
+  rejection_reason  TEXT                     NULL
+  created_at        TIMESTAMPTZ
+  updated_at        TIMESTAMPTZ
+
+  INDEX: (student_id, status)
+  INDEX: (status, created_at)
+}
+</code></pre>
+
+  <h3>Complaints, Technicians &amp; Notifications</h3>
+  <pre><code class="tree">-- ═══════════════════════════════════════════
+-- TECHNICIANS  (not system users, just a registry)
+-- ═══════════════════════════════════════════
+technicians {
+  id              UUID          PK
+  name            VARCHAR(100)  NOT NULL
+  mobile          VARCHAR(20)   NOT NULL
+  specialization  VARCHAR(100)
+  is_active       BOOLEAN       DEFAULT true
+  created_at      TIMESTAMPTZ
+}
+
+-- ═══════════════════════════════════════════
+-- COMPLAINTS
+-- ═══════════════════════════════════════════
+complaints {
+  id                UUID          PK
+  student_id        UUID          FK → students
+  hostel_id         UUID          FK → hostels
+  room_id           UUID          FK → rooms     NULL
+  category          VARCHAR(100)  NOT NULL  -- free text category
+  description       TEXT          NOT NULL
+  status            ENUM          NOT NULL  -- OPEN | ASSIGNED | RESOLVED
+  assigned_to       UUID          FK → technicians  NULL
+  assigned_by       UUID          FK → users         NULL
+  assigned_at       TIMESTAMPTZ              NULL
+  resolution_notes  TEXT                     NULL
+  resolved_by       UUID          FK → users  NULL
+  resolved_at       TIMESTAMPTZ              NULL
+  created_at        TIMESTAMPTZ
+  updated_at        TIMESTAMPTZ
+
+  INDEX: (student_id, status)
+  INDEX: (status, created_at)
+  INDEX: (assigned_to)
+}
+
+-- ═══════════════════════════════════════════
+-- NOTIFICATIONS
+-- ═══════════════════════════════════════════
+notifications {
+  id              UUID          PK
+  user_id         UUID          FK → users
+  type            ENUM          NOT NULL
+                  -- LEAVE_APPROVED | LEAVE_REJECTED | LEAVE_AUTO_APPROVED
+                  -- BILL_GENERATED | PAYMENT_VERIFIED | PAYMENT_REJECTED
+                  -- COMPLAINT_ASSIGNED | COMPLAINT_RESOLVED
+  title           VARCHAR(200)  NOT NULL
+  body            TEXT          NOT NULL
+  is_read         BOOLEAN       DEFAULT false
+  reference_type  VARCHAR(50)             -- 'leave' | 'bill' | 'complaint'
+  reference_id    UUID
+  created_at      TIMESTAMPTZ
+
+  INDEX: (user_id, is_read)
+  INDEX: (user_id, created_at DESC)
+}
+
+-- ═══════════════════════════════════════════
+-- AUDIT_LOGS  (immutable event trail)
+-- ═══════════════════════════════════════════
+audit_logs {
+  id           UUID          PK
+  user_id      UUID          FK → users   NULL  -- NULL = system action
+  action       VARCHAR(100)  NOT NULL  -- 'LEAVE_APPROVED', 'BILL_GENERATED', etc.
+  entity_type  VARCHAR(50)   NOT NULL  -- 'leave', 'bill', 'payment', etc.
+  entity_id    UUID          NOT NULL
+  old_value    JSONB                    NULL
+  new_value    JSONB                    NULL
+  ip_address   INET                     NULL
+  user_agent   TEXT                     NULL
+  created_at   TIMESTAMPTZ   DEFAULT now()
+
+  -- Append-only: no updates, no deletes
+  INDEX: (entity_type, entity_id)
+  INDEX: (user_id, created_at DESC)
+  INDEX: (action, created_at DESC)
+}
+</code></pre>
+
+  <h3>Indexing Strategy</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Table</th><th>Index</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td>attendance</td><td>(student_id, date)</td><td>Calendar view per student — most common query</td></tr>
+        <tr><td>attendance</td><td>(mess_id, date)</td><td>Incharge marks attendance for whole mess on a date</td></tr>
+        <tr><td>leaves</td><td>(status, auto_approve_at)</td><td>Auto-approval job scans PENDING leaves where due</td></tr>
+        <tr><td>leaves</td><td>(student_id, start_date, end_date)</td><td>Billing overlap calculation</td></tr>
+        <tr><td>bills</td><td>(student_id, billing_month)</td><td>Student's bill for a given month</td></tr>
+        <tr><td>payments</td><td>(status, created_at)</td><td>Warden's pending payments queue</td></tr>
+        <tr><td>notifications</td><td>(user_id, is_read)</td><td>Bell icon unread count — called on every page load</td></tr>
+        <tr><td>audit_logs</td><td>(entity_type, entity_id)</td><td>Fetch all events for a specific leave/bill/payment</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ─── BACKEND ─── -->
+<section id="backend">
+  <div class="section-divider"></div>
+  <h2>Backend Design</h2>
+
+  <h3>Folder Structure</h3>
+  <pre><code class="tree">
+<span class="dir">backend/</span>
+├── <span class="dir">src/</span>
+│   ├── <span class="dir">modules/</span>               <span class="comment">← each domain is self-contained</span>
+│   │   ├── <span class="dir">auth/</span>
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.service.ts
+│   │   │   ├── auth.routes.ts
+│   │   │   └── auth.schema.ts         <span class="comment">← Zod schemas for this module</span>
+│   │   ├── <span class="dir">students/</span>
+│   │   ├── <span class="dir">hostels/</span>
+│   │   ├── <span class="dir">messes/</span>
+│   │   ├── <span class="dir">attendance/</span>
+│   │   ├── <span class="dir">leaves/</span>
+│   │   ├── <span class="dir">billing/</span>
+│   │   │   ├── billing.controller.ts
+│   │   │   ├── billing.service.ts     <span class="comment">← orchestrates the engine</span>
+│   │   │   ├── billing.engine.ts      <span class="comment">← pure calculation logic</span>
+│   │   │   └── billing.routes.ts
+│   │   ├── <span class="dir">payments/</span>
+│   │   ├── <span class="dir">complaints/</span>
+│   │   ├── <span class="dir">notifications/</span>
+│   │   ├── <span class="dir">reports/</span>
+│   │   └── <span class="dir">admin/</span>              <span class="comment">← CSV import, hostel config</span>
+│   ├── <span class="dir">shared/</span>
+│   │   ├── <span class="dir">middleware/</span>
+│   │   │   ├── authenticate.ts        <span class="comment">← verify JWT, attach req.user</span>
+│   │   │   ├── authorize.ts           <span class="comment">← RBAC: authorize(Role.WARDEN)</span>
+│   │   │   ├── rateLimiter.ts
+│   │   │   ├── requestLogger.ts       <span class="comment">← structured logging (pino)</span>
+│   │   │   └── auditLogger.ts         <span class="comment">← async audit log writer</span>
+│   │   ├── <span class="dir">errors/</span>
+│   │   │   ├── AppError.ts            <span class="comment">← base error class with HTTP code</span>
+│   │   │   └── globalErrorHandler.ts
+│   │   └── <span class="dir">types/</span>
+│   │       ├── roles.enum.ts
+│   │       └── express.d.ts           <span class="comment">← extends Request with req.user</span>
+│   ├── <span class="dir">infrastructure/</span>
+│   │   ├── <span class="dir">database/</span>
+│   │   │   └── prisma.ts              <span class="comment">← singleton Prisma client</span>
+│   │   ├── <span class="dir">cache/</span>
+│   │   │   └── redis.ts
+│   │   ├── <span class="dir">queue/</span>
+│   │   │   ├── queues.ts              <span class="comment">← BullMQ queue definitions</span>
+│   │   │   └── <span class="dir">workers/</span>
+│   │   │       ├── leaveAutoApprove.worker.ts
+│   │   │       ├── billingGenerate.worker.ts
+│   │   │       └── notificationSend.worker.ts
+│   │   ├── <span class="dir">storage/</span>
+│   │   │   └── cloudinary.ts
+│   │   └── <span class="dir">email/</span>
+│   │       └── resend.ts
+│   ├── <span class="dir">config/</span>
+│   │   └── env.ts                     <span class="comment">← Zod-validated env vars</span>
+│   └── app.ts
+├── <span class="dir">prisma/</span>
+│   ├── schema.prisma
+│   └── <span class="dir">migrations/</span>
+├── .env.example
+├── Dockerfile
+└── package.json
+  </code></pre>
+
+  <h3>API Route Design (REST v1)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Method</th><th>Route</th><th>Role</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>POST</td><td>/api/v1/auth/login</td><td>All</td><td>Returns access + refresh tokens</td></tr>
+        <tr><td>POST</td><td>/api/v1/auth/refresh</td><td>All</td><td>Rotate refresh token</td></tr>
+        <tr><td>POST</td><td>/api/v1/auth/logout</td><td>All</td><td>Invalidate refresh token in Redis</td></tr>
+        <tr><td>PATCH</td><td>/api/v1/auth/change-password</td><td>All</td><td>Force on first login</td></tr>
+        <tr><td colspan="4" style="background:var(--bg3);color:var(--muted);font-size:11px;font-weight:600;letter-spacing:0.1em">ATTENDANCE</td></tr>
+        <tr><td>GET</td><td>/api/v1/attendance/me?month=YYYY-MM</td><td>Student</td><td>Calendar data for student</td></tr>
+        <tr><td>GET</td><td>/api/v1/attendance/:studentId</td><td>Warden+</td><td>View any student's attendance</td></tr>
+        <tr><td>POST</td><td>/api/v1/attendance/bulk</td><td>Incharge</td><td>Mark attendance for whole mess for a date</td></tr>
+        <tr><td>PUT</td><td>/api/v1/attendance/:id</td><td>Incharge</td><td>Correct/backdate an attendance record</td></tr>
+        <tr><td>POST</td><td>/api/v1/attendance/waive</td><td>Incharge</td><td>Mark a full day as waived for the mess</td></tr>
+        <tr><td colspan="4" style="background:var(--bg3);color:var(--muted);font-size:11px;font-weight:600;letter-spacing:0.1em">LEAVES</td></tr>
+        <tr><td>GET</td><td>/api/v1/leaves/me</td><td>Student</td><td>Student's leave history</td></tr>
+        <tr><td>POST</td><td>/api/v1/leaves</td><td>Student</td><td>Apply for leave (validated: 2 days advance)</td></tr>
+        <tr><td>DELETE</td><td>/api/v1/leaves/:id</td><td>Student</td><td>Cancel if PENDING; set return_date if approved</td></tr>
+        <tr><td>GET</td><td>/api/v1/leaves/pending</td><td>Warden</td><td>All PENDING leaves for action</td></tr>
+        <tr><td>PATCH</td><td>/api/v1/leaves/:id/approve</td><td>Warden</td><td>Approve leave</td></tr>
+        <tr><td>PATCH</td><td>/api/v1/leaves/:id/reject</td><td>Warden</td><td>Reject with reason</td></tr>
+        <tr><td colspan="4" style="background:var(--bg3);color:var(--muted);font-size:11px;font-weight:600;letter-spacing:0.1em">BILLING &amp; PAYMENTS</td></tr>
+        <tr><td>GET</td><td>/api/v1/bills/me</td><td>Student</td><td>All bills with line items and ledger</td></tr>
+        <tr><td>GET</td><td>/api/v1/bills/:studentId</td><td>Warden+</td><td>View student's full billing history</td></tr>
+        <tr><td>POST</td><td>/api/v1/payments</td><td>Student</td><td>Submit payment proof (multipart: ref + screenshot)</td></tr>
+        <tr><td>GET</td><td>/api/v1/payments/pending</td><td>Warden</td><td>Queue of unverified payments</td></tr>
+        <tr><td>PATCH</td><td>/api/v1/payments/:id/verify</td><td>Warden</td><td>Verify and credit to student ledger</td></tr>
+        <tr><td>PATCH</td><td>/api/v1/payments/:id/reject</td><td>Warden</td><td>Reject with reason, notify student</td></tr>
+        <tr><td colspan="4" style="background:var(--bg3);color:var(--muted);font-size:11px;font-weight:600;letter-spacing:0.1em">COMPLAINTS</td></tr>
+        <tr><td>POST</td><td>/api/v1/complaints</td><td>Student</td><td>Raise a complaint</td></tr>
+        <tr><td>GET</td><td>/api/v1/complaints/me</td><td>Student</td><td>Student's own complaints</td></tr>
+        <tr><td>GET</td><td>/api/v1/complaints</td><td>Warden</td><td>All complaints (filter by status/hostel)</td></tr>
+        <tr><td>PATCH</td><td>/api/v1/complaints/:id/assign</td><td>Warden</td><td>Assign to technician</td></tr>
+        <tr><td>PATCH</td><td>/api/v1/complaints/:id/resolve</td><td>Warden</td><td>Mark resolved with notes</td></tr>
+        <tr><td colspan="4" style="background:var(--bg3);color:var(--muted);font-size:11px;font-weight:600;letter-spacing:0.1em">REPORTS</td></tr>
+        <tr><td>GET</td><td>/api/v1/reports/billing-summary</td><td>Warden+</td><td>Monthly billing totals, collection rate</td></tr>
+        <tr><td>GET</td><td>/api/v1/reports/defaulters</td><td>Warden+</td><td>Students with outstanding balances</td></tr>
+        <tr><td>GET</td><td>/api/v1/reports/attendance</td><td>Warden+</td><td>Attendance rates by mess/hostel/period</td></tr>
+        <tr><td>GET</td><td>/api/v1/reports/complaints</td><td>Warden+</td><td>Complaint stats, resolution times</td></tr>
+        <tr><td>GET</td><td>/api/v1/reports/export</td><td>Warden+</td><td>PDF/Excel export with ?type=&period= params</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>RBAC Matrix</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Capability</th><th>Student</th><th>Incharge</th><th>Warden</th><th>Super Admin</th></tr></thead>
+      <tbody>
+        <tr><td>View own attendance</td><td class="tick">✓</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td></tr>
+        <tr><td>Mark / backdate attendance</td><td class="cross">—</td><td class="tick">✓</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+        <tr><td>Waive a mess day</td><td class="cross">—</td><td class="tick">✓</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+        <tr><td>Add extras to student</td><td class="cross">—</td><td class="tick">✓</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+        <tr><td>Apply for leave</td><td class="tick">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+        <tr><td>Approve / reject leave</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+        <tr><td>View own bills + ledger</td><td class="tick">✓</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td></tr>
+        <tr><td>View all student bills</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+        <tr><td>Submit payment proof</td><td class="tick">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+        <tr><td>Verify / reject payments</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+        <tr><td>Raise complaint</td><td class="tick">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+        <tr><td>Assign / resolve complaints</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+        <tr><td>Generate bills (manual trigger)</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td></tr>
+        <tr><td>Import students (CSV)</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td></tr>
+        <tr><td>Manage hostels / messes / rent config</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td></tr>
+        <tr><td>View / export reports</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+        <tr><td>View audit logs</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="tick">✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Auth Strategy: JWT + Refresh Token Rotation</h3>
+  <div class="card">
+    <ul>
+      <li><strong>Access token:</strong> 15 minutes, signed with <code>HS256</code>, contains <code>{ userId, role, studentId? }</code></li>
+      <li><strong>Refresh token:</strong> 7 days, stored in <code>httpOnly + Secure + SameSite=Strict</code> cookie. Also stored in Redis with <code>SET refresh:{userId} {token} EX 604800</code> — enables single-session invalidation on logout.</li>
+      <li><strong>Rotation:</strong> Every refresh call issues a new refresh token and invalidates the old one. Prevents replay attacks.</li>
+      <li><strong>First login:</strong> <code>must_change_pwd = true</code> → client redirected to change-password page before any other action.</li>
+      <li><strong>Admin accounts:</strong> Pre-created only. No public registration endpoint. CSV import creates student accounts with <code>password = bcrypt(rollNumber)</code> and <code>must_change_pwd = true</code>.</li>
+    </ul>
+  </div>
+
+  <h3>Error Handling Architecture</h3>
+  <pre><code>// AppError.ts — all thrown errors extend this
+class AppError extends Error {
+  constructor(
+    public message: string,
+    public statusCode: number,
+    public code: string,         // e.g. 'LEAVE_TOO_EARLY', 'BILL_ALREADY_PAID'
+    public isOperational = true  // false = programming error → 500 + alert
+  ) { super(message); }
+}
+
+// Usage in service layer
+if (daysBefore < 2) {
+  throw new AppError('Leave must be applied at least 2 days in advance', 422, 'LEAVE_TOO_EARLY');
+}
+
+// Global error handler
+// Operational errors → send { error: { code, message } }  to client
+// Non-operational → log full stack, send generic 500, trigger alert
+  </code></pre>
+</section>
+
+<!-- ─── FRONTEND ─── -->
+<section id="frontend">
+  <div class="section-divider"></div>
+  <h2>Frontend Design</h2>
+
+  <h3>Technology Choices</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>Server State: React Query</h4>
+      <p style="font-size:13px;color:var(--muted)">Handles all API data — caching, background refetch, loading states, optimistic updates. No manual useEffect/fetch. Cache invalidation on mutations (e.g. approve leave → refetch leave list).</p>
+    </div>
+    <div class="card">
+      <h4>Client State: Zustand</h4>
+      <p style="font-size:13px;color:var(--muted)">Only for auth user object and unread notification count. Everything else lives in React Query. Avoids Redux boilerplate for simple needs.</p>
+    </div>
+    <div class="card">
+      <h4>UI: shadcn/ui + Tailwind CSS</h4>
+      <p style="font-size:13px;color:var(--muted)">Accessible, unstyled-at-core components. Consistent design system. Date pickers, tables, modals, forms — all pre-built and accessible.</p>
+    </div>
+    <div class="card">
+      <h4>Forms: React Hook Form + Zod</h4>
+      <p style="font-size:13px;color:var(--muted)">Shared Zod schemas between backend and frontend. Client-side validation before API call. <code>zodResolver</code> bridges both.</p>
+    </div>
+  </div>
+
+  <h3>App Router Structure (Next.js 14)</h3>
+  <pre><code class="tree">
+<span class="dir">app/</span>
+├── <span class="dir">(auth)/</span>
+│   ├── login/page.tsx
+│   └── change-password/page.tsx
+├── <span class="dir">(student)/</span>
+│   ├── layout.tsx            <span class="comment">← guard: role === STUDENT</span>
+│   ├── dashboard/page.tsx
+│   ├── <span class="dir">attendance/</span>
+│   │   └── page.tsx          <span class="comment">← AttendanceCalendar + summary stats</span>
+│   ├── <span class="dir">leaves/</span>
+│   │   ├── page.tsx          <span class="comment">← leave history + new leave button</span>
+│   │   └── new/page.tsx      <span class="comment">← date range picker + reason</span>
+│   ├── <span class="dir">billing/</span>
+│   │   ├── page.tsx          <span class="comment">← bill list with balance</span>
+│   │   └── [billId]/page.tsx <span class="comment">← line item breakdown + payment form</span>
+│   └── <span class="dir">complaints/</span>
+│       └── page.tsx
+├── <span class="dir">(incharge)/</span>
+│   ├── layout.tsx            <span class="comment">← guard: role === MESS_INCHARGE</span>
+│   ├── dashboard/page.tsx
+│   └── <span class="dir">attendance/</span>
+│       └── page.tsx          <span class="comment">← date picker + student grid with meal checkboxes</span>
+├── <span class="dir">(warden)/</span>
+│   ├── layout.tsx
+│   ├── dashboard/page.tsx    <span class="comment">← KPI cards + pending actions</span>
+│   ├── leaves/page.tsx       <span class="comment">← pending leave approvals</span>
+│   ├── payments/page.tsx     <span class="comment">← payment verification queue</span>
+│   ├── complaints/page.tsx
+│   ├── students/page.tsx     <span class="comment">← student list with search</span>
+│   └── reports/page.tsx
+└── <span class="dir">(admin)/</span>
+    ├── layout.tsx
+    ├── users/page.tsx
+    ├── hostels/page.tsx
+    ├── messes/page.tsx
+    └── import/page.tsx       <span class="comment">← CSV import + preview</span>
+  </code></pre>
+
+  <h3>Key UI Components</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>AttendanceCalendar</h4>
+      <p style="font-size:13px;color:var(--muted)">Month view calendar. Each day cell: green = present (shows meals), red = absent, yellow = on leave (waived), grey = waived by incharge, blue = leave without waiver. Click day to see meal breakdown. Header shows: Present days / Chargeable days / Waived days.</p>
+    </div>
+    <div class="card">
+      <h4>BillCard + Ledger</h4>
+      <p style="font-size:13px;color:var(--muted)">Expandable card per month. Header: total amount + balance due + status badge. Expanded: line items table (hostel rent, mess charges × days, each extra item, adjustments). Below: payment history timeline. Shows exactly how every rupee is computed.</p>
+    </div>
+    <div class="card">
+      <h4>AttendanceMarkingGrid (Incharge)</h4>
+      <p style="font-size:13px;color:var(--muted)">Shows all students assigned to the mess. Date selector at top. 3 toggles per student: B/L/D (breakfast/lunch/dinner). Bulk "all present" button. Save all button submits bulk attendance API. Visual diff if editing an existing record.</p>
+    </div>
+    <div class="card">
+      <h4>NotificationBell</h4>
+      <p style="font-size:13px;color:var(--muted)">Polling every 30s via React Query. Shows unread count badge. Click opens a popover with paginated notification list. Click notification navigates to relevant entity. Mark all read button.</p>
+    </div>
+    <div class="card">
+      <h4>LeaveForm</h4>
+      <p style="font-size:13px;color:var(--muted)">Date range picker with minimum start = today+2. Duration display updates live. Shows: "Leave qualifies for waiver" / "No waiver for ≤2 days". Max date = today + 60 days (2 month max). Running leave total for the year shown below.</p>
+    </div>
+    <div class="card">
+      <h4>PaymentProofForm</h4>
+      <p style="font-size:13px;color:var(--muted)">Select bill(s) to pay against, enter amount, transaction reference, upload screenshot (drag-and-drop, max 5MB, JPEG/PNG/PDF). Preview screenshot before submit. Disabled if bill is already PAID.</p>
+    </div>
+  </div>
+
+  <h3>Performance Considerations</h3>
+  <ul>
+    <li>React Query caches bill data — doesn't re-fetch frozen bills that haven't changed</li>
+    <li>Attendance calendar is virtualized if showing >3 months via <code>@tanstack/react-virtual</code></li>
+    <li>Reports page uses <code>Suspense</code> boundaries so heavy charts don't block the page</li>
+    <li>Images (payment screenshots) served directly from Cloudinary CDN with lazy loading</li>
+    <li>All data tables use server-side pagination (default 20 rows) — no client-side rendering of 2,000 student records</li>
+    <li>Next.js route-level code splitting — student bundle doesn't include warden components</li>
+  </ul>
+</section>
+
+<!-- ─── BILLING ENGINE ─── -->
+<section id="billing-engine">
+  <div class="section-divider"></div>
+  <h2>Billing Engine — Full Algorithm</h2>
+
+  <div class="callout">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-text"><strong>Critical Design:</strong> Bills are <strong>frozen</strong> once generated. Any retroactive change (e.g. leave approved after billing) creates an <strong>adjustment line item</strong> on the next month's bill — it never edits the original. This is standard financial system design and provides a clean audit trail.</div>
+  </div>
+
+  <h3>Billing Timing</h3>
+  <p>The billing job runs on the <strong>1st of every month at 2:00 AM</strong> for the previous month. Before billing runs, the leave auto-approval job is run at 11:45 PM on the last day of the month, ensuring all PENDING leaves are resolved before billing calculates.</p>
+
+  <h3>Full Calculation Pseudocode</h3>
+  <div class="algo">
+<span class="kw">function</span> <span class="fn">generateMonthlyBill</span>(studentId, year, month):
+<br><br>
+  &nbsp;&nbsp;<span class="cm">// ─── 1. Resolve context ───────────────────────────────</span>
+  <br>
+  &nbsp;&nbsp;periodStart  = <span class="fn">firstDayOf</span>(year, month)
+  <br>
+  &nbsp;&nbsp;periodEnd    = <span class="fn">lastDayOf</span>(year, month)
+  <br>
+  &nbsp;&nbsp;student      = <span class="fn">getStudent</span>(studentId)
+  <br>
+  &nbsp;&nbsp;messAssign   = <span class="fn">getCurrentMess</span>(studentId)        <span class="cm">// FK to mess</span>
+  <br>
+  &nbsp;&nbsp;perDayCharge = messAssign.mess.per_day_charge
+  <br><br>
+  &nbsp;&nbsp;<span class="cm">// ─── 2. Hostel rent (semester-based) ─────────────────</span>
+  <br>
+  &nbsp;&nbsp;hostelConfig = <span class="fn">getHostelRentConfig</span>(student.hostel_id, year, semester)
+  <br>
+  &nbsp;&nbsp;hostelRent   = (hostelConfig.due_month == month) ? hostelConfig.amount : 0
+  <br><br>
+  &nbsp;&nbsp;<span class="cm">// ─── 3. Load data for the billing period ─────────────</span>
+  <br>
+  &nbsp;&nbsp;waivedDays   = <span class="fn">getMessDayWaivers</span>(messAssign.mess_id, periodStart, periodEnd)
+  <br>
+  &nbsp;&nbsp;approvedLeaves = <span class="fn">getApprovedLeaves</span>(studentId, periodStart, periodEnd)
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// status IN (APPROVED, AUTO_APPROVED) AND NOT cancelled</span>
+  <br><br>
+  &nbsp;&nbsp;<span class="cm">// ─── 4. Day-by-day calculation ────────────────────────</span>
+  <br>
+  &nbsp;&nbsp;chargeableDays = 0
+  <br>
+  &nbsp;&nbsp;waivedLeafDays = 0
+  <br><br>
+  &nbsp;&nbsp;<span class="kw">for</span> day <span class="kw">in</span> <span class="fn">eachDayIn</span>(periodStart, periodEnd):
+  <br><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// Rule A: Mess-day waiver takes highest priority</span>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> day <span class="kw">in</span> waivedDays:
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">continue</span>   <span class="cm">// not charged regardless of attendance/leave</span>
+  <br><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// Rule B: Check if an approved leave covers this day</span>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;leave = <span class="fn">findLeaveForDay</span>(approvedLeaves, day)
+  <br><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> leave != null:
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// Calculate EFFECTIVE leave duration (handles early return)</span>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;effectiveEnd      = leave.return_date != null
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">?</span> <span class="fn">min</span>(leave.end_date, leave.return_date - <span class="num">1</span>)
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">:</span> leave.end_date
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;effectiveDuration = effectiveEnd - leave.start_date + <span class="num">1</span>
+  <br><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> effectiveDuration > <span class="num">2</span> <span class="kw">AND</span> day <= effectiveEnd:
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waivedLeafDays++   <span class="cm">// waiver applies → not charged</span>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">continue</span>
+  <br><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// Rule C: No waiver → student is charged</span>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// (present, absent-no-leave, 1-2 day leave, or after return_date)</span>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;chargeableDays++
+  <br><br>
+  &nbsp;&nbsp;<span class="cm">// ─── 5. Compute totals ───────────────────────────────</span>
+  <br>
+  &nbsp;&nbsp;messCharges  = chargeableDays × perDayCharge
+  <br>
+  &nbsp;&nbsp;extras       = <span class="fn">getExtrasForPeriod</span>(studentId, periodStart, periodEnd)
+  <br>
+  &nbsp;&nbsp;extrasTotal  = <span class="fn">sum</span>(e.quantity × e.unit_price <span class="kw">for</span> e <span class="kw">in</span> extras)
+  <br>
+  &nbsp;&nbsp;totalAmount  = hostelRent + messCharges + extrasTotal
+  <br><br>
+  &nbsp;&nbsp;<span class="cm">// ─── 6. Create frozen bill with line items ───────────</span>
+  <br>
+  &nbsp;&nbsp;bill = <span class="fn">createBill</span>({
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;student_id, billing_month: periodStart,
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;hostel_rent: hostelRent, mess_charges: messCharges,
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;extras_total: extrasTotal, total_amount: totalAmount,
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;chargeable_days: chargeableDays,
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;waived_days: waivedLeafDays + waivedMessDays,
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;total_days: daysInMonth, is_frozen: <span class="kw">true</span>
+  <br>
+  &nbsp;&nbsp;})
+  <br>
+  &nbsp;&nbsp;<span class="fn">createLineItems</span>(bill, extras)
+  <br>
+  &nbsp;&nbsp;<span class="fn">dispatchNotification</span>(studentId, <span class="str">'BILL_GENERATED'</span>, bill)
+  </div>
+
+  <h3>Edge Cases Handled</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Scenario</th><th>Handling</th></tr></thead>
+      <tbody>
+        <tr><td>Leave spans two billing months</td><td>Duration checked on the full leave object. Each month's billing loop checks days in its own period independently. A 9-day cross-month leave qualifies for waiver in both months.</td></tr>
+        <tr><td>Student returns early from leave</td><td><code>return_date</code> on leave. Effective duration = <code>min(end_date, return_date-1) - start_date + 1</code>. Charged from return_date onwards.</td></tr>
+        <tr><td>Leave auto-approved AFTER billing runs</td><td>Billing job runs at 2 AM on 1st. Auto-approval runs at 11:45 PM on last day. If a leave slips through (applied on last day of month), create a negative adjustment on next month's bill via <code>bill_line_items</code> with type=ADJUSTMENT.</td></tr>
+        <tr><td>Mess day waived + student on leave same day</td><td>Mess waiver takes priority (first check in loop). Day not charged.</td></tr>
+        <tr><td>Student transferred to new hostel mid-semester</td><td>Hostel rent config uses current assignment at time of billing month. Historical records preserved via <code>hostel_assignments</code> history.</td></tr>
+        <tr><td>No attendance record (student absent, no leave)</td><td>Still charged. Absence without approved leave is not waived. The billing engine charges all chargeable days regardless of whether attendance record exists.</td></tr>
+        <tr><td>1-2 day leave (no waiver)</td><td>Detected by <code>effectiveDuration &lt;= 2</code> check. Days fall through to chargeableDays++.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ─── LEAVE ENGINE ─── -->
+<section id="leave-engine">
+  <div class="section-divider"></div>
+  <h2>Leave Engine — State Machine</h2>
+
+  <h3>Leave Lifecycle States</h3>
+  <pre><code>
+  PENDING ──[warden approves]────────► APPROVED
+          │
+          ├──[warden rejects]─────────► REJECTED
+          │
+          └──[48h elapsed, no action]─► AUTO_APPROVED
+
+  APPROVED ──[student cancels / returns early]──► CANCELLED (or return_date set)
+  AUTO_APPROVED ──[same as above]───────────────► CANCELLED
+
+  REJECTED is terminal (student must apply new leave)
+  CANCELLED is terminal
+  </code></pre>
+
+  <h3>Validation Rules (enforced at service layer)</h3>
+  <div class="card">
+    <ul>
+      <li><strong>Advance requirement:</strong> <code>start_date >= CURRENT_DATE + 2</code>. Error code: <code>LEAVE_TOO_EARLY</code>.</li>
+      <li><strong>No retroactive:</strong> System calculates min allowed start date at request time. No override.</li>
+      <li><strong>Maximum duration:</strong> Total approved leave days in current academic year must not exceed 60 days. Checked at application time by summing all non-rejected/cancelled leaves.</li>
+      <li><strong>No overlap:</strong> A new leave cannot overlap with an existing PENDING or APPROVED leave.</li>
+      <li><strong>End date ≥ Start date:</strong> Schema constraint.</li>
+    </ul>
+  </div>
+
+  <h3>Auto-Approval Job Design</h3>
+  <pre><code>// BullMQ worker — runs every 30 minutes
+// Also: a cron job triggers a "sweep" at 11:45 PM daily
+
+async function leaveAutoApproveWorker() {
+  const overdueLeaves = await prisma.leave.findMany({
+    where: {
+      status: 'PENDING',
+      auto_approve_at: { lte: new Date() }
+    }
+  });
+
+  for (const leave of overdueLeaves) {
+    await prisma.$transaction([
+      prisma.leave.update({
+        where: { id: leave.id },
+        data: { status: 'AUTO_APPROVED', actioned_at: new Date() }
+      }),
+      prisma.auditLog.create({
+        data: {
+          user_id: null,              // system action
+          action: 'LEAVE_AUTO_APPROVED',
+          entity_type: 'leave',
+          entity_id: leave.id,
+          new_value: { status: 'AUTO_APPROVED', trigger: 'scheduler' }
+        }
+      })
+    ]);
+    // Enqueue notification
+    await notificationQueue.add('send', {
+      userId: leave.student.user_id,
+      type: 'LEAVE_AUTO_APPROVED',
+      referenceId: leave.id
+    });
+  }
+}
+  </code></pre>
+
+  <h3>Early Return Flow</h3>
+  <p>When a student cancels / marks early return on an APPROVED leave:</p>
+  <ol>
+    <li>Frontend shows: "I returned on" date picker with max = leave.end_date</li>
+    <li>PATCH <code>/api/v1/leaves/:id</code> with <code>{ return_date: "2025-05-09" }</code></li>
+    <li>Service sets <code>return_date</code> on the leave (leave status stays APPROVED)</li>
+    <li>Billing engine uses <code>min(end_date, return_date - 1)</code> as effective end</li>
+    <li>Audit log records the change with old/new value</li>
+    <li>If the bill for this period is already generated and frozen → create adjustment line item on next month's bill</li>
+  </ol>
+</section>
+
+<!-- ─── COMPLAINTS ─── -->
+<section id="complaint-system">
+  <div class="section-divider"></div>
+  <h2>Complaint System</h2>
+
+  <h3>Lifecycle</h3>
+  <pre><code>
+  Student raises complaint
+       │
+       ▼
+    OPEN  ──────────────────────────── 48h preferred response window
+       │                                (no hard SLA, but tracked in reports)
+       │ Warden assigns technician
+       ▼
+   ASSIGNED (technician name + mobile stored)
+       │
+       │ Technician completes work, tells warden
+       │ Warden marks resolved + adds resolution notes
+       ▼
+   RESOLVED ──── Student notified in-app + email
+  </code></pre>
+
+  <h3>Warden's Complaint Queue</h3>
+  <p>The warden's complaints list supports filtering by status, hostel, and date range. The "pending > 48h" view highlights overdue complaints with an amber indicator. Assignment requires selecting from the active technicians list (name + phone). Reassignment is always allowed — the old technician is replaced; the change is audit-logged.</p>
+
+  <h3>Technician Management (Admin)</h3>
+  <p>Technicians are managed as a simple registry in the admin panel — name, mobile, specialization (optional). No login credentials. Wardens see this list when assigning complaints. Technician records can be soft-deactivated (<code>is_active = false</code>) which removes them from the assignment dropdown without losing historical complaint records.</p>
+</section>
+
+<!-- ─── BACKGROUND JOBS ─── -->
+<section id="jobs">
+  <div class="section-divider"></div>
+  <h2>Background Jobs (BullMQ + Redis)</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Queue</th><th>Schedule</th><th>Description</th><th>Retry Policy</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>leave-auto-approve</code></td>
+          <td>Every 30 min + cron 11:45 PM daily</td>
+          <td>Find PENDING leaves past <code>auto_approve_at</code>, set AUTO_APPROVED, enqueue notifications</td>
+          <td>3 retries, exponential backoff. Idempotent (skips already-processed leaves).</td>
+        </tr>
+        <tr>
+          <td><code>billing-generate</code></td>
+          <td>Cron 2:00 AM on 1st of month</td>
+          <td>Generate bills for all active students for previous month. Runs after auto-approval sweep.</td>
+          <td>3 retries. Uses DB transaction per student — partial failure safe. Skips if bill already exists (<code>UNIQUE</code> constraint).</td>
+        </tr>
+        <tr>
+          <td><code>notification-send</code></td>
+          <td>Triggered by other jobs/controllers</td>
+          <td>Write in-app notification to DB + send email via Resend</td>
+          <td>5 retries. Email failures don't fail the in-app notification.</td>
+        </tr>
+        <tr>
+          <td><code>report-export</code></td>
+          <td>On-demand (user triggers)</td>
+          <td>Generate PDF/Excel report, upload to Cloudinary, email download link</td>
+          <td>2 retries. Heavy reports run async so they don't block the HTTP request.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-text"><strong>Concurrency note:</strong> The billing job uses a <strong>distributed lock</strong> (Redis SETNX) to prevent two billing job instances running simultaneously (e.g., on server restart). Lock key: <code>lock:billing-generate:{year}-{month}</code>. Lock TTL: 30 minutes.</div>
+  </div>
+</section>
+
+<!-- ─── NOTIFICATIONS ─── -->
+<section id="notifications">
+  <div class="section-divider"></div>
+  <h2>Notification System</h2>
+
+  <h3>Architecture: Two-Layer</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>In-App Notifications</h4>
+      <p style="font-size:13px;color:var(--muted)">Written to <code>notifications</code> table. Frontend polls every 30 seconds via React Query. Unread count shown on bell icon. Clicking opens a notification popover. Each notification has a <code>reference_type</code> and <code>reference_id</code> for deep-linking to the relevant entity.</p>
+    </div>
+    <div class="card">
+      <h4>Email Notifications</h4>
+      <p style="font-size:13px;color:var(--muted)">Sent via Resend. Each notification type has an HTML email template. Email failures are retried 5 times via BullMQ. Email sending does NOT block the main API response — always enqueued async.</p>
+    </div>
+  </div>
+
+  <h3>Notification Event Map</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Event</th><th>Recipient</th><th>In-App</th><th>Email</th></tr></thead>
+      <tbody>
+        <tr><td>Leave approved by warden</td><td>Student</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Leave rejected by warden</td><td>Student</td><td>✓</td><td>✓ (with reason)</td></tr>
+        <tr><td>Leave auto-approved</td><td>Student</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Monthly bill generated</td><td>Student</td><td>✓</td><td>✓ (with summary)</td></tr>
+        <tr><td>Payment proof verified</td><td>Student</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Payment proof rejected</td><td>Student</td><td>✓</td><td>✓ (with reason)</td></tr>
+        <tr><td>Complaint assigned to technician</td><td>Student</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Complaint resolved</td><td>Student</td><td>✓</td><td>✓ (with notes)</td></tr>
+        <tr><td>New leave pending (warden action needed)</td><td>Warden</td><td>✓</td><td>—</td></tr>
+        <tr><td>New payment pending verification</td><td>Warden</td><td>✓</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ─── SECURITY ─── -->
+<section id="security">
+  <div class="section-divider"></div>
+  <h2>Security</h2>
+
+  <h3>OWASP Top 10 Coverage</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Threat</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td>Broken Access Control</td><td>RBAC middleware on every route. Student can only access their own <code>userId</code> — checked by <code>req.user.studentId === params.studentId</code> in service layer, not just controller.</td></tr>
+        <tr><td>Injection (SQL)</td><td>Prisma ORM — all queries parameterized. No raw SQL except in specific aggregate queries (which use Prisma's <code>$queryRaw</code> with tagged template literals — also parameterized).</td></tr>
+        <tr><td>Broken Authentication</td><td>bcrypt (rounds=12) for passwords. JWT short-lived (15 min). Refresh tokens in httpOnly cookie. Forced password change on first login. No brute-force: rate limit 5 failed logins per IP per 15 min.</td></tr>
+        <tr><td>Security Misconfiguration</td><td>Helmet.js sets all security headers. CORS locked to frontend origin. Environment variables validated with Zod on startup — server won't start with missing config.</td></tr>
+        <tr><td>Sensitive Data Exposure</td><td>Password hashes never in API responses. Payment screenshot URLs are signed Cloudinary URLs (expire after 1 hour). Student data access strictly role-gated.</td></tr>
+        <tr><td>XSS</td><td>React's JSX escapes by default. Content-Security-Policy header via Helmet. No <code>dangerouslySetInnerHTML</code>.</td></tr>
+        <tr><td>CSRF</td><td>SameSite=Strict on refresh token cookie. API endpoints require Bearer token in header — cookie-only requests won't work.</td></tr>
+        <tr><td>File Upload</td><td>Cloudinary handles file upload directly from frontend (signed upload). MIME type validated on both client and Cloudinary side. Max 5MB. Only images/PDF accepted.</td></tr>
+        <tr><td>Enumeration</td><td>UUID primary keys — no sequential IDs. Login error message is generic ("Invalid credentials") — doesn't reveal whether email exists.</td></tr>
+        <tr><td>Rate Limiting</td><td>Global: 100 req/min per IP. Login: 5 attempts/15 min per IP. Report export: 3 requests/hour per user.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Audit Log Access</h3>
+  <p>Super Admin can view audit logs in the UI with filters: entity type, date range, user. The raw <code>audit_logs</code> table is also accessible directly via PostgreSQL for forensic analysis. Audit log records are <strong>append-only</strong> — no UPDATE or DELETE operations are permitted on this table (enforced by removing those Prisma operations in the repository class and via PostgreSQL row-level security).</p>
+</section>
+
+<!-- ─── CACHING ─── -->
+<section id="caching">
+  <div class="section-divider"></div>
+  <h2>Caching Strategy (Redis)</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Cache Key</th><th>TTL</th><th>Content</th><th>Invalidated when</th></tr></thead>
+      <tbody>
+        <tr><td><code>bill:{studentId}:{month}</code></td><td>24 hours</td><td>Frozen monthly bill + line items</td><td>Payment verified (updates amount_paid); adjustment added</td></tr>
+        <tr><td><code>attendance:{studentId}:{month}</code></td><td>1 hour</td><td>Calendar data for a student month</td><td>Any attendance record in that month is modified</td></tr>
+        <tr><td><code>notif-count:{userId}</code></td><td>30 seconds</td><td>Unread notification count (integer)</td><td>New notification created for this user</td></tr>
+        <tr><td><code>refresh:{userId}</code></td><td>7 days</td><td>Current valid refresh token</td><td>Logout or token rotation</td></tr>
+        <tr><td><code>students:mess:{messId}</code></td><td>1 hour</td><td>List of students assigned to a mess</td><td>New mess assignment, or student deactivated</td></tr>
+        <tr><td><code>lock:billing:{year}-{month}</code></td><td>30 min</td><td>Distributed lock flag</td><td>Billing job completes or TTL expires</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout info">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-text">Cache-aside pattern throughout: check Redis → miss → query PostgreSQL → write to Redis → return. Cache writes are non-blocking (fire-and-forget in background). Cache misses are always safe — they just hit the DB.</div>
+  </div>
+</section>
+
+<!-- ─── DEPLOYMENT ─── -->
+<section id="deployment">
+  <div class="section-divider"></div>
+  <h2>Deployment Architecture</h2>
+
+  <h3>Phase 1: Free Tier (Render / Railway)</h3>
+  <pre><code>
+  ┌─────────────────────────────────────────────┐
+  │              Render.com                     │
+  │                                             │
+  │  ┌──────────────┐   ┌─────────────────────┐│
+  │  │  API Server  │   │  Frontend (Next.js) ││
+  │  │  (Express)   │   │  on Vercel (free)   ││
+  │  └──────┬───────┘   └─────────────────────┘│
+  │         │                                   │
+  │  ┌──────▼───────┐   ┌─────────────────────┐│
+  │  │  PostgreSQL  │   │  Redis (Upstash)    ││
+  │  │  (Render DB) │   │  free tier           ││
+  │  └──────────────┘   └─────────────────────┘│
+  └─────────────────────────────────────────────┘
+
+  Cloudinary: free tier (25GB storage, 25GB bandwidth)
+  Resend:     free tier (3,000 emails/month)
+  </code></pre>
+
+  <h3>Phase 2: Cloud Production (AWS / GCP)</h3>
+  <pre><code>
+  ┌─────────────────────────────────────────────────────────┐
+  │                    VPC                                  │
+  │                                                         │
+  │  ┌─────────────┐     ┌──────────────────────────────┐  │
+  │  │  Nginx      │────▶│  App Server (Docker)         │  │
+  │  │  (reverse   │     │  2x containers (horizontal   │  │
+  │  │   proxy +   │     │  scale on demand)            │  │
+  │  │   TLS)      │     └───────────────┬──────────────┘  │
+  │  └─────────────┘                     │                  │
+  │                              ┌───────▼────────┐         │
+  │                              │  Private Subnet│         │
+  │                              │  ┌──────────┐  │         │
+  │                              │  │ Postgres │  │         │
+  │                              │  │ (primary +│ │         │
+  │                              │  │  1 read  │  │         │
+  │                              │  │  replica)│  │         │
+  │                              │  └──────────┘  │         │
+  │                              │  ┌──────────┐  │         │
+  │                              │  │  Redis   │  │         │
+  │                              │  │ (managed)│  │         │
+  │                              │  └──────────┘  │         │
+  │                              └────────────────┘         │
+  └─────────────────────────────────────────────────────────┘
+  </code></pre>
+
+  <h3>Docker Compose (Development)</h3>
+  <pre><code>services:
+  api:
+    build: ./backend
+    env_file: .env
+    depends_on: [db, redis]
+    ports: ["4000:4000"]
+
+  worker:
+    build: ./backend
+    command: node dist/worker.js     # same image, different entry
+    env_file: .env
+    depends_on: [db, redis]
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: hostel_mgmt
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes: ["pg_data:/var/lib/postgresql/data"]
+
+  redis:
+    image: redis:7-alpine
+    volumes: ["redis_data:/data"]
+
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    env_file: .env.local
+  </code></pre>
+
+  <h3>CI/CD Pipeline (GitHub Actions)</h3>
+  <pre><code>on: push to main
+  ↓
+lint + type-check (tsc --noEmit)
+  ↓
+unit tests (Jest — billing engine, leave validation)
+  ↓
+integration tests (Prisma test DB)
+  ↓
+Docker build
+  ↓
+Deploy to Render/Railway (auto-deploy on main)
+  ↓
+Prisma migrate deploy (runs before server starts)
+  </code></pre>
+</section>
+
+<!-- ─── ROADMAP ─── -->
+<section id="roadmap">
+  <div class="section-divider"></div>
+  <h2>Implementation Roadmap</h2>
+
+  <h3>MVP Definition</h3>
+  <p>The MVP delivers core operational value: wardens can manage attendance, leaves, and payments; students can view their status and apply for leave.</p>
+
+  <h4><span class="tag phase">Phase 1 — Foundation</span> &nbsp; Weeks 1–3</h4>
+  <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Project setup + database</h4><p>Monorepo setup, Prisma schema, all migrations, seed scripts for dev data. Docker Compose running.</p></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Auth system</h4><p>Login, JWT access + refresh, forced password change, RBAC middleware. CSV student import with bcrypt seeding.</p></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Hostel / Mess / Student management</h4><p>CRUD for hostels, messes, rooms, assignments. Admin UI for managing structure.</p></div></div>
+
+  <h4><span class="tag phase">Phase 2 — Core Operations</span> &nbsp; Weeks 4–7</h4>
+  <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Attendance system</h4><p>Incharge attendance marking (bulk + per-meal toggles). Backdate support. Mess-day waiver. Student calendar view.</p></div></div>
+  <div class="step"><div class="step-num">5</div><div class="step-body"><h4>Leave system</h4><p>Student leave application (with advance validation). Warden approval/rejection. Auto-approval job (BullMQ). Early return handling.</p></div></div>
+  <div class="step"><div class="step-num">6</div><div class="step-body"><h4>Extras tracking</h4><p>Mess extra items configuration. Incharge adds extras per student. Displayed in billing.</p></div></div>
+
+  <h4><span class="tag phase">Phase 3 — Billing &amp; Payments</span> &nbsp; Weeks 8–11</h4>
+  <div class="step"><div class="step-num">7</div><div class="step-body"><h4>Billing engine</h4><p>Full algorithm implementation. Unit tested against all edge cases. Monthly cron job. Bill generation + line items. Student ledger view.</p></div></div>
+  <div class="step"><div class="step-num">8</div><div class="step-body"><h4>Payment proof system</h4><p>Student upload (Cloudinary). Warden verification queue. Partial payment support. Balance calculation. Student ledger transparency.</p></div></div>
+
+  <h4><span class="tag phase">Phase 4 — Complaints &amp; Notifications</span> &nbsp; Weeks 12–14</h4>
+  <div class="step"><div class="step-num">9</div><div class="step-body"><h4>Complaint system</h4><p>Student complaint form. Warden assignment + resolution. Technician registry. Status tracking.</p></div></div>
+  <div class="step"><div class="step-num">10</div><div class="step-body"><h4>Notifications</h4><p>In-app notification polling. Email via Resend. All 10 notification event types wired up.</p></div></div>
+
+  <h4><span class="tag phase">Phase 5 — Reports &amp; Polish</span> &nbsp; Weeks 15–17</h4>
+  <div class="step"><div class="step-num">11</div><div class="step-body"><h4>Reports + exports</h4><p>Billing summary, defaulter list, attendance rates, complaint metrics. PDF via <code>puppeteer</code>, Excel via <code>exceljs</code>. Async export via BullMQ.</p></div></div>
+  <div class="step"><div class="step-num">12</div><div class="step-body"><h4>Warden dashboard analytics</h4><p>KPI cards, charts (Chart.js). Occupancy rate, collection rate, open complaints count, pending actions.</p></div></div>
+  <div class="step"><div class="step-num">13</div><div class="step-body"><h4>Security audit + performance</h4><p>Penetration test checklist, rate limiting tuning, Redis caching on hot paths, query explain analysis on slow queries.</p></div></div>
+
+  <div class="callout info" style="margin-top:32px">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-text">
+      <strong>Recommended team:</strong> 1 backend engineer + 1 frontend engineer + 1 part-time QA/PM. Solo developer can hit MVP (Phases 1–3) in ~10 weeks working full-time. <br><br>
+      <strong>Testing priorities:</strong> Billing engine (unit tests for every edge case), leave validation, auth/RBAC (integration tests). UI tests via Playwright for critical student flows.
+    </div>
+  </div>
+
+  <div style="height:40px"></div>
+</section>
+
+</main>
+
+<script>
+// Highlight active nav link on scroll
+const sections = document.querySelectorAll('section[id], div[id]');
+const navLinks = document.querySelectorAll('nav a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
