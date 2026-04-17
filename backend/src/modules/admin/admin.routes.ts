@@ -27,6 +27,62 @@ const upload = multer({
  * Admin routes - all require SUPER_ADMIN role
  */
 
+router.get(
+	"/hostels",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.listHostels.bind(adminController),
+);
+
+router.post(
+	"/hostels",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.createHostel.bind(adminController),
+);
+
+router.post(
+	"/hostels/:hostelId/rooms",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.createRoom.bind(adminController),
+);
+
+router.get(
+	"/messes",
+	authenticate,
+	authorize("SUPER_ADMIN", "WARDEN", "MESS_INCHARGE"),
+	adminController.listMesses.bind(adminController),
+);
+
+router.post(
+	"/messes",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.createMess.bind(adminController),
+);
+
+router.post(
+	"/messes/:messId/incharge-assignment",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.assignIncharge.bind(adminController),
+);
+
+router.post(
+	"/hostel-rent-config",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.createHostelRentConfig.bind(adminController),
+);
+
+router.post(
+	"/users",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.createUser.bind(adminController),
+);
+
 // POST /admin/students/import - bulk import from CSV
 router.post(
 	"/students/import",

@@ -22,6 +22,10 @@ const InchargeDashboardPage = lazy(
 const AdminDashboardPage = lazy(
 	() => import("@/pages/admin/AdminDashboardPage"),
 );
+const HostelsPage = lazy(() => import("@/pages/admin/HostelsPage"));
+const MessesPage = lazy(() => import("@/pages/admin/MessesPage"));
+const StudentsPage = lazy(() => import("@/pages/admin/StudentsPage"));
+const ImportPage = lazy(() => import("@/pages/admin/ImportPage"));
 
 const wrap = (el: JSX.Element) => (
 	<Suspense fallback={<div>Loading…</div>}>{el}</Suspense>
@@ -75,6 +79,10 @@ export const router = createBrowserRouter([
 		element: <ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />,
 		children: [
 			{ path: "/admin/dashboard", element: wrap(<AdminDashboardPage />) },
+			{ path: "/admin/hostels", element: wrap(<HostelsPage />) },
+			{ path: "/admin/messes", element: wrap(<MessesPage />) },
+			{ path: "/admin/students", element: wrap(<StudentsPage />) },
+			{ path: "/admin/import", element: wrap(<ImportPage />) },
 		],
 	},
 

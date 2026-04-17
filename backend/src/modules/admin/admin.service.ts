@@ -7,6 +7,251 @@ import { AppError } from "../../shared/errors/AppError.js";
  */
 
 export class AdminService {
+	async createHostel(input: { name: string; gender: "MALE" | "FEMALE" }) {
+		const existing = await prisma.hostel.findUnique({
+			where: { name: input.name },
+		});
+		if (existing) {
+			throw new AppError(
+				"Hostel name already exists",
+				409,
+				"DUPLICATE_HOSTEL",
+			);
+		}
+
+		return prisma.hostel.create({
+			data: {
+				name: input.name,
+				gender: input.gender,
+			},
+		});
+	}
+
+	async listHostels() {
+		return prisma.hostel.findMany({
+			where: { deletedAt: null },
+			orderBy: { name: "asc" },
+			include: {
+				rooms: {
+					where: { deletedAt: null },
+					orderBy: { roomNumber: "asc" },
+				},
+			},
+		});
+	}
+
+	async createRoom(
+		hostelId: string,
+		input: { roomNumber: string; capacity: number },
+	) {
+		const hostel = await prisma.hostel.findFirst({
+			where: { id: hostelId, deletedAt: null },
+		});
+		if (!hostel) {
+			throw new AppError("Hostel not found", 404, "HOSTEL_NOT_FOUND");
+		}
+
+		const existing = await prisma.room.findFirst({
+			where: {
+				hostelId,
+				roomNumber: input.roomNumber,
+				deletedAt: null,
+			},
+		});
+		if (existing) {
+			throw new AppError(
+				"Room already exists in this hostel",
+				409,
+				"DUPLICATE_ROOM",
+			);
+		}
+
+		return prisma.room.create({
+			data: {
+				hostelId,
+				roomNumber: input.roomNumber,
+				capacity: input.capacity,
+			},
+		});
+	}
+
+	async createMess(input: {
+		name: string;
+		gender: "MALE" | "FEMALE";
+		perDayCharge: number;
+	}) {
+		const existing = await prisma.mess.findUnique({
+			where: { name: input.name },
+		});
+		if (existing) {
+			throw new AppError(
+				"Mess name already exists",
+				409,
+				"DUPLICATE_MESS",
+			);
+		}
+
+		return prisma.mess.create({
+			data: {
+				name: input.name,
+				gender: input.gender,
+				perDayCharge: input.perDayCharge.toFixed(2),
+			},
+		});
+	}
+
+	async listMesses() {
+		return prisma.mess.findMany({
+			where: { deletedAt: null },
+			orderBy: { name: "asc" },
+		});
+	}
+
+	async createHostelRentConfig(
+		input: {
+			hostelId: string;
+			academicYear: string;
+			semester: "FIRST" | "SECOND";
+			amount: number;
+			dueMonth: number;
+		},
+		createdById: string,
+	) {
+		const hostel = await prisma.hostel.findFirst({
+			where: { id: input.hostelId, deletedAt: null },
+		});
+		if (!hostel) {
+			throw new AppError("Hostel not found", 404, "HOSTEL_NOT_FOUND");
+		}
+
+		return prisma.hostelRentConfig.upsert({
+			where: {
+				hostelId_academicYear_semester: {
+					hostelId: input.hostelId,
+					academicYear: input.academicYear,
+					semester: input.semester,
+				},
+			},
+			update: {
+				amount: input.amount.toFixed(2),
+				dueMonth: input.dueMonth,
+				createdById,
+			},
+			create: {
+				hostelId: input.hostelId,
+				academicYear: input.academicYear,
+				semester: input.semester,
+				amount: input.amount.toFixed(2),
+				dueMonth: input.dueMonth,
+				createdById,
+			},
+		});
+	}
+
+	async createAdminUser(input: {
+		email: string;
+		role: "WARDEN" | "MESS_INCHARGE";
+		firstName: string;
+		lastName: string;
+		phone?: string | undefined;
+		password?: string | undefined;
+	}) {
+		const existing = await prisma.user.findUnique({
+			where: { email: input.email.toLowerCase() },
+		});
+		if (existing) {
+			throw new AppError("Email already exists", 409, "DUPLICATE_EMAIL");
+		}
+
+		const plainPassword = input.password ?? `${input.firstName}@12345`;
+		const passwordHash = await bcrypt.hash(plainPassword, 12);
+
+		const user = await prisma.user.create({
+			data: {
+				email: input.email.toLowerCase(),
+				passwordHash,
+				role: input.role,
+				firstName: input.firstName,
+				lastName: input.lastName,
+				...(input.phone ? { phone: input.phone } : {}),
+				mustChangePwd: true,
+				isActive: true,
+			},
+			select: {
+				id: true,
+				email: true,
+				role: true,
+				firstName: true,
+				lastName: true,
+				mustChangePwd: true,
+			},
+		});
+
+		return {
+			user,
+			temporaryPassword: plainPassword,
+		};
+	}
+
+	async assignInchargeToMess(input: {
+		userId: string;
+		messId: string;
+		startDate: Date;
+	}) {
+		const [user, mess] = await Promise.all([
+			prisma.user.findFirst({
+				where: {
+					id: input.userId,
+					deletedAt: null,
+					role: "MESS_INCHARGE",
+					isActive: true,
+				},
+			}),
+			prisma.mess.findFirst({
+				where: { id: input.messId, deletedAt: null },
+			}),
+		]);
+
+		if (!user) {
+			throw new AppError(
+				"Mess incharge user not found",
+				404,
+				"INCHARGE_NOT_FOUND",
+			);
+		}
+		if (!mess) {
+			throw new AppError("Mess not found", 404, "MESS_NOT_FOUND");
+		}
+
+		const previousAssignment = await prisma.inchargeAssignment.findFirst({
+			where: { messId: input.messId, isCurrent: true },
+			orderBy: { startDate: "desc" },
+		});
+
+		return prisma.$transaction(async (tx) => {
+			if (previousAssignment) {
+				await tx.inchargeAssignment.update({
+					where: { id: previousAssignment.id },
+					data: {
+						isCurrent: false,
+						endDate: new Date(
+							input.startDate.getTime() - 24 * 60 * 60 * 1000,
+						),
+					},
+				});
+			}
+
+			return tx.inchargeAssignment.create({
+				data: {
+					userId: input.userId,
+					messId: input.messId,
+					startDate: input.startDate,
+					isCurrent: true,
+				},
+			});
+		});
+	}
+
 	/**
 	 * Import students from CSV - bulk create users and students
 	 */
@@ -86,39 +331,43 @@ export class AdminService {
 
 		// Bulk create: transaction ensures all-or-nothing
 		try {
-			for (const row of rows) {
-				// Hash password = bcrypt(rollNumber)
-				const hashedPassword = await bcrypt.hash(row.roll_number, 12);
+			await prisma.$transaction(async (tx) => {
+				for (const row of rows) {
+					const hashedPassword = await bcrypt.hash(
+						row.roll_number,
+						12,
+					);
 
-				const user = await prisma.user.create({
-					data: {
-						email: row.email.toLowerCase(),
-						passwordHash: hashedPassword,
-						role: "STUDENT",
-						firstName: row.first_name,
-						lastName: row.last_name,
-						isActive: true,
-						mustChangePwd: true, // Force change on first login
-					},
-				});
+					const user = await tx.user.create({
+						data: {
+							email: row.email.toLowerCase(),
+							passwordHash: hashedPassword,
+							role: "STUDENT",
+							firstName: row.first_name,
+							lastName: row.last_name,
+							isActive: true,
+							mustChangePwd: true,
+						},
+					});
 
-				await prisma.student.create({
-					data: {
-						userId: user.id,
-						rollNumber: row.roll_number,
-						gender: row.gender,
-						department: row.department ?? null,
-						academicYear: row.academic_year,
-						batch: row.batch ?? null,
-						isActive: true,
-					},
-				});
+					await tx.student.create({
+						data: {
+							userId: user.id,
+							rollNumber: row.roll_number,
+							gender: row.gender,
+							department: row.department ?? null,
+							academicYear: row.academic_year,
+							batch: row.batch ?? null,
+							isActive: true,
+						},
+					});
 
-				successCount++;
-			}
+					successCount++;
+				}
+			});
 		} catch (error) {
 			throw new AppError(
-				"Bulk import failed. Some records may have been partially created.",
+				"Bulk import failed. No records were committed.",
 				500,
 				"BULK_IMPORT_ERROR",
 				true,

@@ -1,7 +1,15 @@
 import { parse } from "csv-parse/sync";
 import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../../shared/errors/AppError.js";
-import { importStudentsSchema } from "./admin.schema.js";
+import {
+	assignInchargeSchema,
+	createAdminUserSchema,
+	createHostelRentConfigSchema,
+	createHostelSchema,
+	createMessSchema,
+	createRoomSchema,
+	importStudentsSchema,
+} from "./admin.schema.js";
 import { adminService } from "./admin.service.js";
 
 /**
@@ -9,6 +17,197 @@ import { adminService } from "./admin.service.js";
  */
 
 export class AdminController {
+	private getSingleParam(
+		value: string | string[] | undefined,
+		field: string,
+	): string {
+		if (!value || Array.isArray(value)) {
+			throw new AppError(`${field} is required`, 422, "VALIDATION_ERROR");
+		}
+		return value;
+	}
+
+	async createHostel(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const parsed = createHostelSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const hostel = await adminService.createHostel(parsed.data);
+			res.status(201).json({ success: true, data: hostel });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async listHostels(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const hostels = await adminService.listHostels();
+			res.json({ success: true, data: hostels });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async createRoom(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const hostelId = this.getSingleParam(
+				req.params.hostelId,
+				"Hostel id",
+			);
+
+			const parsed = createRoomSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const room = await adminService.createRoom(hostelId, parsed.data);
+			res.status(201).json({ success: true, data: room });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async createMess(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const parsed = createMessSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const mess = await adminService.createMess(parsed.data);
+			res.status(201).json({ success: true, data: mess });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async listMesses(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const messes = await adminService.listMesses();
+			res.json({ success: true, data: messes });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async createHostelRentConfig(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			if (!req.user) {
+				throw new AppError(
+					"User not authenticated",
+					401,
+					"NOT_AUTHENTICATED",
+				);
+			}
+
+			const parsed = createHostelRentConfigSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const config = await adminService.createHostelRentConfig(
+				parsed.data,
+				req.user.userId,
+			);
+			res.status(201).json({ success: true, data: config });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async createUser(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const parsed = createAdminUserSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const result = await adminService.createAdminUser(parsed.data);
+			res.status(201).json({ success: true, data: result });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async assignIncharge(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const messId = this.getSingleParam(req.params.messId, "Mess id");
+
+			const parsed = assignInchargeSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const assignment = await adminService.assignInchargeToMess({
+				messId,
+				userId: parsed.data.userId,
+				startDate: parsed.data.startDate,
+			});
+
+			res.status(201).json({ success: true, data: assignment });
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	/**
 	 * POST /api/v1/admin/students/import
 	 * Expects multipart form-data with 'file' field containing CSV
