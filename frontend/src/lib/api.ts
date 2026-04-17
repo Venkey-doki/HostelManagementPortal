@@ -42,7 +42,11 @@ api.interceptors.response.use(
 		}
 
 		// If 401 and not already tried to refresh
-		if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+		if (
+			error.response?.status === 401 &&
+			originalRequest &&
+			!originalRequest._retry
+		) {
 			originalRequest._retry = true;
 
 			try {
