@@ -1,0 +1,83 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: hostel_db
+    environment:
+      POSTGRES_DB: hostel_mgmt
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hostel_mgmt"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: hostel_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+    container_name: hostel_api
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/hostel_mgmt?schema=public
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 4000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    command: sh -c "npm run prisma:migrate:deploy && npm run start"
+
+  worker:
+    build:
+      context: ./backend
+    container_name: hostel_worker
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/hostel_mgmt?schema=public
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 4000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: sh -c "npm run prisma:migrate:deploy && npm run worker:start"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: hostel_frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:4000/api/v1
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"
+
+volumes:
+  pg_data:
+  redis_data:
