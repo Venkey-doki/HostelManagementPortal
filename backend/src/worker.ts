@@ -1,5 +1,5 @@
-import { env } from "./config/env";
-import { prisma } from "./infrastructure/database/prisma";
+import { env } from "./config/env.js";
+import { prisma } from "./infrastructure/database/prisma.js";
 
 async function bootstrapWorker() {
 	console.log("Worker process started");

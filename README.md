@@ -15,25 +15,27 @@ Monorepo for the Hostel Management Portal:
 1. Install dependencies:
 
 ```bash
-npm install
+cd backend && npm install
+cd ../frontend && npm install
+cd ..
 ```
 
 2. Start local infrastructure and services:
 
 ```bash
-npm run compose:up
+docker compose up --build -d
 ```
 
 3. View logs:
 
 ```bash
-npm run compose:logs
+docker compose logs -f
 ```
 
 4. Stop services:
 
 ```bash
-npm run compose:down
+docker compose down
 ```
 
 ## Manual Development (without Docker)
@@ -48,12 +50,14 @@ cp backend/.env.example backend/.env
 3. Run migration and seed:
 
 ```bash
-npm run prisma:migrate -w backend
-npm run prisma:seed -w backend
+cd backend
+npm run prisma:migrate
+npm run prisma:seed
 ```
 
 4. Start both apps:
 
 ```bash
-npm run dev
+cd backend && npm run dev
+cd frontend && npm run dev
 ```

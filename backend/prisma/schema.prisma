@@ -1,0 +1,506 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  WARDEN
+  MESS_INCHARGE
+  STUDENT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  AUTO_APPROVED
+  CANCELLED
+}
+
+enum BillStatus {
+  GENERATED
+  PARTIALLY_PAID
+  PAID
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ComplaintStatus {
+  OPEN
+  ASSIGNED
+  RESOLVED
+}
+
+enum NotificationType {
+  LEAVE_APPROVED
+  LEAVE_REJECTED
+  LEAVE_AUTO_APPROVED
+  BILL_GENERATED
+  PAYMENT_VERIFIED
+  PAYMENT_REJECTED
+  COMPLAINT_ASSIGNED
+  COMPLAINT_RESOLVED
+}
+
+enum Semester {
+  FIRST
+  SECOND
+}
+
+enum BillLineItemType {
+  HOSTEL_RENT
+  MESS_CHARGE
+  EXTRA
+  ADJUSTMENT
+}
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  role          Role
+  firstName     String    @map("first_name") @db.VarChar(100)
+  lastName      String    @map("last_name") @db.VarChar(100)
+  phone         String?   @db.VarChar(20)
+  isActive      Boolean   @default(true) @map("is_active")
+  mustChangePwd Boolean   @default(true) @map("must_change_pwd")
+  lastLoginAt   DateTime? @map("last_login_at") @db.Timestamptz(6)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  studentProfile      Student?             @relation("StudentUser")
+  hostelAssignments   HostelAssignment[]   @relation("HostelAssignmentCreatedBy")
+  messAssignments     MessAssignment[]     @relation("MessAssignmentCreatedBy")
+  inchargeAssignments InchargeAssignment[] @relation("InchargeAssignmentUser")
+  hostelRentConfigs   HostelRentConfig[]   @relation("HostelRentConfigCreatedBy")
+  attendanceMarked    Attendance[]         @relation("AttendanceMarkedBy")
+  waiversCreated      MessDayWaiver[]      @relation("MessDayWaiverCreatedBy")
+  leavesActioned      Leave[]              @relation("LeaveActionedBy")
+  studentExtrasAdded  StudentExtra[]       @relation("StudentExtraAddedBy")
+  paymentsVerified    Payment[]            @relation("PaymentVerifiedBy")
+  complaintsAssigned  Complaint[]          @relation("ComplaintAssignedBy")
+  complaintsResolved  Complaint[]          @relation("ComplaintResolvedBy")
+  notifications       Notification[]
+  auditLogs           AuditLog[]           @relation("AuditLogUser")
+
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+model Student {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @unique @map("user_id") @db.Uuid
+  rollNumber   String    @unique @map("roll_number") @db.VarChar(50)
+  gender       Gender
+  department   String?   @db.VarChar(100)
+  academicYear Int?      @map("academic_year") @db.SmallInt
+  batch        String?   @db.VarChar(20)
+  isActive     Boolean   @default(true) @map("is_active")
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user              User               @relation("StudentUser", fields: [userId], references: [id])
+  hostelAssignments HostelAssignment[]
+  messAssignments   MessAssignment[]
+  attendance        Attendance[]
+  leaves            Leave[]
+  bills             Bill[]
+  extras            StudentExtra[]
+  payments          Payment[]
+  complaints        Complaint[]
+
+  @@index([gender])
+  @@map("students")
+}
+
+model Hostel {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique @db.VarChar(100)
+  gender    Gender
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  rooms       Room[]
+  assignments HostelAssignment[]
+  rentConfigs HostelRentConfig[]
+  complaints  Complaint[]
+
+  @@map("hostels")
+}
+
+model Room {
+  id         String    @id @default(uuid()) @db.Uuid
+  hostelId   String    @map("hostel_id") @db.Uuid
+  roomNumber String    @map("room_number") @db.VarChar(20)
+  capacity   Int       @default(2) @db.SmallInt
+  isActive   Boolean   @default(true) @map("is_active")
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  hostel      Hostel             @relation(fields: [hostelId], references: [id])
+  assignments HostelAssignment[]
+  complaints  Complaint[]
+
+  @@unique([hostelId, roomNumber])
+  @@index([hostelId])
+  @@map("rooms")
+}
+
+model HostelAssignment {
+  id          String    @id @default(uuid()) @db.Uuid
+  studentId   String    @map("student_id") @db.Uuid
+  hostelId    String    @map("hostel_id") @db.Uuid
+  roomId      String    @map("room_id") @db.Uuid
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  isCurrent   Boolean   @default(true) @map("is_current")
+  createdById String    @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  student   Student @relation(fields: [studentId], references: [id])
+  hostel    Hostel  @relation(fields: [hostelId], references: [id])
+  room      Room    @relation(fields: [roomId], references: [id])
+  createdBy User    @relation("HostelAssignmentCreatedBy", fields: [createdById], references: [id])
+
+  @@index([studentId, isCurrent])
+  @@index([roomId, isCurrent])
+  @@map("hostel_assignments")
+}
+
+model Mess {
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String    @unique @db.VarChar(100)
+  gender       Gender
+  perDayCharge Decimal   @map("per_day_charge") @db.Decimal(10, 2)
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  assignments         MessAssignment[]
+  inchargeAssignments InchargeAssignment[]
+  attendance          Attendance[]
+  waivers             MessDayWaiver[]
+  extraItems          MessExtraItem[]
+  studentExtras       StudentExtra[]
+
+  @@map("messes")
+}
+
+model MessAssignment {
+  id          String    @id @default(uuid()) @db.Uuid
+  studentId   String    @map("student_id") @db.Uuid
+  messId      String    @map("mess_id") @db.Uuid
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  isCurrent   Boolean   @default(true) @map("is_current")
+  createdById String    @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  student   Student @relation(fields: [studentId], references: [id])
+  mess      Mess    @relation(fields: [messId], references: [id])
+  createdBy User    @relation("MessAssignmentCreatedBy", fields: [createdById], references: [id])
+
+  @@index([studentId, isCurrent])
+  @@map("mess_assignments")
+}
+
+model InchargeAssignment {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  messId    String    @map("mess_id") @db.Uuid
+  startDate DateTime  @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+  isCurrent Boolean   @default(true) @map("is_current")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation("InchargeAssignmentUser", fields: [userId], references: [id])
+  mess Mess @relation(fields: [messId], references: [id])
+
+  @@index([messId, isCurrent])
+  @@map("incharge_assignments")
+}
+
+model HostelRentConfig {
+  id           String   @id @default(uuid()) @db.Uuid
+  hostelId     String   @map("hostel_id") @db.Uuid
+  academicYear String   @map("academic_year") @db.VarChar(10)
+  semester     Semester
+  amount       Decimal  @db.Decimal(10, 2)
+  dueMonth     Int      @map("due_month") @db.SmallInt
+  createdById  String   @map("created_by") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  hostel    Hostel @relation(fields: [hostelId], references: [id])
+  createdBy User   @relation("HostelRentConfigCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([hostelId, academicYear, semester])
+  @@map("hostel_rent_config")
+}
+
+model Attendance {
+  id         String   @id @default(uuid()) @db.Uuid
+  studentId  String   @map("student_id") @db.Uuid
+  messId     String   @map("mess_id") @db.Uuid
+  date       DateTime @db.Date
+  breakfast  Boolean  @default(false)
+  lunch      Boolean  @default(false)
+  dinner     Boolean  @default(false)
+  markedById String   @map("marked_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  student  Student @relation(fields: [studentId], references: [id])
+  mess     Mess    @relation(fields: [messId], references: [id])
+  markedBy User    @relation("AttendanceMarkedBy", fields: [markedById], references: [id])
+
+  @@unique([studentId, date])
+  @@index([studentId, date])
+  @@index([messId, date])
+  @@map("attendance")
+}
+
+model MessDayWaiver {
+  id          String   @id @default(uuid()) @db.Uuid
+  messId      String   @map("mess_id") @db.Uuid
+  date        DateTime @db.Date
+  reason      String?  @db.VarChar(255)
+  createdById String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mess      Mess @relation(fields: [messId], references: [id])
+  createdBy User @relation("MessDayWaiverCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([messId, date])
+  @@index([messId, date])
+  @@map("mess_day_waivers")
+}
+
+model Leave {
+  id              String      @id @default(uuid()) @db.Uuid
+  studentId       String      @map("student_id") @db.Uuid
+  startDate       DateTime    @map("start_date") @db.Date
+  endDate         DateTime    @map("end_date") @db.Date
+  duration        Int         @db.SmallInt
+  reason          String?
+  status          LeaveStatus
+  appliedOn       DateTime    @default(now()) @map("applied_on") @db.Timestamptz(6)
+  autoApproveAt   DateTime    @map("auto_approve_at") @db.Timestamptz(6)
+  actionedById    String?     @map("actioned_by") @db.Uuid
+  actionedAt      DateTime?   @map("actioned_at") @db.Timestamptz(6)
+  returnDate      DateTime?   @map("return_date") @db.Date
+  rejectionReason String?     @map("rejection_reason")
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  student    Student @relation(fields: [studentId], references: [id])
+  actionedBy User?   @relation("LeaveActionedBy", fields: [actionedById], references: [id])
+
+  @@index([studentId, status])
+  @@index([status, autoApproveAt])
+  @@index([startDate, endDate])
+  @@map("leaves")
+}
+
+model Bill {
+  id             String      @id @default(uuid()) @db.Uuid
+  studentId      String      @map("student_id") @db.Uuid
+  billingMonth   DateTime    @map("billing_month") @db.Date
+  hostelRent     Decimal     @default(0) @map("hostel_rent") @db.Decimal(10, 2)
+  messCharges    Decimal     @default(0) @map("mess_charges") @db.Decimal(10, 2)
+  extrasTotal    Decimal     @default(0) @map("extras_total") @db.Decimal(10, 2)
+  totalAmount    Decimal     @map("total_amount") @db.Decimal(10, 2)
+  amountPaid     Decimal     @default(0) @map("amount_paid") @db.Decimal(10, 2)
+  balanceDue     Decimal?    @map("balance_due") @db.Decimal(10, 2)
+  chargeableDays Int?        @map("chargeable_days") @db.SmallInt
+  waivedDays     Int?        @map("waived_days") @db.SmallInt
+  totalDays      Int?        @map("total_days") @db.SmallInt
+  status         BillStatus?
+  isFrozen       Boolean     @default(true) @map("is_frozen")
+  generatedAt    DateTime?   @map("generated_at") @db.Timestamptz(6)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  student   Student        @relation(fields: [studentId], references: [id])
+  lineItems BillLineItem[]
+  payments  Payment[]
+
+  @@unique([studentId, billingMonth])
+  @@index([studentId, billingMonth])
+  @@index([status, billingMonth])
+  @@map("bills")
+}
+
+model BillLineItem {
+  id          String           @id @default(uuid()) @db.Uuid
+  billId      String           @map("bill_id") @db.Uuid
+  type        BillLineItemType
+  description String           @db.VarChar(255)
+  date        DateTime?        @db.Date
+  quantity    Decimal          @default(1) @db.Decimal(8, 2)
+  unitPrice   Decimal          @map("unit_price") @db.Decimal(10, 2)
+  amount      Decimal          @db.Decimal(10, 2)
+  referenceId String?          @map("reference_id") @db.Uuid
+
+  bill Bill @relation(fields: [billId], references: [id])
+
+  @@index([billId])
+  @@map("bill_line_items")
+}
+
+model MessExtraItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  messId    String   @map("mess_id") @db.Uuid
+  name      String   @db.VarChar(100)
+  unit      String   @db.VarChar(30)
+  price     Decimal  @db.Decimal(10, 2)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mess   Mess           @relation(fields: [messId], references: [id])
+  extras StudentExtra[]
+
+  @@index([messId, isActive])
+  @@map("mess_extra_items")
+}
+
+model StudentExtra {
+  id          String   @id @default(uuid()) @db.Uuid
+  studentId   String   @map("student_id") @db.Uuid
+  messId      String   @map("mess_id") @db.Uuid
+  extraItemId String   @map("extra_item_id") @db.Uuid
+  date        DateTime @db.Date
+  quantity    Decimal  @db.Decimal(8, 2)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(10, 2)
+  addedById   String   @map("added_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  student   Student       @relation(fields: [studentId], references: [id])
+  mess      Mess          @relation(fields: [messId], references: [id])
+  extraItem MessExtraItem @relation(fields: [extraItemId], references: [id])
+  addedBy   User          @relation("StudentExtraAddedBy", fields: [addedById], references: [id])
+
+  @@index([studentId, date])
+  @@index([messId, date])
+  @@map("student_extras")
+}
+
+model Payment {
+  id              String        @id @default(uuid()) @db.Uuid
+  studentId       String        @map("student_id") @db.Uuid
+  billId          String?       @map("bill_id") @db.Uuid
+  amount          Decimal       @db.Decimal(10, 2)
+  paymentDate     DateTime      @map("payment_date") @db.Date
+  referenceNumber String        @map("reference_number") @db.VarChar(100)
+  screenshotUrl   String        @map("screenshot_url") @db.VarChar(500)
+  status          PaymentStatus
+  verifiedById    String?       @map("verified_by") @db.Uuid
+  verifiedAt      DateTime?     @map("verified_at") @db.Timestamptz(6)
+  rejectionReason String?       @map("rejection_reason")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  student    Student @relation(fields: [studentId], references: [id])
+  bill       Bill?   @relation(fields: [billId], references: [id])
+  verifiedBy User?   @relation("PaymentVerifiedBy", fields: [verifiedById], references: [id])
+
+  @@index([studentId, status])
+  @@index([status, createdAt])
+  @@map("payments")
+}
+
+model Technician {
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String    @db.VarChar(100)
+  mobile         String    @db.VarChar(20)
+  specialization String?   @db.VarChar(100)
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  complaints Complaint[]
+
+  @@map("technicians")
+}
+
+model Complaint {
+  id              String          @id @default(uuid()) @db.Uuid
+  studentId       String          @map("student_id") @db.Uuid
+  hostelId        String          @map("hostel_id") @db.Uuid
+  roomId          String?         @map("room_id") @db.Uuid
+  category        String          @db.VarChar(100)
+  description     String
+  status          ComplaintStatus
+  assignedToId    String?         @map("assigned_to") @db.Uuid
+  assignedById    String?         @map("assigned_by") @db.Uuid
+  assignedAt      DateTime?       @map("assigned_at") @db.Timestamptz(6)
+  resolutionNotes String?         @map("resolution_notes")
+  resolvedById    String?         @map("resolved_by") @db.Uuid
+  resolvedAt      DateTime?       @map("resolved_at") @db.Timestamptz(6)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  student    Student     @relation(fields: [studentId], references: [id])
+  hostel     Hostel      @relation(fields: [hostelId], references: [id])
+  room       Room?       @relation(fields: [roomId], references: [id])
+  assignedTo Technician? @relation(fields: [assignedToId], references: [id])
+  assignedBy User?       @relation("ComplaintAssignedBy", fields: [assignedById], references: [id])
+  resolvedBy User?       @relation("ComplaintResolvedBy", fields: [resolvedById], references: [id])
+
+  @@index([studentId, status])
+  @@index([status, createdAt])
+  @@index([assignedToId])
+  @@map("complaints")
+}
+
+model Notification {
+  id            String           @id @default(uuid()) @db.Uuid
+  userId        String           @map("user_id") @db.Uuid
+  type          NotificationType
+  title         String           @db.VarChar(200)
+  body          String
+  isRead        Boolean          @default(false) @map("is_read")
+  referenceType String?          @map("reference_type") @db.VarChar(50)
+  referenceId   String?          @map("reference_id") @db.Uuid
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String   @map("entity_id") @db.Uuid
+  oldValue   Json?    @map("old_value")
+  newValue   Json?    @map("new_value")
+  ipAddress  String?  @map("ip_address") @db.Inet
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User? @relation("AuditLogUser", fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
