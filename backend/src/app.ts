@@ -4,6 +4,7 @@ import express from "express";
 import helmet from "helmet";
 import { env } from "./config/env.js";
 import adminRoutes from "./modules/admin/admin.routes.js";
+import attendanceRoutes from "./modules/attendance/attendance.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import messesRoutes from "./modules/messes/messes.routes.js";
 import studentsRoutes from "./modules/students/students.routes.js";
@@ -60,6 +61,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/messes", messesRoutes);
 app.use("/api/v1/students", studentsRoutes);
+app.use("/api/v1/attendance", attendanceRoutes);
 
 // ──────────────────────────────────────────────────
 // Global Error Handler (must be last)

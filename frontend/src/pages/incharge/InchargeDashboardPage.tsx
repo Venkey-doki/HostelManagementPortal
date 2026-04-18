@@ -15,7 +15,7 @@ export default function InchargeDashboardPage() {
 				<div className="portal-actions">
 					<Link
 						className="portal-button portal-button-primary"
-						to="/incharge/dashboard"
+						to="/incharge/attendance"
 					>
 						Mark attendance
 					</Link>

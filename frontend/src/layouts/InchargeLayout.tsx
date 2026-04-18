@@ -7,6 +7,11 @@ const navItems = [
 		label: "Dashboard",
 		description: "Attendance & extras",
 	},
+	{
+		href: "/incharge/attendance",
+		label: "Attendance",
+		description: "Mark meals",
+	},
 ];
 
 export default function InchargeLayout() {

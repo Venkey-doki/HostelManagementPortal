@@ -18,11 +18,17 @@ const ChangePasswordPage = lazy(
 const StudentDashboardPage = lazy(
 	() => import("@/pages/student/StudentDashboardPage"),
 );
+const StudentAttendancePage = lazy(
+	() => import("@/pages/student/StudentAttendancePage"),
+);
 const WardenDashboardPage = lazy(
 	() => import("@/pages/warden/WardenDashboardPage"),
 );
 const InchargeDashboardPage = lazy(
 	() => import("@/pages/incharge/InchargeDashboardPage"),
+);
+const InchargeAttendancePage = lazy(
+	() => import("@/pages/incharge/InchargeAttendancePage"),
 );
 const AdminDashboardPage = lazy(
 	() => import("@/pages/admin/AdminDashboardPage"),
@@ -57,6 +63,10 @@ export const router = createBrowserRouter([
 						path: "/student/dashboard",
 						element: wrap(<StudentDashboardPage />),
 					},
+					{
+						path: "/student/attendance",
+						element: wrap(<StudentAttendancePage />),
+					},
 				],
 			},
 		],
@@ -72,6 +82,10 @@ export const router = createBrowserRouter([
 					{
 						path: "/incharge/dashboard",
 						element: wrap(<InchargeDashboardPage />),
+					},
+					{
+						path: "/incharge/attendance",
+						element: wrap(<InchargeAttendancePage />),
 					},
 				],
 			},

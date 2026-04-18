@@ -70,7 +70,7 @@ export default function StudentDashboardPage() {
 					<div className="portal-mini-grid">
 						<Link
 							className="portal-mini-card"
-							to="/student/dashboard"
+							to="/student/attendance"
 						>
 							<h3>Attendance</h3>
 							<p>Check meal presence and daily status.</p>

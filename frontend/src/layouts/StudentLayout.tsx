@@ -7,6 +7,11 @@ const navItems = [
 		label: "Dashboard",
 		description: "My overview",
 	},
+	{
+		href: "/student/attendance",
+		label: "Attendance",
+		description: "Monthly calendar",
+	},
 ];
 
 export default function StudentLayout() {
