@@ -12,6 +12,11 @@ const navItems = [
 		label: "Attendance",
 		description: "Monthly calendar",
 	},
+	{
+		href: "/student/leaves",
+		label: "Leaves",
+		description: "Apply and track",
+	},
 ];
 
 export default function StudentLayout() {

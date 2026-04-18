@@ -1,5 +1,6 @@
 import { env } from "./config/env.js";
 import { prisma } from "./infrastructure/database/prisma.js";
+import { startLeaveAutoApprovalWorker } from "./infrastructure/queue/workers/leaveAutoApproval.worker.js";
 
 async function bootstrapWorker() {
 	console.log("Worker process started");
@@ -7,6 +8,8 @@ async function bootstrapWorker() {
 
 	await prisma.$queryRaw`SELECT 1`;
 	console.log("Database connectivity check passed");
+
+	await startLeaveAutoApprovalWorker();
 }
 
 void bootstrapWorker().catch(async (error) => {

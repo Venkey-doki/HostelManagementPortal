@@ -75,10 +75,7 @@ export default function StudentDashboardPage() {
 							<h3>Attendance</h3>
 							<p>Check meal presence and daily status.</p>
 						</Link>
-						<Link
-							className="portal-mini-card"
-							to="/student/dashboard"
-						>
+						<Link className="portal-mini-card" to="/student/leaves">
 							<h3>Leaves</h3>
 							<p>Apply for leave and track approvals.</p>
 						</Link>

@@ -7,6 +7,11 @@ const navItems = [
 		label: "Dashboard",
 		description: "KPI overview",
 	},
+	{
+		href: "/warden/leaves",
+		label: "Leaves",
+		description: "Approve requests",
+	},
 ];
 
 export default function WardenLayout() {

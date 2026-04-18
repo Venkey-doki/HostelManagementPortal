@@ -15,7 +15,7 @@ export default function WardenDashboardPage() {
 				<div className="portal-actions">
 					<Link
 						className="portal-button portal-button-primary"
-						to="/warden/dashboard"
+						to="/warden/leaves"
 					>
 						Pending approvals
 					</Link>
@@ -77,9 +77,12 @@ export default function WardenDashboardPage() {
 										auto-approval happens.
 									</p>
 								</div>
-								<span className="portal-pill warning">
-									Urgent
-								</span>
+								<Link
+									className="portal-pill warning"
+									to="/warden/leaves"
+								>
+									Open queue
+								</Link>
 							</div>
 						</div>
 						<div className="portal-list-item">
