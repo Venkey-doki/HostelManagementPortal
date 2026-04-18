@@ -41,11 +41,25 @@ router.post(
 	adminController.createHostel.bind(adminController),
 );
 
+router.patch(
+	"/hostels/:hostelId",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.updateHostel.bind(adminController),
+);
+
 router.post(
 	"/hostels/:hostelId/rooms",
 	authenticate,
 	authorize("SUPER_ADMIN"),
 	adminController.createRoom.bind(adminController),
+);
+
+router.patch(
+	"/rooms/:roomId",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.updateRoom.bind(adminController),
 );
 
 router.get(
@@ -62,11 +76,32 @@ router.post(
 	adminController.createMess.bind(adminController),
 );
 
+router.patch(
+	"/messes/:messId",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.updateMess.bind(adminController),
+);
+
 router.post(
 	"/messes/:messId/incharge-assignment",
 	authenticate,
 	authorize("SUPER_ADMIN"),
 	adminController.assignIncharge.bind(adminController),
+);
+
+router.get(
+	"/messes/:messId/incharge-assignment",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.listInchargeAssignments.bind(adminController),
+);
+
+router.patch(
+	"/incharge-assignment/:assignmentId/end",
+	authenticate,
+	authorize("SUPER_ADMIN"),
+	adminController.endInchargeAssignment.bind(adminController),
 );
 
 router.post(

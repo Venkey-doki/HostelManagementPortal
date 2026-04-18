@@ -31,3 +31,9 @@ export const assignMessSchema = z
 		startDate: z.coerce.date(),
 	})
 	.strict();
+
+export const endStudentAssignmentSchema = z
+	.object({
+		endDate: z.coerce.date(),
+	})
+	.strict();

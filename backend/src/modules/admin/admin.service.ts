@@ -40,6 +40,63 @@ export class AdminService {
 		});
 	}
 
+	async updateHostel(
+		hostelId: string,
+		input: {
+			name?: string | undefined;
+			gender?: "MALE" | "FEMALE" | undefined;
+			isActive?: boolean | undefined;
+		},
+	) {
+		const hostel = await prisma.hostel.findFirst({
+			where: { id: hostelId, deletedAt: null },
+		});
+		if (!hostel) {
+			throw new AppError("Hostel not found", 404, "HOSTEL_NOT_FOUND");
+		}
+
+		if (input.name && input.name !== hostel.name) {
+			const duplicate = await prisma.hostel.findFirst({
+				where: {
+					name: input.name,
+					deletedAt: null,
+					id: { not: hostelId },
+				},
+			});
+			if (duplicate) {
+				throw new AppError(
+					"Hostel name already exists",
+					409,
+					"DUPLICATE_HOSTEL",
+				);
+			}
+		}
+
+		if (input.gender && input.gender !== hostel.gender) {
+			const activeAssignments = await prisma.hostelAssignment.count({
+				where: { hostelId, isCurrent: true },
+			});
+			if (activeAssignments > 0) {
+				throw new AppError(
+					"Cannot change hostel gender while current assignments exist",
+					409,
+					"HOSTEL_HAS_ACTIVE_ASSIGNMENTS",
+				);
+			}
+		}
+
+		const nextActive = input.isActive ?? hostel.isActive;
+		return prisma.hostel.update({
+			where: { id: hostelId },
+			data: {
+				...(input.name ? { name: input.name } : {}),
+				...(input.gender ? { gender: input.gender } : {}),
+				isActive: nextActive,
+				deletedAt: nextActive ? null : new Date(),
+			},
+		});
+	}
+
 	async createRoom(
 		hostelId: string,
 		input: { roomNumber: string; capacity: number },
@@ -75,6 +132,64 @@ export class AdminService {
 		});
 	}
 
+	async updateRoom(
+		roomId: string,
+		input: {
+			roomNumber?: string | undefined;
+			capacity?: number | undefined;
+			isActive?: boolean | undefined;
+		},
+	) {
+		const room = await prisma.room.findFirst({
+			where: { id: roomId, deletedAt: null },
+		});
+		if (!room) {
+			throw new AppError("Room not found", 404, "ROOM_NOT_FOUND");
+		}
+
+		if (input.roomNumber && input.roomNumber !== room.roomNumber) {
+			const duplicate = await prisma.room.findFirst({
+				where: {
+					hostelId: room.hostelId,
+					roomNumber: input.roomNumber,
+					deletedAt: null,
+					id: { not: roomId },
+				},
+			});
+			if (duplicate) {
+				throw new AppError(
+					"Room already exists in this hostel",
+					409,
+					"DUPLICATE_ROOM",
+				);
+			}
+		}
+
+		if (input.capacity) {
+			const occupancy = await prisma.hostelAssignment.count({
+				where: { roomId, isCurrent: true },
+			});
+			if (input.capacity < occupancy) {
+				throw new AppError(
+					"Room capacity cannot be less than current occupancy",
+					409,
+					"INVALID_ROOM_CAPACITY",
+				);
+			}
+		}
+
+		const nextActive = input.isActive ?? room.isActive;
+		return prisma.room.update({
+			where: { id: roomId },
+			data: {
+				...(input.roomNumber ? { roomNumber: input.roomNumber } : {}),
+				...(input.capacity ? { capacity: input.capacity } : {}),
+				isActive: nextActive,
+				deletedAt: nextActive ? null : new Date(),
+			},
+		});
+	}
+
 	async createMess(input: {
 		name: string;
 		gender: "MALE" | "FEMALE";
@@ -104,6 +219,67 @@ export class AdminService {
 		return prisma.mess.findMany({
 			where: { deletedAt: null },
 			orderBy: { name: "asc" },
+		});
+	}
+
+	async updateMess(
+		messId: string,
+		input: {
+			name?: string | undefined;
+			gender?: "MALE" | "FEMALE" | undefined;
+			perDayCharge?: number | undefined;
+			isActive?: boolean | undefined;
+		},
+	) {
+		const mess = await prisma.mess.findFirst({
+			where: { id: messId, deletedAt: null },
+		});
+		if (!mess) {
+			throw new AppError("Mess not found", 404, "MESS_NOT_FOUND");
+		}
+
+		if (input.name && input.name !== mess.name) {
+			const duplicate = await prisma.mess.findFirst({
+				where: {
+					name: input.name,
+					deletedAt: null,
+					id: { not: messId },
+				},
+			});
+			if (duplicate) {
+				throw new AppError(
+					"Mess name already exists",
+					409,
+					"DUPLICATE_MESS",
+				);
+			}
+		}
+
+		if (input.gender && input.gender !== mess.gender) {
+			const activeAssignments = await prisma.messAssignment.count({
+				where: { messId, isCurrent: true },
+			});
+			if (activeAssignments > 0) {
+				throw new AppError(
+					"Cannot change mess gender while current assignments exist",
+					409,
+					"MESS_HAS_ACTIVE_ASSIGNMENTS",
+				);
+			}
+		}
+
+		const nextActive = input.isActive ?? mess.isActive;
+		return prisma.mess.update({
+			where: { id: messId },
+			data: {
+				...(input.name ? { name: input.name } : {}),
+				...(input.gender ? { gender: input.gender } : {}),
+				...(input.perDayCharge !== undefined
+					? { perDayCharge: input.perDayCharge.toFixed(2) }
+					: {}),
+				isActive: nextActive,
+				deletedAt: nextActive ? null : new Date(),
+			},
 		});
 	}
 
@@ -249,6 +425,60 @@ export class AdminService {
 					isCurrent: true,
 				},
 			});
+		});
+	}
+
+	async listInchargeAssignments(messId: string) {
+		return prisma.inchargeAssignment.findMany({
+			where: { messId },
+			orderBy: { startDate: "desc" },
+			include: {
+				user: {
+					select: {
+						id: true,
+						email: true,
+						firstName: true,
+						lastName: true,
+					},
+				},
+			},
+		});
+	}
+
+	async endInchargeAssignment(assignmentId: string, endDate: Date) {
+		const assignment = await prisma.inchargeAssignment.findUnique({
+			where: { id: assignmentId },
+		});
+		if (!assignment) {
+			throw new AppError(
+				"Incharge assignment not found",
+				404,
+				"ASSIGNMENT_NOT_FOUND",
+			);
+		}
+
+		if (!assignment.isCurrent) {
+			throw new AppError(
+				"Assignment already ended",
+				409,
+				"ASSIGNMENT_ALREADY_ENDED",
+			);
+		}
+
+		if (endDate < assignment.startDate) {
+			throw new AppError(
+				"End date cannot be before assignment start date",
+				422,
+				"INVALID_END_DATE",
+			);
+		}
+
+		return prisma.inchargeAssignment.update({
+			where: { id: assignmentId },
+			data: {
+				isCurrent: false,
+				endDate,
+			},
 		});
 	}
 

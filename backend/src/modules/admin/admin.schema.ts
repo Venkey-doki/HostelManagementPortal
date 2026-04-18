@@ -33,12 +33,34 @@ export const createHostelSchema = z
 	})
 	.strict();
 
+export const updateHostelSchema = z
+	.object({
+		name: z.string().min(2).max(100).optional(),
+		gender: z.enum(["MALE", "FEMALE"]).optional(),
+		isActive: z.boolean().optional(),
+	})
+	.strict()
+	.refine((value) => Object.keys(value).length > 0, {
+		message: "At least one field is required",
+	});
+
 export const createRoomSchema = z
 	.object({
 		roomNumber: z.string().min(1).max(20),
 		capacity: z.coerce.number().int().min(1).max(10).default(2),
 	})
 	.strict();
+
+export const updateRoomSchema = z
+	.object({
+		roomNumber: z.string().min(1).max(20).optional(),
+		capacity: z.coerce.number().int().min(1).max(10).optional(),
+		isActive: z.boolean().optional(),
+	})
+	.strict()
+	.refine((value) => Object.keys(value).length > 0, {
+		message: "At least one field is required",
+	});
 
 export const createMessSchema = z
 	.object({
@@ -47,6 +69,18 @@ export const createMessSchema = z
 		perDayCharge: z.coerce.number().positive(),
 	})
 	.strict();
+
+export const updateMessSchema = z
+	.object({
+		name: z.string().min(2).max(100).optional(),
+		gender: z.enum(["MALE", "FEMALE"]).optional(),
+		perDayCharge: z.coerce.number().positive().optional(),
+		isActive: z.boolean().optional(),
+	})
+	.strict()
+	.refine((value) => Object.keys(value).length > 0, {
+		message: "At least one field is required",
+	});
 
 export const createHostelRentConfigSchema = z
 	.object({
@@ -73,5 +107,11 @@ export const assignInchargeSchema = z
 	.object({
 		userId: z.string().uuid(),
 		startDate: z.coerce.date(),
+	})
+	.strict();
+
+export const endInchargeAssignmentSchema = z
+	.object({
+		endDate: z.coerce.date(),
 	})
 	.strict();

@@ -8,7 +8,11 @@ import {
 	createHostelSchema,
 	createMessSchema,
 	createRoomSchema,
+	endInchargeAssignmentSchema,
 	importStudentsSchema,
+	updateHostelSchema,
+	updateMessSchema,
+	updateRoomSchema,
 } from "./admin.schema.js";
 import { adminService } from "./admin.service.js";
 
@@ -62,6 +66,36 @@ export class AdminController {
 		}
 	}
 
+	async updateHostel(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const hostelId = this.getSingleParam(
+				req.params.hostelId,
+				"Hostel id",
+			);
+
+			const parsed = updateHostelSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const hostel = await adminService.updateHostel(
+				hostelId,
+				parsed.data,
+			);
+			res.json({ success: true, data: hostel });
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	async createRoom(
 		req: Request,
 		res: Response,
@@ -84,6 +118,30 @@ export class AdminController {
 
 			const room = await adminService.createRoom(hostelId, parsed.data);
 			res.status(201).json({ success: true, data: room });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async updateRoom(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const roomId = this.getSingleParam(req.params.roomId, "Room id");
+
+			const parsed = updateRoomSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const room = await adminService.updateRoom(roomId, parsed.data);
+			res.json({ success: true, data: room });
 		} catch (error) {
 			next(error);
 		}
@@ -119,6 +177,30 @@ export class AdminController {
 		try {
 			const messes = await adminService.listMesses();
 			res.json({ success: true, data: messes });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async updateMess(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const messId = this.getSingleParam(req.params.messId, "Mess id");
+
+			const parsed = updateMessSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const mess = await adminService.updateMess(messId, parsed.data);
+			res.json({ success: true, data: mess });
 		} catch (error) {
 			next(error);
 		}
@@ -203,6 +285,50 @@ export class AdminController {
 			});
 
 			res.status(201).json({ success: true, data: assignment });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async listInchargeAssignments(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const messId = this.getSingleParam(req.params.messId, "Mess id");
+			const assignments =
+				await adminService.listInchargeAssignments(messId);
+			res.json({ success: true, data: assignments });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async endInchargeAssignment(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const assignmentId = this.getSingleParam(
+				req.params.assignmentId,
+				"Assignment id",
+			);
+			const parsed = endInchargeAssignmentSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const assignment = await adminService.endInchargeAssignment(
+				assignmentId,
+				parsed.data.endDate,
+			);
+			res.json({ success: true, data: assignment });
 		} catch (error) {
 			next(error);
 		}

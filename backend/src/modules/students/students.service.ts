@@ -265,6 +265,100 @@ export class StudentsService {
 
 		return assignment;
 	}
+
+	async listAssignmentHistory(studentId: string) {
+		const student = await prisma.student.findFirst({
+			where: { id: studentId, deletedAt: null },
+		});
+		if (!student) {
+			throw new AppError("Student not found", 404, "STUDENT_NOT_FOUND");
+		}
+
+		const [hostelHistory, messHistory] = await Promise.all([
+			prisma.hostelAssignment.findMany({
+				where: { studentId },
+				orderBy: { startDate: "desc" },
+				include: { hostel: true, room: true },
+			}),
+			prisma.messAssignment.findMany({
+				where: { studentId },
+				orderBy: { startDate: "desc" },
+				include: { mess: true },
+			}),
+		]);
+
+		return {
+			hostelAssignments: hostelHistory,
+			messAssignments: messHistory,
+		};
+	}
+
+	async endCurrentHostelAssignment(studentId: string, endDate: Date) {
+		const assignment = await prisma.hostelAssignment.findFirst({
+			where: { studentId, isCurrent: true },
+			orderBy: { startDate: "desc" },
+		});
+
+		if (!assignment) {
+			throw new AppError(
+				"No current hostel assignment found",
+				404,
+				"ASSIGNMENT_NOT_FOUND",
+			);
+		}
+		if (endDate < assignment.startDate) {
+			throw new AppError(
+				"End date cannot be before assignment start date",
+				422,
+				"INVALID_END_DATE",
+			);
+		}
+
+		return prisma.hostelAssignment.update({
+			where: { id: assignment.id },
+			data: {
+				isCurrent: false,
+				endDate,
+			},
+			include: {
+				hostel: true,
+				room: true,
+			},
+		});
+	}
+
+	async endCurrentMessAssignment(studentId: string, endDate: Date) {
+		const assignment = await prisma.messAssignment.findFirst({
+			where: { studentId, isCurrent: true },
+			orderBy: { startDate: "desc" },
+		});
+
+		if (!assignment) {
+			throw new AppError(
+				"No current mess assignment found",
+				404,
+				"ASSIGNMENT_NOT_FOUND",
+			);
+		}
+		if (endDate < assignment.startDate) {
+			throw new AppError(
+				"End date cannot be before assignment start date",
+				422,
+				"INVALID_END_DATE",
+			);
+		}
+
+		return prisma.messAssignment.update({
+			where: { id: assignment.id },
+			data: {
+				isCurrent: false,
+				endDate,
+			},
+			include: {
+				mess: true,
+			},
+		});
+	}
 }
 
 export const studentsService = new StudentsService();

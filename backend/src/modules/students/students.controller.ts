@@ -3,6 +3,7 @@ import { AppError } from "../../shared/errors/AppError.js";
 import {
 	assignHostelSchema,
 	assignMessSchema,
+	endStudentAssignmentSchema,
 	listStudentsQuerySchema,
 } from "./students.schema.js";
 import { studentsService } from "./students.service.js";
@@ -116,6 +117,81 @@ export class StudentsController {
 				req.user.userId,
 			);
 			res.status(201).json({ success: true, data: assignment });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async listAssignmentHistory(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const studentId = this.getSingleParam(
+				req.params.studentId,
+				"Student id",
+			);
+			const data = await studentsService.listAssignmentHistory(studentId);
+			res.json({ success: true, data });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async endCurrentHostelAssignment(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const studentId = this.getSingleParam(
+				req.params.studentId,
+				"Student id",
+			);
+			const parsed = endStudentAssignmentSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const assignment = await studentsService.endCurrentHostelAssignment(
+				studentId,
+				parsed.data.endDate,
+			);
+			res.json({ success: true, data: assignment });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async endCurrentMessAssignment(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const studentId = this.getSingleParam(
+				req.params.studentId,
+				"Student id",
+			);
+			const parsed = endStudentAssignmentSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const assignment = await studentsService.endCurrentMessAssignment(
+				studentId,
+				parsed.data.endDate,
+			);
+			res.json({ success: true, data: assignment });
 		} catch (error) {
 			next(error);
 		}

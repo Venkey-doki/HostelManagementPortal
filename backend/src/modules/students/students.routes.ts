@@ -26,4 +26,25 @@ router.post(
 	studentsController.assignMess.bind(studentsController),
 );
 
+router.get(
+	"/:studentId/assignment-history",
+	authenticate,
+	authorize("SUPER_ADMIN", "WARDEN"),
+	studentsController.listAssignmentHistory.bind(studentsController),
+);
+
+router.patch(
+	"/:studentId/hostel-assignment/end",
+	authenticate,
+	authorize("SUPER_ADMIN", "WARDEN"),
+	studentsController.endCurrentHostelAssignment.bind(studentsController),
+);
+
+router.patch(
+	"/:studentId/mess-assignment/end",
+	authenticate,
+	authorize("SUPER_ADMIN", "WARDEN"),
+	studentsController.endCurrentMessAssignment.bind(studentsController),
+);
+
 export default router;
