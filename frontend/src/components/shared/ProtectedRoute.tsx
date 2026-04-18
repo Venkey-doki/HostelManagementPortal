@@ -1,3 +1,4 @@
+import { getDashboardPath } from "@/lib/routeMap";
 import { useAuthStore, type User } from "@/lib/store";
 import { Navigate, Outlet } from "react-router-dom";
 
@@ -24,7 +25,7 @@ export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
 
 	// Has role restriction and user doesn't match
 	if (allowedRoles && !allowedRoles.includes(user.role)) {
-		return <Navigate to="/login" replace />;
+		return <Navigate to={getDashboardPath(user.role)} replace />;
 	}
 
 	return <Outlet />;

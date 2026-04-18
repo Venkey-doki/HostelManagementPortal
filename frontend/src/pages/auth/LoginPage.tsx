@@ -51,62 +51,111 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="flex items-center justify-center min-h-screen bg-gray-50">
-			<div className="w-full max-w-md bg-white rounded-lg shadow p-8">
-				<h1 className="text-2xl font-bold mb-6 text-center">
-					Hostel Management
-				</h1>
-
-				{error && (
-					<div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-						{error}
+		<div className="auth-shell">
+			<section className="auth-hero">
+				<div className="auth-hero-panel">
+					<p className="portal-kicker">Hostel Management Portal</p>
+					<h1>
+						One portal for hostel, mess, billing, and approvals.
+					</h1>
+					<p>
+						A single operational console for students, mess
+						incharges, wardens, and admins. Built for a college
+						environment where the data has to stay consistent.
+					</p>
+					<div className="auth-feature-grid">
+						<div className="auth-feature">
+							<h3>Fast login</h3>
+							<p>
+								JWT authentication with refresh token rotation
+								keeps the session smooth.
+							</p>
+						</div>
+						<div className="auth-feature">
+							<h3>Role aware</h3>
+							<p>
+								Each account lands in the correct dashboard
+								after login.
+							</p>
+						</div>
+						<div className="auth-feature">
+							<h3>Billing ready</h3>
+							<p>
+								Attendance and leave flows feed the monthly bill
+								engine.
+							</p>
+						</div>
+						<div className="auth-feature">
+							<h3>Seed data</h3>
+							<p>
+								Use the demo accounts to explore the seeded
+								hostel structure.
+							</p>
+						</div>
 					</div>
-				)}
+				</div>
+			</section>
 
-				<form onSubmit={handleLogin} className="space-y-4">
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
+			<section className="auth-card-wrap">
+				<div className="auth-card">
+					<div className="auth-card-header">
+						<p className="portal-kicker">Sign in</p>
+						<h2>Welcome back</h2>
+						<p>
+							Use your college-issued credentials to access the
+							portal.
+						</p>
+					</div>
+
+					{error ? (
+						<div className="portal-alert error">{error}</div>
+					) : null}
+
+					<form onSubmit={handleLogin} className="auth-form">
+						<label className="portal-form-label">
 							Email
+							<input
+								className="portal-input"
+								type="email"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								placeholder="your@email.com"
+								disabled={loading}
+							/>
 						</label>
-						<input
-							type="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-							placeholder="your@email.com"
-							disabled={loading}
-						/>
-					</div>
 
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
+						<label className="portal-form-label">
 							Password
+							<input
+								className="portal-input"
+								type="password"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								placeholder="••••••••"
+								disabled={loading}
+							/>
 						</label>
-						<input
-							type="password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-							placeholder="••••••••"
+
+						<button
+							className="portal-button portal-button-primary"
+							type="submit"
 							disabled={loading}
-						/>
-					</div>
+						>
+							{loading ? "Logging in..." : "Login"}
+						</button>
+					</form>
 
-					<button
-						type="submit"
-						disabled={loading}
-						className="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition"
+					<div
+						className="portal-card soft"
+						style={{ marginTop: "18px" }}
 					>
-						{loading ? "Logging in..." : "Login"}
-					</button>
-				</form>
-
-				<p className="mt-4 text-center text-sm text-gray-600">
-					Demo credentials:
-					<br />
-					admin@hostel.local / Admin@12345
-				</p>
-			</div>
+						<p className="portal-helper">Demo credentials</p>
+						<p className="portal-helper">
+							admin@hostel.local / Admin@12345
+						</p>
+					</div>
+				</div>
+			</section>
 		</div>
 	);
 }

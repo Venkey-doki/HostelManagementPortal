@@ -2,46 +2,105 @@ import { Link } from "react-router-dom";
 
 export default function AdminDashboardPage() {
 	return (
-		<div className="p-6 space-y-6">
-			<h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
-			<p className="text-gray-600">
-				Welcome admin! Manage users, hostels, and messes here.
-			</p>
+		<div className="portal-page">
+			<section className="portal-page-header">
+				<div>
+					<p className="portal-kicker">Control room</p>
+					<h1>Admin Dashboard</h1>
+					<p>
+						Create the campus structure, onboard staff, and keep the
+						hostel and mess setup in sync.
+					</p>
+				</div>
+				<div className="portal-actions">
+					<Link
+						className="portal-button portal-button-primary"
+						to="/admin/import"
+					>
+						Import students
+					</Link>
+					<Link
+						className="portal-button portal-button-secondary"
+						to="/admin/hostels"
+					>
+						Manage hostels
+					</Link>
+				</div>
+			</section>
 
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+			<div className="portal-grid four">
+				<div className="portal-card portal-stat">
+					<p className="portal-stat-label">Active hostels</p>
+					<div className="portal-stat-value">8</div>
+					<p className="portal-helper">
+						5 boys and 3 girls hostels are configured in the seed
+						data.
+					</p>
+				</div>
+				<div className="portal-card portal-stat">
+					<p className="portal-stat-label">Active messes</p>
+					<div className="portal-stat-value">3</div>
+					<p className="portal-helper">
+						Separate mess setup for boys and girls is ready.
+					</p>
+				</div>
+				<div className="portal-card portal-stat">
+					<p className="portal-stat-label">Demo roles</p>
+					<div className="portal-stat-value">4</div>
+					<p className="portal-helper">
+						Admin, warden, incharge, and student accounts are
+						seeded.
+					</p>
+				</div>
+				<div className="portal-card portal-stat">
+					<p className="portal-stat-label">Phase 1</p>
+					<div className="portal-stat-value">Step 3</div>
+					<p className="portal-helper">
+						Hostel, mess, and student management are now wired up.
+					</p>
+				</div>
+			</div>
+
+			<div className="portal-grid two">
 				<Link
-					className="border rounded-md p-4 hover:bg-gray-50"
+					className="portal-card portal-mini-card"
 					to="/admin/hostels"
 				>
-					<h2 className="font-semibold">Hostels</h2>
-					<p className="text-sm text-gray-600">
-						Create hostels and view room structure
+					<h3>Hostel structure</h3>
+					<p>
+						Create hostels, add rooms, and keep room capacity data
+						organized.
 					</p>
 				</Link>
 				<Link
-					className="border rounded-md p-4 hover:bg-gray-50"
+					className="portal-card portal-mini-card"
 					to="/admin/messes"
 				>
-					<h2 className="font-semibold">Messes</h2>
-					<p className="text-sm text-gray-600">
-						Create messes and configure daily charges
+					<h3>Mess setup</h3>
+					<p>
+						Add messes, set daily charges, and assign current
+						incharge staff.
 					</p>
 				</Link>
 				<Link
-					className="border rounded-md p-4 hover:bg-gray-50"
+					className="portal-card portal-mini-card"
 					to="/admin/students"
 				>
-					<h2 className="font-semibold">Students</h2>
-					<p className="text-sm text-gray-600">
-						Search and inspect student directory
+					<h3>Student directory</h3>
+					<p>
+						Search students and assign hostel or mess from the same
+						screen.
 					</p>
 				</Link>
 				<Link
-					className="border rounded-md p-4 hover:bg-gray-50"
+					className="portal-card portal-mini-card"
 					to="/admin/import"
 				>
-					<h2 className="font-semibold">Import Students</h2>
-					<p className="text-sm text-gray-600">Bulk import via CSV</p>
+					<h3>Bulk import</h3>
+					<p>
+						Upload CSV files for fast student onboarding with
+						password seeding.
+					</p>
 				</Link>
 			</div>
 		</div>

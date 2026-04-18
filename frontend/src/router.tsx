@@ -2,7 +2,12 @@ import { lazy, Suspense, type JSX } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
+import RouteFallback from "@/components/shared/RouteFallback";
+import AdminLayout from "@/layouts/AdminLayout";
 import AuthLayout from "@/layouts/AuthLayout";
+import InchargeLayout from "@/layouts/InchargeLayout";
+import StudentLayout from "@/layouts/StudentLayout";
+import WardenLayout from "@/layouts/WardenLayout";
 
 // Lazy load pages
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
@@ -46,8 +51,13 @@ export const router = createBrowserRouter([
 		element: <ProtectedRoute allowedRoles={["STUDENT"]} />,
 		children: [
 			{
-				path: "/student/dashboard",
-				element: wrap(<StudentDashboardPage />),
+				element: <StudentLayout />,
+				children: [
+					{
+						path: "/student/dashboard",
+						element: wrap(<StudentDashboardPage />),
+					},
+				],
 			},
 		],
 	},
@@ -57,8 +67,13 @@ export const router = createBrowserRouter([
 		element: <ProtectedRoute allowedRoles={["MESS_INCHARGE"]} />,
 		children: [
 			{
-				path: "/incharge/dashboard",
-				element: wrap(<InchargeDashboardPage />),
+				element: <InchargeLayout />,
+				children: [
+					{
+						path: "/incharge/dashboard",
+						element: wrap(<InchargeDashboardPage />),
+					},
+				],
 			},
 		],
 	},
@@ -68,8 +83,13 @@ export const router = createBrowserRouter([
 		element: <ProtectedRoute allowedRoles={["WARDEN", "SUPER_ADMIN"]} />,
 		children: [
 			{
-				path: "/warden/dashboard",
-				element: wrap(<WardenDashboardPage />),
+				element: <WardenLayout />,
+				children: [
+					{
+						path: "/warden/dashboard",
+						element: wrap(<WardenDashboardPage />),
+					},
+				],
 			},
 		],
 	},
@@ -78,15 +98,30 @@ export const router = createBrowserRouter([
 	{
 		element: <ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />,
 		children: [
-			{ path: "/admin/dashboard", element: wrap(<AdminDashboardPage />) },
-			{ path: "/admin/hostels", element: wrap(<HostelsPage />) },
-			{ path: "/admin/messes", element: wrap(<MessesPage />) },
-			{ path: "/admin/students", element: wrap(<StudentsPage />) },
-			{ path: "/admin/import", element: wrap(<ImportPage />) },
+			{
+				element: <AdminLayout />,
+				children: [
+					{
+						path: "/admin/dashboard",
+						element: wrap(<AdminDashboardPage />),
+					},
+					{ path: "/admin/hostels", element: wrap(<HostelsPage />) },
+					{
+						path: "/admin/hostel",
+						element: <Navigate to="/admin/hostels" replace />,
+					},
+					{ path: "/admin/messes", element: wrap(<MessesPage />) },
+					{
+						path: "/admin/students",
+						element: wrap(<StudentsPage />),
+					},
+					{ path: "/admin/import", element: wrap(<ImportPage />) },
+				],
+			},
 		],
 	},
 
 	// ── Fallback ─────────────────────────────────────────────
 	{ path: "/", element: <Navigate to="/login" replace /> },
-	{ path: "*", element: <Navigate to="/login" replace /> },
+	{ path: "*", element: <RouteFallback /> },
 ]);

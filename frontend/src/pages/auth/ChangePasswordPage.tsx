@@ -66,77 +66,87 @@ export default function ChangePasswordPage() {
 	};
 
 	return (
-		<div className="flex items-center justify-center min-h-screen bg-gray-50">
-			<div className="w-full max-w-md bg-white rounded-lg shadow p-8">
-				<h1 className="text-2xl font-bold mb-2 text-center">
-					Change Password
-				</h1>
-				<p className="text-center text-gray-600 text-sm mb-6">
-					You must change your password before continuing
-				</p>
+		<div className="auth-shell">
+			<section className="auth-hero">
+				<div className="auth-hero-panel">
+					<p className="portal-kicker">Account security</p>
+					<h1>Change your password before continuing.</h1>
+					<p>
+						First-login accounts are forced through this screen so
+						the initial password seeded from the backend can be
+						replaced immediately.
+					</p>
+				</div>
+			</section>
 
-				{error && (
-					<div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
-						{error}
-					</div>
-				)}
-
-				<form onSubmit={handleSubmit} className="space-y-4">
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Current Password
-						</label>
-						<input
-							type="password"
-							value={oldPassword}
-							onChange={(e) => setOldPassword(e.target.value)}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-							required
-							disabled={loading}
-						/>
-					</div>
-
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
-							New Password
-						</label>
-						<input
-							type="password"
-							value={newPassword}
-							onChange={(e) => setNewPassword(e.target.value)}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-							required
-							disabled={loading}
-						/>
-						<p className="text-xs text-gray-500 mt-1">
-							At least 8 characters with uppercase, lowercase,
-							number, and special character
+			<section className="auth-card-wrap">
+				<div className="auth-card">
+					<div className="auth-card-header">
+						<p className="portal-kicker">Secure your account</p>
+						<h2>Change password</h2>
+						<p>
+							You must set a new password before the rest of the
+							portal opens.
 						</p>
 					</div>
 
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Confirm Password
-						</label>
-						<input
-							type="password"
-							value={confirmPassword}
-							onChange={(e) => setConfirmPassword(e.target.value)}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-							required
-							disabled={loading}
-						/>
-					</div>
+					{error ? (
+						<div className="portal-alert error">{error}</div>
+					) : null}
 
-					<button
-						type="submit"
-						disabled={loading}
-						className="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition"
-					>
-						{loading ? "Updating..." : "Update Password"}
-					</button>
-				</form>
-			</div>
+					<form onSubmit={handleSubmit} className="auth-form">
+						<label className="portal-form-label">
+							Current password
+							<input
+								className="portal-input"
+								type="password"
+								value={oldPassword}
+								onChange={(e) => setOldPassword(e.target.value)}
+								required
+								disabled={loading}
+							/>
+						</label>
+
+						<label className="portal-form-label">
+							New password
+							<input
+								className="portal-input"
+								type="password"
+								value={newPassword}
+								onChange={(e) => setNewPassword(e.target.value)}
+								required
+								disabled={loading}
+							/>
+							<span className="portal-helper">
+								At least 8 characters with uppercase, lowercase,
+								number, and special character.
+							</span>
+						</label>
+
+						<label className="portal-form-label">
+							Confirm password
+							<input
+								className="portal-input"
+								type="password"
+								value={confirmPassword}
+								onChange={(e) =>
+									setConfirmPassword(e.target.value)
+								}
+								required
+								disabled={loading}
+							/>
+						</label>
+
+						<button
+							className="portal-button portal-button-primary"
+							type="submit"
+							disabled={loading}
+						>
+							{loading ? "Updating..." : "Update password"}
+						</button>
+					</form>
+				</div>
+			</section>
 		</div>
 	);
 }

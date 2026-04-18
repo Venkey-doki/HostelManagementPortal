@@ -29,6 +29,7 @@ services:
     build:
       context: ./backend
     container_name: hostel_api
+    command: sh -c "npm run prisma:migrate:deploy && npm run prisma:seed && npm run start"
     env_file:
       - ./backend/.env
     environment:
@@ -49,7 +50,7 @@ services:
     build:
       context: ./backend
     container_name: hostel_worker
-    command: ["npm", "run", "worker:start"]
+    command: sh -c "npm run prisma:migrate:deploy && npm run worker:start"
     env_file:
       - ./backend/.env
     environment:
