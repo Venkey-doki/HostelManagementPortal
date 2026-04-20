@@ -87,6 +87,16 @@ export default function StudentDashboardPage() {
 						</Link>
 						<Link
 							className="portal-mini-card"
+							to="/student/billing"
+						>
+							<h3>Billing</h3>
+							<p>
+								Open frozen monthly bills and line-item
+								breakdowns.
+							</p>
+						</Link>
+						<Link
+							className="portal-mini-card"
 							to="/student/dashboard"
 						>
 							<h3>Complaints</h3>

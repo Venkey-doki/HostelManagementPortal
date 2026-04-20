@@ -6,6 +6,7 @@ import { env } from "./config/env.js";
 import adminRoutes from "./modules/admin/admin.routes.js";
 import attendanceRoutes from "./modules/attendance/attendance.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
+import billingRoutes from "./modules/billing/billing.routes.js";
 import messExtrasRoutes from "./modules/extras/mess-extras.routes.js";
 import studentExtrasRoutes from "./modules/extras/student-extras.routes.js";
 import leavesRoutes from "./modules/leaves/leaves.routes.js";
@@ -68,6 +69,7 @@ app.use("/api/v1/students", studentsRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
 app.use("/api/v1/student-extras", studentExtrasRoutes);
 app.use("/api/v1/leaves", leavesRoutes);
+app.use("/api/v1/bills", billingRoutes);
 
 // ──────────────────────────────────────────────────
 // Global Error Handler (must be last)

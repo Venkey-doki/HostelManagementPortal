@@ -9,6 +9,10 @@ export const leaveAutoApprovalQueue = new Queue("leave-auto-approval", {
 	connection: bullmqConnection,
 });
 
+export const billingGenerateQueue = new Queue("billing-generate", {
+	connection: bullmqConnection,
+});
+
 export async function ensureLeaveAutoApprovalRepeatJobs() {
 	await leaveAutoApprovalQueue.add(
 		"sweep",
@@ -27,6 +31,19 @@ export async function ensureLeaveAutoApprovalRepeatJobs() {
 		{
 			repeat: { pattern: "45 23 * * *" },
 			jobId: "leave-auto-approval-nightly",
+			removeOnComplete: true,
+			removeOnFail: 100,
+		},
+	);
+}
+
+export async function ensureBillingGenerateRepeatJobs() {
+	await billingGenerateQueue.add(
+		"generate-monthly-bills",
+		{},
+		{
+			repeat: { pattern: "0 2 1 * *" },
+			jobId: "billing-generate-monthly",
 			removeOnComplete: true,
 			removeOnFail: 100,
 		},

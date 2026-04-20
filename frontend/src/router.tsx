@@ -27,6 +27,12 @@ const StudentLeavesPage = lazy(
 const StudentExtrasPage = lazy(
 	() => import("@/pages/student/StudentExtrasPage"),
 );
+const StudentBillingPage = lazy(
+	() => import("@/pages/student/StudentBillingPage"),
+);
+const StudentBillDetailPage = lazy(
+	() => import("@/pages/student/StudentBillDetailPage"),
+);
 const WardenDashboardPage = lazy(
 	() => import("@/pages/warden/WardenDashboardPage"),
 );
@@ -85,6 +91,14 @@ export const router = createBrowserRouter([
 					{
 						path: "/student/extras",
 						element: wrap(<StudentExtrasPage />),
+					},
+					{
+						path: "/student/billing",
+						element: wrap(<StudentBillingPage />),
+					},
+					{
+						path: "/student/billing/:billId",
+						element: wrap(<StudentBillDetailPage />),
 					},
 				],
 			},

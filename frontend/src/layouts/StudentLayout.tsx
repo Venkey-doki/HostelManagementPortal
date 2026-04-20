@@ -18,6 +18,11 @@ const navItems = [
 		description: "Apply and track",
 	},
 	{
+		href: "/student/billing",
+		label: "Billing",
+		description: "Bills and ledger",
+	},
+	{
 		href: "/student/extras",
 		label: "Extras",
 		description: "Billing preview",
