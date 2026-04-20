@@ -37,6 +37,9 @@ const WardenDashboardPage = lazy(
 	() => import("@/pages/warden/WardenDashboardPage"),
 );
 const WardenLeavesPage = lazy(() => import("@/pages/warden/WardenLeavesPage"));
+const WardenPaymentsPage = lazy(
+	() => import("@/pages/warden/WardenPaymentsPage"),
+);
 const InchargeDashboardPage = lazy(
 	() => import("@/pages/incharge/InchargeDashboardPage"),
 );
@@ -54,6 +57,7 @@ const MessesPage = lazy(() => import("@/pages/admin/MessesPage"));
 const StudentsPage = lazy(() => import("@/pages/admin/StudentsPage"));
 const ImportPage = lazy(() => import("@/pages/admin/ImportPage"));
 const AdminExtrasPage = lazy(() => import("@/pages/admin/ExtrasPage"));
+const AdminBillingPage = lazy(() => import("@/pages/admin/BillingPage"));
 
 const wrap = (el: JSX.Element) => (
 	<Suspense fallback={<div>Loading…</div>}>{el}</Suspense>
@@ -144,6 +148,10 @@ export const router = createBrowserRouter([
 						path: "/warden/leaves",
 						element: wrap(<WardenLeavesPage />),
 					},
+					{
+						path: "/warden/payments",
+						element: wrap(<WardenPaymentsPage />),
+					},
 				],
 			},
 		],
@@ -173,6 +181,10 @@ export const router = createBrowserRouter([
 					{
 						path: "/admin/students",
 						element: wrap(<StudentsPage />),
+					},
+					{
+						path: "/admin/billing",
+						element: wrap(<AdminBillingPage />),
 					},
 					{ path: "/admin/import", element: wrap(<ImportPage />) },
 				],

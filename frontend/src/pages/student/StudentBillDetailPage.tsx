@@ -1,5 +1,7 @@
 import { api } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 type BillLineItem = {
@@ -69,6 +71,14 @@ function formatDate(value: string | null) {
 
 export default function StudentBillDetailPage() {
 	const { billId } = useParams<{ billId: string }>();
+	const [errorMessage, setErrorMessage] = useState("");
+	const [successMessage, setSuccessMessage] = useState("");
+	const [referenceNumber, setReferenceNumber] = useState("");
+	const [amount, setAmount] = useState("");
+	const [paymentDate, setPaymentDate] = useState(() =>
+		new Date().toISOString().slice(0, 10),
+	);
+	const [screenshot, setScreenshot] = useState<File | null>(null);
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["student-bill", billId],
@@ -77,6 +87,68 @@ export default function StudentBillDetailPage() {
 			return response.data.data as BillDetail;
 		},
 		enabled: Boolean(billId),
+	});
+
+	useEffect(() => {
+		if (!data) {
+			return;
+		}
+
+		setAmount((current) => {
+			if (current.trim()) {
+				return current;
+			}
+			return Number(data.balanceDue).toFixed(2);
+		});
+	}, [data]);
+
+	const submitPaymentMutation = useMutation({
+		mutationFn: async () => {
+			if (!billId) {
+				throw new Error("Bill not found");
+			}
+
+			if (!screenshot) {
+				throw new Error("Payment screenshot is required");
+			}
+
+			const formData = new FormData();
+			formData.append("billId", billId);
+			formData.append("amount", amount);
+			formData.append("paymentDate", paymentDate);
+			formData.append("referenceNumber", referenceNumber);
+			formData.append("screenshot", screenshot);
+
+			const response = await api.post("/payments", formData);
+			return response.data.data;
+		},
+		onSuccess: async () => {
+			setSuccessMessage(
+				"Payment proof submitted. Warden verification is pending.",
+			);
+			setReferenceNumber("");
+			setScreenshot(null);
+			await queryClient.invalidateQueries({
+				queryKey: ["student-bill", billId],
+			});
+			await queryClient.invalidateQueries({
+				queryKey: ["student-bills"],
+			});
+		},
+		onError: (err: any) => {
+			const status = err?.response?.status as number | undefined;
+			const code = err?.response?.data?.error?.code as string | undefined;
+			setErrorMessage(
+				(status === 401
+					? "Session expired. Please login again and retry."
+					: code === "SCREENSHOT_UPLOAD_UNAVAILABLE"
+						? "Screenshot upload is temporarily unavailable. Please try again in a moment."
+						: undefined) ??
+					err.response?.data?.error?.message ??
+					err.message ??
+					"Failed to submit payment proof",
+			);
+		},
 	});
 
 	if (!billId) {
@@ -93,6 +165,13 @@ export default function StudentBillDetailPage() {
 
 	return (
 		<div className="portal-page">
+			{errorMessage ? (
+				<div className="portal-alert error">{errorMessage}</div>
+			) : null}
+			{successMessage ? (
+				<div className="portal-alert success">{successMessage}</div>
+			) : null}
+
 			<section className="portal-page-header">
 				<div>
 					<p className="portal-kicker">Billing detail</p>
@@ -193,6 +272,87 @@ export default function StudentBillDetailPage() {
 			<div className="portal-card">
 				<div className="portal-card-header">
 					<div>
+						<p className="portal-kicker">Payment proof</p>
+						<h2>Submit transfer details</h2>
+					</div>
+				</div>
+				<div className="portal-grid two">
+					<label className="portal-form-label">
+						Amount
+						<input
+							className="portal-input"
+							type="number"
+							step="0.01"
+							min="0.01"
+							value={amount}
+							onChange={(event) => setAmount(event.target.value)}
+						/>
+					</label>
+					<label className="portal-form-label">
+						Payment date
+						<input
+							className="portal-input"
+							type="date"
+							value={paymentDate}
+							onChange={(event) =>
+								setPaymentDate(event.target.value)
+							}
+						/>
+					</label>
+					<label className="portal-form-label">
+						Reference number
+						<input
+							className="portal-input"
+							type="text"
+							value={referenceNumber}
+							onChange={(event) =>
+								setReferenceNumber(event.target.value)
+							}
+							placeholder="UTR / transaction reference"
+						/>
+					</label>
+					<label className="portal-form-label">
+						Screenshot proof
+						<input
+							className="portal-input"
+							type="file"
+							accept="image/*"
+							onChange={(event) =>
+								setScreenshot(event.target.files?.[0] ?? null)
+							}
+						/>
+					</label>
+				</div>
+				<div className="portal-actions" style={{ marginTop: "14px" }}>
+					<button
+						className="portal-button portal-button-primary"
+						type="button"
+						onClick={() => {
+							setErrorMessage("");
+							setSuccessMessage("");
+							submitPaymentMutation.mutate();
+						}}
+						disabled={
+							submitPaymentMutation.isPending ||
+							!amount.trim() ||
+							!referenceNumber.trim() ||
+							!screenshot
+						}
+					>
+						{submitPaymentMutation.isPending
+							? "Submitting..."
+							: "Submit proof"}
+					</button>
+					<span className="portal-helper">
+						Verification is manual. Balance updates after warden
+						approval.
+					</span>
+				</div>
+			</div>
+
+			<div className="portal-card">
+				<div className="portal-card-header">
+					<div>
 						<p className="portal-kicker">Line items</p>
 						<h2>Every rupee explained</h2>
 					</div>
@@ -260,7 +420,7 @@ export default function StudentBillDetailPage() {
 					</div>
 				) : (
 					<div className="portal-empty">
-						No verified payments are linked yet.
+						No payment entries are linked yet.
 					</div>
 				)}
 			</div>

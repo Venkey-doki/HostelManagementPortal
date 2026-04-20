@@ -165,7 +165,6 @@ export class BillingService {
 			prisma.hostelAssignment.findFirst({
 				where: {
 					studentId,
-					isCurrent: true,
 					startDate: { lte: periodEnd },
 					OR: [{ endDate: null }, { endDate: { gte: periodStart } }],
 				},
@@ -177,7 +176,6 @@ export class BillingService {
 			prisma.messAssignment.findFirst({
 				where: {
 					studentId,
-					isCurrent: true,
 					startDate: { lte: periodEnd },
 					OR: [{ endDate: null }, { endDate: { gte: periodStart } }],
 				},

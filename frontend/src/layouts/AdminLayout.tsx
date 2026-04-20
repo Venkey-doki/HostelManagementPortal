@@ -19,6 +19,11 @@ const navItems = [
 		label: "Extras",
 		description: "Mess item setup",
 	},
+	{
+		href: "/admin/billing",
+		label: "Billing",
+		description: "Generate monthly bills",
+	},
 	{ href: "/admin/import", label: "Import", description: "CSV bulk upload" },
 ];
 

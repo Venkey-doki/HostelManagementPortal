@@ -21,9 +21,9 @@ export default function WardenDashboardPage() {
 					</Link>
 					<Link
 						className="portal-button portal-button-secondary"
-						to="/warden/dashboard"
+						to="/warden/payments"
 					>
-						Reports
+						Payments queue
 					</Link>
 				</div>
 			</section>
@@ -94,9 +94,12 @@ export default function WardenDashboardPage() {
 										ledger.
 									</p>
 								</div>
-								<span className="portal-pill accent">
-									In progress
-								</span>
+								<Link
+									className="portal-pill accent"
+									to="/warden/payments"
+								>
+									Open queue
+								</Link>
 							</div>
 						</div>
 						<div className="portal-list-item">

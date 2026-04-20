@@ -20,6 +20,7 @@ const envSchema = z.object({
 	RESEND_API_KEY: z.string().min(1),
 	RESEND_FROM_EMAIL: z.string().email(),
 	FRONTEND_URL: z.string().url().optional(),
+	BACKEND_PUBLIC_URL: z.string().url().optional(),
 	VITE_API_BASE_URL: z.string().url().optional(),
 });
 

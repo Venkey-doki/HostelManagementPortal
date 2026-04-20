@@ -12,6 +12,11 @@ const navItems = [
 		label: "Leaves",
 		description: "Approve requests",
 	},
+	{
+		href: "/warden/payments",
+		label: "Payments",
+		description: "Verify proofs",
+	},
 ];
 
 export default function WardenLayout() {
