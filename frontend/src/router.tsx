@@ -24,6 +24,9 @@ const StudentAttendancePage = lazy(
 const StudentLeavesPage = lazy(
 	() => import("@/pages/student/StudentLeavesPage"),
 );
+const StudentExtrasPage = lazy(
+	() => import("@/pages/student/StudentExtrasPage"),
+);
 const WardenDashboardPage = lazy(
 	() => import("@/pages/warden/WardenDashboardPage"),
 );
@@ -34,6 +37,9 @@ const InchargeDashboardPage = lazy(
 const InchargeAttendancePage = lazy(
 	() => import("@/pages/incharge/InchargeAttendancePage"),
 );
+const InchargeExtrasPage = lazy(
+	() => import("@/pages/incharge/InchargeExtrasPage"),
+);
 const AdminDashboardPage = lazy(
 	() => import("@/pages/admin/AdminDashboardPage"),
 );
@@ -41,6 +47,7 @@ const HostelsPage = lazy(() => import("@/pages/admin/HostelsPage"));
 const MessesPage = lazy(() => import("@/pages/admin/MessesPage"));
 const StudentsPage = lazy(() => import("@/pages/admin/StudentsPage"));
 const ImportPage = lazy(() => import("@/pages/admin/ImportPage"));
+const AdminExtrasPage = lazy(() => import("@/pages/admin/ExtrasPage"));
 
 const wrap = (el: JSX.Element) => (
 	<Suspense fallback={<div>Loading…</div>}>{el}</Suspense>
@@ -75,6 +82,10 @@ export const router = createBrowserRouter([
 						path: "/student/leaves",
 						element: wrap(<StudentLeavesPage />),
 					},
+					{
+						path: "/student/extras",
+						element: wrap(<StudentExtrasPage />),
+					},
 				],
 			},
 		],
@@ -94,6 +105,10 @@ export const router = createBrowserRouter([
 					{
 						path: "/incharge/attendance",
 						element: wrap(<InchargeAttendancePage />),
+					},
+					{
+						path: "/incharge/extras",
+						element: wrap(<InchargeExtrasPage />),
 					},
 				],
 			},
@@ -137,6 +152,10 @@ export const router = createBrowserRouter([
 						element: <Navigate to="/admin/hostels" replace />,
 					},
 					{ path: "/admin/messes", element: wrap(<MessesPage />) },
+					{
+						path: "/admin/extras",
+						element: wrap(<AdminExtrasPage />),
+					},
 					{
 						path: "/admin/students",
 						element: wrap(<StudentsPage />),

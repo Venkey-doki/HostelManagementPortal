@@ -21,7 +21,7 @@ export default function InchargeDashboardPage() {
 					</Link>
 					<Link
 						className="portal-button portal-button-secondary"
-						to="/incharge/dashboard"
+						to="/incharge/extras"
 					>
 						Add extras
 					</Link>

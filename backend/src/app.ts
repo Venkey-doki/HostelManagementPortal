@@ -6,6 +6,8 @@ import { env } from "./config/env.js";
 import adminRoutes from "./modules/admin/admin.routes.js";
 import attendanceRoutes from "./modules/attendance/attendance.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
+import messExtrasRoutes from "./modules/extras/mess-extras.routes.js";
+import studentExtrasRoutes from "./modules/extras/student-extras.routes.js";
 import leavesRoutes from "./modules/leaves/leaves.routes.js";
 import messesRoutes from "./modules/messes/messes.routes.js";
 import studentsRoutes from "./modules/students/students.routes.js";
@@ -61,8 +63,10 @@ app.get("/api/v1/health", (_req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/messes", messesRoutes);
+app.use("/api/v1/messes", messExtrasRoutes);
 app.use("/api/v1/students", studentsRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
+app.use("/api/v1/student-extras", studentExtrasRoutes);
 app.use("/api/v1/leaves", leavesRoutes);
 
 // ──────────────────────────────────────────────────

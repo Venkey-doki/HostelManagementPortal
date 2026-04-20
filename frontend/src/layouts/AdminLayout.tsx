@@ -14,6 +14,11 @@ const navItems = [
 		label: "Students",
 		description: "Directory & assignments",
 	},
+	{
+		href: "/admin/extras",
+		label: "Extras",
+		description: "Mess item setup",
+	},
 	{ href: "/admin/import", label: "Import", description: "CSV bulk upload" },
 ];
 

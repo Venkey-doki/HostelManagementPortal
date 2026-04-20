@@ -17,6 +17,11 @@ const navItems = [
 		label: "Leaves",
 		description: "Apply and track",
 	},
+	{
+		href: "/student/extras",
+		label: "Extras",
+		description: "Billing preview",
+	},
 ];
 
 export default function StudentLayout() {

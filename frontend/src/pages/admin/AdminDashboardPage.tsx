@@ -8,16 +8,17 @@ export default function AdminDashboardPage() {
 					<p className="portal-kicker">Control room</p>
 					<h1>Admin Dashboard</h1>
 					<p>
-						Create the campus structure, onboard staff, and keep the
-						hostel and mess setup in sync.
+						Create the campus structure, configure mess extras,
+						onboard staff, and keep the hostel and mess setup in
+						sync.
 					</p>
 				</div>
 				<div className="portal-actions">
 					<Link
 						className="portal-button portal-button-primary"
-						to="/admin/import"
+						to="/admin/extras"
 					>
-						Import students
+						Manage extras
 					</Link>
 					<Link
 						className="portal-button portal-button-secondary"
@@ -80,6 +81,16 @@ export default function AdminDashboardPage() {
 					<p>
 						Add messes, set daily charges, and assign current
 						incharge staff.
+					</p>
+				</Link>
+				<Link
+					className="portal-card portal-mini-card"
+					to="/admin/extras"
+				>
+					<h3>Extras config</h3>
+					<p>
+						Define extra items per mess so incharge staff can charge
+						them later.
 					</p>
 				</Link>
 				<Link

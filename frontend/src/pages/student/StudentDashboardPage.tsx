@@ -21,9 +21,9 @@ export default function StudentDashboardPage() {
 					</Link>
 					<Link
 						className="portal-button portal-button-secondary"
-						to="/student/billing"
+						to="/student/extras"
 					>
-						Open bills
+						Open extras preview
 					</Link>
 				</div>
 			</section>
@@ -79,12 +79,11 @@ export default function StudentDashboardPage() {
 							<h3>Leaves</h3>
 							<p>Apply for leave and track approvals.</p>
 						</Link>
-						<Link
-							className="portal-mini-card"
-							to="/student/dashboard"
-						>
-							<h3>Billing</h3>
-							<p>Open your monthly bill and payment history.</p>
+						<Link className="portal-mini-card" to="/student/extras">
+							<h3>Extras</h3>
+							<p>
+								Preview monthly extras that flow into billing.
+							</p>
 						</Link>
 						<Link
 							className="portal-mini-card"
