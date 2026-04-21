@@ -3,12 +3,13 @@ import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../../shared/errors/AppError.js";
 import {
 	assignInchargeSchema,
-	createWardenUserSchema,
 	createHostelRentConfigSchema,
 	createHostelSchema,
 	createMessSchema,
 	createRoomSchema,
+	createWardenUserSchema,
 	endInchargeAssignmentSchema,
+	importHostelsSchema,
 	importStudentsSchema,
 	updateHostelSchema,
 	updateMessSchema,
@@ -402,6 +403,59 @@ export class WardenController {
 				success: true,
 				data: result,
 			});
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	/**
+	 * POST /api/v1/warden/hostels/import
+	 * Expects multipart form-data with 'file' field containing CSV
+	 * CSV columns: hostel_name, gender, room_number, capacity
+	 */
+	async importInfrastructure(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			if (!req.file) {
+				throw new AppError("No file uploaded", 422, "NO_FILE_UPLOADED");
+			}
+
+			let rows: unknown[];
+			try {
+				rows = parse(req.file.buffer.toString(), {
+					columns: true,
+					skip_empty_lines: true,
+					trim: true,
+				});
+			} catch {
+				throw new AppError(
+					"Invalid CSV format",
+					422,
+					"INVALID_CSV_FORMAT",
+				);
+			}
+
+			if (rows.length === 0) {
+				throw new AppError("CSV is empty", 422, "EMPTY_CSV");
+			}
+
+			const validated = importHostelsSchema.safeParse({ rows });
+			if (!validated.success) {
+				throw new AppError(
+					"CSV validation failed: " + validated.error.message,
+					422,
+					"CSV_VALIDATION_ERROR",
+				);
+			}
+
+			const result = await wardenService.importHostelsAndRooms(
+				validated.data.rows,
+			);
+
+			res.json({ success: true, data: result });
 		} catch (error) {
 			next(error);
 		}

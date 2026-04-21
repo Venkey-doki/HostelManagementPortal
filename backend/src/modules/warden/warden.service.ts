@@ -8,17 +8,24 @@ import { AppError } from "../../shared/errors/AppError.js";
 
 export class WardenService {
 	async getDashboardStats() {
-		const [totalStudents, totalHostels, totalMesses, activeComplaints] = await Promise.all([
-			prisma.student.count({ where: { deletedAt: null, isActive: true } }),
-			prisma.hostel.count({ where: { deletedAt: null, isActive: true } }),
-			prisma.mess.count({ where: { deletedAt: null, isActive: true } }),
-			prisma.complaint.count({ where: { status: "OPEN" } })
-		]);
+		const [totalStudents, totalHostels, totalMesses, activeComplaints] =
+			await Promise.all([
+				prisma.student.count({
+					where: { deletedAt: null, isActive: true },
+				}),
+				prisma.hostel.count({
+					where: { deletedAt: null, isActive: true },
+				}),
+				prisma.mess.count({
+					where: { deletedAt: null, isActive: true },
+				}),
+				prisma.complaint.count({ where: { status: "OPEN" } }),
+			]);
 		return {
 			totalStudents,
 			totalHostels,
 			totalMesses,
-			activeComplaints
+			activeComplaints,
 		};
 	}
 
@@ -495,6 +502,127 @@ export class WardenService {
 				endDate,
 			},
 		});
+	}
+
+	async importHostelsAndRooms(
+		rows: Array<{
+			hostel_name: string;
+			gender: "MALE" | "FEMALE";
+			room_number: string;
+			capacity: number;
+		}>,
+	) {
+		const seenRoomKey = new Set<string>();
+
+		for (let i = 0; i < rows.length; i++) {
+			const row = rows[i]!;
+			const duplicateRoomKey = `${row.hostel_name}::${row.room_number}`;
+
+			if (seenRoomKey.has(duplicateRoomKey)) {
+				throw new AppError(
+					`Duplicate room mapping found in CSV at row ${i + 1}`,
+					422,
+					"CSV_VALIDATION_ERROR",
+				);
+			}
+
+			seenRoomKey.add(duplicateRoomKey);
+		}
+
+		const result = await prisma.$transaction(async (tx) => {
+			const hostelCache = new Map<
+				string,
+				{ id: string; name: string; gender: "MALE" | "FEMALE" }
+			>();
+
+			let createdHostels = 0;
+			let createdRooms = 0;
+			let skippedRooms = 0;
+
+			for (const row of rows) {
+				const hostelName = row.hostel_name.trim();
+				const roomNumber = row.room_number.trim();
+
+				let hostel = hostelCache.get(hostelName);
+
+				if (!hostel) {
+					const existing = await tx.hostel.findUnique({
+						where: { name: hostelName },
+						select: { id: true, name: true, gender: true },
+					});
+
+					if (existing) {
+						if (existing.gender !== row.gender) {
+							throw new AppError(
+								`Gender mismatch for existing hostel '${hostelName}'`,
+								422,
+								"HOSTEL_GENDER_MISMATCH",
+							);
+						}
+
+						hostel = {
+							id: existing.id,
+							name: existing.name,
+							gender: existing.gender,
+						};
+					} else {
+						const created = await tx.hostel.create({
+							data: {
+								name: hostelName,
+								gender: row.gender,
+							},
+							select: { id: true, name: true, gender: true },
+						});
+
+						hostel = {
+							id: created.id,
+							name: created.name,
+							gender: created.gender,
+						};
+						createdHostels++;
+					}
+
+					hostelCache.set(hostelName, hostel);
+				}
+
+				const existingRoom = await tx.room.findUnique({
+					where: {
+						hostelId_roomNumber: {
+							hostelId: hostel.id,
+							roomNumber,
+						},
+					},
+					select: { id: true },
+				});
+
+				if (existingRoom) {
+					skippedRooms++;
+					continue;
+				}
+
+				await tx.room.create({
+					data: {
+						hostelId: hostel.id,
+						roomNumber,
+						capacity: row.capacity,
+					},
+				});
+
+				createdRooms++;
+			}
+
+			return {
+				importedRows: rows.length,
+				createdHostels,
+				createdRooms,
+				skippedRooms,
+			};
+		});
+
+		return {
+			success: true,
+			...result,
+		};
 	}
 
 	/**

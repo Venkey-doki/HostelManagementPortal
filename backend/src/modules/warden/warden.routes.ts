@@ -48,6 +48,14 @@ router.post(
 	wardenController.createHostel.bind(wardenController),
 );
 
+router.post(
+	"/hostels/import",
+	authenticate,
+	authorize("WARDEN"),
+	upload.single("file"),
+	wardenController.importInfrastructure.bind(wardenController),
+);
+
 router.patch(
 	"/hostels/:hostelId",
 	authenticate,

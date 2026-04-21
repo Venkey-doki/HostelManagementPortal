@@ -26,6 +26,29 @@ export const importStudentsSchema = z
 
 export type ImportStudentsRequest = z.infer<typeof importStudentsSchema>;
 
+export const importHostelsSchema = z
+	.object({
+		rows: z.array(
+			z
+				.object({
+					hostel_name: z
+						.string()
+						.min(2, "Hostel name is required")
+						.max(100),
+					gender: z.enum(["MALE", "FEMALE"]),
+					room_number: z
+						.string()
+						.min(1, "Room number is required")
+						.max(20),
+					capacity: z.coerce.number().int().min(1).max(10),
+				})
+				.strict(),
+		),
+	})
+	.strict();
+
+export type ImportHostelsRequest = z.infer<typeof importHostelsSchema>;
+
 export const createHostelSchema = z
 	.object({
 		name: z.string().min(2).max(100),
