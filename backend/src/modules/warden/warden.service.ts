@@ -6,7 +6,22 @@ import { AppError } from "../../shared/errors/AppError.js";
  * Admin Service - handles admin operations like CSV import
  */
 
-export class AdminService {
+export class WardenService {
+	async getDashboardStats() {
+		const [totalStudents, totalHostels, totalMesses, activeComplaints] = await Promise.all([
+			prisma.student.count({ where: { deletedAt: null, isActive: true } }),
+			prisma.hostel.count({ where: { deletedAt: null, isActive: true } }),
+			prisma.mess.count({ where: { deletedAt: null, isActive: true } }),
+			prisma.complaint.count({ where: { status: "OPEN" } })
+		]);
+		return {
+			totalStudents,
+			totalHostels,
+			totalMesses,
+			activeComplaints
+		};
+	}
+
 	async createHostel(input: { name: string; gender: "MALE" | "FEMALE" }) {
 		const existing = await prisma.hostel.findUnique({
 			where: { name: input.name },
@@ -324,7 +339,7 @@ export class AdminService {
 		});
 	}
 
-	async createAdminUser(input: {
+	async createWardenUser(input: {
 		email: string;
 		role: "WARDEN" | "MESS_INCHARGE";
 		firstName: string;
@@ -612,4 +627,4 @@ export class AdminService {
 	}
 }
 
-export const adminService = new AdminService();
+export const wardenService = new WardenService();

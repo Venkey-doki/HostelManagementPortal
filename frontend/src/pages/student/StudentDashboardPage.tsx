@@ -23,6 +23,14 @@ export default function StudentDashboardPage() {
 				totalBills: number;
 			},
 	});
+	const { data: configData } = useQuery({
+		queryKey: ["leaves-config"],
+		queryFn: async () =>
+			(await api.get("/leaves/config")).data.data as {
+				maxLeaveDays: number;
+				autoApproveHours: number;
+			},
+	});
 
 	const balanceDue =
 		billsData?.bills.reduce((s, b) => s + Number(b.balanceDue), 0) ?? null;
@@ -35,9 +43,9 @@ export default function StudentDashboardPage() {
 			note: "Awaiting warden review",
 		},
 		{
-			label: "Max per request",
-			value: "60 days",
-			note: "Single leave request limit",
+			label: "Leaves used",
+			value: leavesData !== undefined ? `${leavesData.summary.usedDays} days` : "—",
+			note: `Max per request: ${configData ? configData.maxLeaveDays : "—"}`,
 		},
 		{
 			label: "Balance due",

@@ -4,7 +4,7 @@ import express from "express";
 import helmet from "helmet";
 import path from "node:path";
 import { env } from "./config/env.js";
-import adminRoutes from "./modules/admin/admin.routes.js";
+import wardenRoutes from "./modules/warden/warden.routes.js";
 import attendanceRoutes from "./modules/attendance/attendance.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import billingRoutes from "./modules/billing/billing.routes.js";
@@ -67,7 +67,7 @@ app.get("/api/v1/health", (_req, res) => {
 // ──────────────────────────────────────────────────
 
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/warden", wardenRoutes);
 app.use("/api/v1/messes", messesRoutes);
 app.use("/api/v1/messes", messExtrasRoutes);
 app.use("/api/v1/students", studentsRoutes);

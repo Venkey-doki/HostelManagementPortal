@@ -3,7 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../../shared/errors/AppError.js";
 import {
 	assignInchargeSchema,
-	createAdminUserSchema,
+	createWardenUserSchema,
 	createHostelRentConfigSchema,
 	createHostelSchema,
 	createMessSchema,
@@ -13,14 +13,27 @@ import {
 	updateHostelSchema,
 	updateMessSchema,
 	updateRoomSchema,
-} from "./admin.schema.js";
-import { adminService } from "./admin.service.js";
+} from "./warden.schema.js";
+import { wardenService } from "./warden.service.js";
 
 /**
  * Admin Controller - HTTP handlers for admin operations
  */
 
-export class AdminController {
+export class WardenController {
+	async getDashboardStats(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const stats = await wardenService.getDashboardStats();
+			res.json({ success: true, data: stats });
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	private getSingleParam(
 		value: string | string[] | undefined,
 		field: string,
@@ -46,7 +59,7 @@ export class AdminController {
 				);
 			}
 
-			const hostel = await adminService.createHostel(parsed.data);
+			const hostel = await wardenService.createHostel(parsed.data);
 			res.status(201).json({ success: true, data: hostel });
 		} catch (error) {
 			next(error);
@@ -59,7 +72,7 @@ export class AdminController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const hostels = await adminService.listHostels();
+			const hostels = await wardenService.listHostels();
 			res.json({ success: true, data: hostels });
 		} catch (error) {
 			next(error);
@@ -86,7 +99,7 @@ export class AdminController {
 				);
 			}
 
-			const hostel = await adminService.updateHostel(
+			const hostel = await wardenService.updateHostel(
 				hostelId,
 				parsed.data,
 			);
@@ -116,7 +129,7 @@ export class AdminController {
 				);
 			}
 
-			const room = await adminService.createRoom(hostelId, parsed.data);
+			const room = await wardenService.createRoom(hostelId, parsed.data);
 			res.status(201).json({ success: true, data: room });
 		} catch (error) {
 			next(error);
@@ -140,7 +153,7 @@ export class AdminController {
 				);
 			}
 
-			const room = await adminService.updateRoom(roomId, parsed.data);
+			const room = await wardenService.updateRoom(roomId, parsed.data);
 			res.json({ success: true, data: room });
 		} catch (error) {
 			next(error);
@@ -162,7 +175,7 @@ export class AdminController {
 				);
 			}
 
-			const mess = await adminService.createMess(parsed.data);
+			const mess = await wardenService.createMess(parsed.data);
 			res.status(201).json({ success: true, data: mess });
 		} catch (error) {
 			next(error);
@@ -175,7 +188,7 @@ export class AdminController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const messes = await adminService.listMesses();
+			const messes = await wardenService.listMesses();
 			res.json({ success: true, data: messes });
 		} catch (error) {
 			next(error);
@@ -199,7 +212,7 @@ export class AdminController {
 				);
 			}
 
-			const mess = await adminService.updateMess(messId, parsed.data);
+			const mess = await wardenService.updateMess(messId, parsed.data);
 			res.json({ success: true, data: mess });
 		} catch (error) {
 			next(error);
@@ -229,7 +242,7 @@ export class AdminController {
 				);
 			}
 
-			const config = await adminService.createHostelRentConfig(
+			const config = await wardenService.createHostelRentConfig(
 				parsed.data,
 				req.user.userId,
 			);
@@ -245,7 +258,7 @@ export class AdminController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const parsed = createAdminUserSchema.safeParse(req.body);
+			const parsed = createWardenUserSchema.safeParse(req.body);
 			if (!parsed.success) {
 				throw new AppError(
 					"Invalid request body",
@@ -254,7 +267,7 @@ export class AdminController {
 				);
 			}
 
-			const result = await adminService.createAdminUser(parsed.data);
+			const result = await wardenService.createWardenUser(parsed.data);
 			res.status(201).json({ success: true, data: result });
 		} catch (error) {
 			next(error);
@@ -278,7 +291,7 @@ export class AdminController {
 				);
 			}
 
-			const assignment = await adminService.assignInchargeToMess({
+			const assignment = await wardenService.assignInchargeToMess({
 				messId,
 				userId: parsed.data.userId,
 				startDate: parsed.data.startDate,
@@ -298,7 +311,7 @@ export class AdminController {
 		try {
 			const messId = this.getSingleParam(req.params.messId, "Mess id");
 			const assignments =
-				await adminService.listInchargeAssignments(messId);
+				await wardenService.listInchargeAssignments(messId);
 			res.json({ success: true, data: assignments });
 		} catch (error) {
 			next(error);
@@ -324,7 +337,7 @@ export class AdminController {
 				);
 			}
 
-			const assignment = await adminService.endInchargeAssignment(
+			const assignment = await wardenService.endInchargeAssignment(
 				assignmentId,
 				parsed.data.endDate,
 			);
@@ -381,7 +394,7 @@ export class AdminController {
 			}
 
 			// Import students
-			const result = await adminService.importStudents(
+			const result = await wardenService.importStudents(
 				validated.data.rows,
 			);
 
@@ -395,4 +408,4 @@ export class AdminController {
 	}
 }
 
-export const adminController = new AdminController();
+export const wardenController = new WardenController();

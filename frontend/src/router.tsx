@@ -3,7 +3,6 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import RouteFallback from "@/components/shared/RouteFallback";
-import AdminLayout from "@/layouts/AdminLayout";
 import AuthLayout from "@/layouts/AuthLayout";
 import InchargeLayout from "@/layouts/InchargeLayout";
 import StudentLayout from "@/layouts/StudentLayout";
@@ -40,9 +39,6 @@ const WardenLeavesPage = lazy(() => import("@/pages/warden/WardenLeavesPage"));
 const WardenPaymentsPage = lazy(
 	() => import("@/pages/warden/WardenPaymentsPage"),
 );
-const WardenStudentsListPage = lazy(
-	() => import("@/pages/warden/WardenStudentsListPage"),
-);
 const InchargeDashboardPage = lazy(
 	() => import("@/pages/incharge/InchargeDashboardPage"),
 );
@@ -52,15 +48,12 @@ const InchargeAttendancePage = lazy(
 const InchargeExtrasPage = lazy(
 	() => import("@/pages/incharge/InchargeExtrasPage"),
 );
-const AdminDashboardPage = lazy(
-	() => import("@/pages/admin/AdminDashboardPage"),
-);
-const HostelsPage = lazy(() => import("@/pages/admin/HostelsPage"));
-const MessesPage = lazy(() => import("@/pages/admin/MessesPage"));
-const StudentsPage = lazy(() => import("@/pages/admin/StudentsPage"));
-const ImportPage = lazy(() => import("@/pages/admin/ImportPage"));
-const AdminExtrasPage = lazy(() => import("@/pages/admin/ExtrasPage"));
-const AdminBillingPage = lazy(() => import("@/pages/admin/BillingPage"));
+const HostelsPage = lazy(() => import("@/pages/warden/HostelsPage"));
+const MessesPage = lazy(() => import("@/pages/warden/MessesPage"));
+const WardenStudentsPage = lazy(() => import("@/pages/warden/WardenStudentsPage"));
+const ImportPage = lazy(() => import("@/pages/warden/ImportPage"));
+const WardenExtrasPage = lazy(() => import("@/pages/warden/ExtrasPage"));
+const WardenBillingPage = lazy(() => import("@/pages/warden/BillingPage"));
 
 const wrap = (el: JSX.Element) => (
 	<Suspense fallback={<div>Loading…</div>}>{el}</Suspense>
@@ -157,43 +150,32 @@ export const router = createBrowserRouter([
 					},
 					{
 						path: "/warden/students",
-						element: wrap(<WardenStudentsListPage />),
-					},
-				],
-			},
-		],
-	},
-
-	// ── Admin routes ─────────────────────────────────────────
-	{
-		element: <ProtectedRoute allowedRoles={["WARDEN"]} />,
-		children: [
-			{
-				element: <AdminLayout />,
-				children: [
-					{
-						path: "/admin/dashboard",
-						element: wrap(<AdminDashboardPage />),
-					},
-					{ path: "/admin/hostels", element: wrap(<HostelsPage />) },
-					{
-						path: "/admin/hostel",
-						element: <Navigate to="/admin/hostels" replace />,
-					},
-					{ path: "/admin/messes", element: wrap(<MessesPage />) },
-					{
-						path: "/admin/extras",
-						element: wrap(<AdminExtrasPage />),
+						element: wrap(<WardenStudentsPage />),
 					},
 					{
-						path: "/admin/students",
-						element: wrap(<StudentsPage />),
+						path: "/warden/hostels",
+						element: wrap(<HostelsPage />),
 					},
 					{
-						path: "/admin/billing",
-						element: wrap(<AdminBillingPage />),
+						path: "/warden/hostel",
+						element: <Navigate to="/warden/hostels" replace />,
 					},
-					{ path: "/admin/import", element: wrap(<ImportPage />) },
+					{
+						path: "/warden/messes",
+						element: wrap(<MessesPage />),
+					},
+					{
+						path: "/warden/extras",
+						element: wrap(<WardenExtrasPage />),
+					},
+					{
+						path: "/warden/billing",
+						element: wrap(<WardenBillingPage />),
+					},
+					{
+						path: "/warden/import",
+						element: wrap(<ImportPage />),
+					},
 				],
 			},
 		],

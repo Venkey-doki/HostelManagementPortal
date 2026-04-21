@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { authenticate } from "../../shared/middleware/authenticate.js";
 import { authorize } from "../../shared/middleware/authorize.js";
-import { adminController } from "./admin.controller.js";
+import { wardenController } from "./warden.controller.js";
 
 const router = Router();
 
@@ -24,98 +24,105 @@ const upload = multer({
 });
 
 /**
- * Admin routes - all require WARDEN role
+ * Warden routes - all require WARDEN role
  */
+
+router.get(
+	"/dashboard-stats",
+	authenticate,
+	authorize("WARDEN"),
+	wardenController.getDashboardStats.bind(wardenController),
+);
 
 router.get(
 	"/hostels",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.listHostels.bind(adminController),
+	wardenController.listHostels.bind(wardenController),
 );
 
 router.post(
 	"/hostels",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.createHostel.bind(adminController),
+	wardenController.createHostel.bind(wardenController),
 );
 
 router.patch(
 	"/hostels/:hostelId",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.updateHostel.bind(adminController),
+	wardenController.updateHostel.bind(wardenController),
 );
 
 router.post(
 	"/hostels/:hostelId/rooms",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.createRoom.bind(adminController),
+	wardenController.createRoom.bind(wardenController),
 );
 
 router.patch(
 	"/rooms/:roomId",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.updateRoom.bind(adminController),
+	wardenController.updateRoom.bind(wardenController),
 );
 
 router.get(
 	"/messes",
 	authenticate,
 	authorize("WARDEN", "MESS_INCHARGE"),
-	adminController.listMesses.bind(adminController),
+	wardenController.listMesses.bind(wardenController),
 );
 
 router.post(
 	"/messes",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.createMess.bind(adminController),
+	wardenController.createMess.bind(wardenController),
 );
 
 router.patch(
 	"/messes/:messId",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.updateMess.bind(adminController),
+	wardenController.updateMess.bind(wardenController),
 );
 
 router.post(
 	"/messes/:messId/incharge-assignment",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.assignIncharge.bind(adminController),
+	wardenController.assignIncharge.bind(wardenController),
 );
 
 router.get(
 	"/messes/:messId/incharge-assignment",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.listInchargeAssignments.bind(adminController),
+	wardenController.listInchargeAssignments.bind(wardenController),
 );
 
 router.patch(
 	"/incharge-assignment/:assignmentId/end",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.endInchargeAssignment.bind(adminController),
+	wardenController.endInchargeAssignment.bind(wardenController),
 );
 
 router.post(
 	"/hostel-rent-config",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.createHostelRentConfig.bind(adminController),
+	wardenController.createHostelRentConfig.bind(wardenController),
 );
 
 router.post(
 	"/users",
 	authenticate,
 	authorize("WARDEN"),
-	adminController.createUser.bind(adminController),
+	wardenController.createUser.bind(wardenController),
 );
 
 // POST /admin/students/import - bulk import from CSV
@@ -124,7 +131,7 @@ router.post(
 	authenticate,
 	authorize("WARDEN"),
 	upload.single("file"),
-	adminController.importStudents.bind(adminController),
+	wardenController.importStudents.bind(wardenController),
 );
 
 export default router;

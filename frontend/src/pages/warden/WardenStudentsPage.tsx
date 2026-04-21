@@ -18,7 +18,7 @@ interface AssignmentHistoryResponse {
 
 const inputClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-export default function StudentsPage() {
+export default function WardenStudentsPage() {
 	const [students, setStudents] = useState<StudentRecord[]>([]);
 	const [hostels, setHostels] = useState<ChoiceItem[]>([]);
 	const [messes, setMesses] = useState<ChoiceItem[]>([]);
@@ -34,7 +34,7 @@ export default function StudentsPage() {
 	const selectedStudent = useMemo(() => students.find((s) => s.id === selectedStudentId) ?? null, [students, selectedStudentId]);
 
 	const loadSupportingData = async () => {
-		const [hr, mr] = await Promise.all([api.get("/admin/hostels"), api.get("/admin/messes")]);
+		const [hr, mr] = await Promise.all([api.get("/warden/hostels"), api.get("/warden/messes")]);
 		setHostels(hr.data.data); setMesses(mr.data.data);
 	};
 

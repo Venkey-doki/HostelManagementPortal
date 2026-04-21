@@ -9,6 +9,19 @@ import {
 import { leavesService } from "./leaves.service.js";
 
 export class LeavesController {
+	async getConfig(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const data = leavesService.getConfig();
+			res.json({ success: true, data });
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	async getStudentLeaves(
 		req: Request,
 		res: Response,

@@ -92,7 +92,7 @@ export const createHostelRentConfigSchema = z
 	})
 	.strict();
 
-export const createAdminUserSchema = z
+export const createWardenUserSchema = z
 	.object({
 		email: z.string().email(),
 		role: z.enum(["WARDEN", "MESS_INCHARGE"]),

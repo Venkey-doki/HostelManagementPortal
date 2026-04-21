@@ -102,6 +102,13 @@ function formatLeaveResponse<
 }
 
 export class LeavesService {
+	getConfig() {
+		return {
+			maxLeaveDays: MAX_LEAVE_DAYS,
+			autoApproveHours: Math.floor(AUTO_APPROVAL_MS / (60 * 60 * 1000)),
+		};
+	}
+
 	private async ensureStudentExists(studentId: string) {
 		const student = await prisma.student.findFirst({
 			where: { id: studentId, deletedAt: null, isActive: true },

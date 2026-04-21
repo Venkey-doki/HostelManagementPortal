@@ -6,6 +6,12 @@ import { leavesController } from "./leaves.controller.js";
 const router = Router();
 
 router.get(
+	"/config",
+	authenticate,
+	leavesController.getConfig.bind(leavesController),
+);
+
+router.get(
 	"/me",
 	authenticate,
 	authorize("STUDENT"),

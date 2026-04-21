@@ -30,7 +30,7 @@ export default function MessesPage() {
 	const load = async () => {
 		setLoading(true); setError("");
 		try {
-			const res = await api.get("/admin/messes");
+			const res = await api.get("/warden/messes");
 			setMesses(res.data.data);
 			setStaffForm((c) => ({ ...c, messId: c.messId || res.data.data[0]?.id || "" }));
 		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to load messes"); }
@@ -43,7 +43,7 @@ export default function MessesPage() {
 	const onCreateMess = async (e: React.FormEvent) => {
 		e.preventDefault(); setError(""); setSuccess("");
 		try {
-			await api.post("/admin/messes", { name, gender, perDayCharge: Number(perDayCharge) });
+			await api.post("/warden/messes", { name, gender, perDayCharge: Number(perDayCharge) });
 			setName(""); setPerDayCharge("120"); setSuccess("Mess created."); await load();
 		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to create mess"); }
 	};
@@ -51,7 +51,7 @@ export default function MessesPage() {
 	const onCreateStaff = async (e: React.FormEvent) => {
 		e.preventDefault(); setError(""); setSuccess("");
 		try {
-			const res = await api.post<AdminUserResponse>("/admin/users", {
+			const res = await api.post<AdminUserResponse>("/warden/users", {
 				email: staffForm.email, role: staffForm.role, firstName: staffForm.firstName,
 				lastName: staffForm.lastName, phone: staffForm.phone || undefined, password: staffForm.password || undefined,
 			});

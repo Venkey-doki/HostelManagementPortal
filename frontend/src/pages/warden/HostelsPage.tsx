@@ -18,7 +18,7 @@ export default function HostelsPage() {
 	const load = async () => {
 		setLoading(true); setError("");
 		try {
-			const res = await api.get("/admin/hostels");
+			const res = await api.get("/warden/hostels");
 			setHostels(res.data.data);
 		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to load hostels"); }
 		finally { setLoading(false); }
@@ -30,7 +30,7 @@ export default function HostelsPage() {
 	const onCreateHostel = async (e: React.FormEvent) => {
 		e.preventDefault(); setError(""); setSuccess("");
 		try {
-			await api.post("/admin/hostels", { name, gender });
+			await api.post("/warden/hostels", { name, gender });
 			setName(""); setGender("MALE"); setSuccess("Hostel created."); await load();
 		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to create hostel"); }
 	};

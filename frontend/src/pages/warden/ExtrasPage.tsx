@@ -19,7 +19,7 @@ export default function AdminExtrasPage() {
 	const loadMesses = async () => {
 		setLoading(true); setError("");
 		try {
-			const res = await api.get("/admin/messes");
+			const res = await api.get("/warden/messes");
 			setMesses(res.data.data);
 			setSelectedMessId((c) => c || res.data.data[0]?.id || "");
 		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to load messes"); }

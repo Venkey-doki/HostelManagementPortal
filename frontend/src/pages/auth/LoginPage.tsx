@@ -104,17 +104,7 @@ export default function LoginPage() {
 				</button>
 			</form>
 
-			<div className="mt-5 pt-5 border-t border-slate-100">
-				<p className="text-xs font-medium text-slate-500 mb-1">
-					Demo credentials
-				</p>
-				<p className="text-xs text-slate-400 font-mono">
-					warden@hostel.local / Warden@12345
-				</p>
-				<p className="mt-1 text-xs text-slate-400 font-mono">
-					student1@hostel.local / Student@12345
-				</p>
-			</div>
+
 		</div>
 	);
 }
