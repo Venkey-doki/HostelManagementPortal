@@ -44,7 +44,10 @@ export default function StudentDashboardPage() {
 		},
 		{
 			label: "Leaves used",
-			value: leavesData !== undefined ? `${leavesData.summary.usedDays} days` : "—",
+			value:
+				leavesData !== undefined
+					? `${leavesData.summary.usedDays} days`
+					: "—",
 			note: `Max per request: ${configData ? configData.maxLeaveDays : "—"}`,
 		},
 		{
@@ -77,9 +80,9 @@ export default function StudentDashboardPage() {
 			desc: "Monthly bills and payment proofs",
 		},
 		{
-			to: "/student/extras",
-			label: "Extras",
-			desc: "Monthly extras billing preview",
+			to: "/student/profile",
+			label: "Profile",
+			desc: "Hostel, mess, dues, and personal details",
 		},
 	];
 
@@ -107,10 +110,10 @@ export default function StudentDashboardPage() {
 						Apply leave
 					</Link>
 					<Link
-						to="/student/extras"
+						to="/student/profile"
 						className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
 					>
-						View extras
+						View profile
 					</Link>
 				</div>
 			</div>

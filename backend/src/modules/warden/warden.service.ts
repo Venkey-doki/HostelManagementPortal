@@ -50,7 +50,7 @@ export class WardenService {
 	}
 
 	async listHostels() {
-		return prisma.hostel.findMany({
+		const hostels = await prisma.hostel.findMany({
 			where: { deletedAt: null },
 			orderBy: { name: "asc" },
 			include: {
@@ -58,8 +58,65 @@ export class WardenService {
 					where: { deletedAt: null },
 					orderBy: { roomNumber: "asc" },
 				},
+				messMapping: {
+					select: {
+						messId: true,
+						isActive: true,
+						mess: {
+							select: {
+								id: true,
+								name: true,
+							},
+						},
+					},
+				},
 			},
 		});
+
+		return Promise.all(
+			hostels.map(async (hostel: any) => {
+				const studentCount = await prisma.hostelAssignment.count({
+					where: { hostelId: hostel.id, isCurrent: true },
+				});
+
+				return {
+					...hostel,
+					roomCount: hostel.rooms.length,
+					studentCount,
+				};
+			}),
+		);
+	}
+
+	private async resolveActorUserId(
+		actorUserId: string,
+		actorEmail?: string,
+	): Promise<string> {
+		const userById = await prisma.user.findUnique({
+			where: { id: actorUserId },
+			select: { id: true },
+		});
+
+		if (userById) {
+			return userById.id;
+		}
+
+		if (actorEmail) {
+			const userByEmail = await prisma.user.findUnique({
+				where: { email: actorEmail.toLowerCase() },
+				select: { id: true },
+			});
+
+			if (userByEmail) {
+				return userByEmail.id;
+			}
+		}
+
+		throw new AppError(
+			"Authenticated user not found",
+			401,
+			"USER_NOT_FOUND",
+		);
 	}
 
 	async updateHostel(
@@ -76,7 +133,6 @@ export class WardenService {
 		if (!hostel) {
 			throw new AppError("Hostel not found", 404, "HOSTEL_NOT_FOUND");
 		}
-
 		if (input.name && input.name !== hostel.name) {
 			const duplicate = await prisma.hostel.findFirst({
 				where: {
@@ -426,7 +482,7 @@ export class WardenService {
 			orderBy: { startDate: "desc" },
 		});
 
-		return prisma.$transaction(async (tx) => {
+		return prisma.$transaction(async (tx: any) => {
 			if (previousAssignment) {
 				await tx.inchargeAssignment.update({
 					where: { id: previousAssignment.id },
@@ -529,7 +585,7 @@ export class WardenService {
 			seenRoomKey.add(duplicateRoomKey);
 		}
 
-		const result = await prisma.$transaction(async (tx) => {
+		const result = await prisma.$transaction(async (tx: any) => {
 			const hostelCache = new Map<
 				string,
 				{ id: string; name: string; gender: "MALE" | "FEMALE" }
@@ -704,7 +760,7 @@ export class WardenService {
 
 		// Bulk create: transaction ensures all-or-nothing
 		try {
-			await prisma.$transaction(async (tx) => {
+			await prisma.$transaction(async (tx: any) => {
 				for (const row of rows) {
 					const hashedPassword = await bcrypt.hash(
 						row.roll_number,
@@ -752,6 +808,316 @@ export class WardenService {
 			imported: successCount,
 			errors: errors.length > 0 ? errors : undefined,
 		};
+	}
+
+	/**
+	 * Hostel-Mess Mapping Management
+	 */
+	async getHostelMessMappings() {
+		const mappings = await prisma.hostelMessMapping.findMany({
+			where: { isActive: true },
+			select: {
+				id: true,
+				hostel: {
+					select: {
+						id: true,
+						name: true,
+						gender: true,
+					},
+				},
+				mess: {
+					select: {
+						id: true,
+						name: true,
+					},
+				},
+			},
+			orderBy: { hostel: { name: "asc" } },
+		});
+
+		// Enrich with room and student count
+		const enriched = await Promise.all(
+			mappings.map(async (mapping: any) => {
+				const [roomCount, studentCount] = await Promise.all([
+					prisma.room.count({
+						where: {
+							hostelId: mapping.hostel.id,
+							isActive: true,
+						},
+					}),
+					prisma.hostelAssignment.count({
+						where: {
+							hostelId: mapping.hostel.id,
+							isCurrent: true,
+						},
+					}),
+				]);
+				return {
+					...mapping,
+					roomCount,
+					studentCount,
+				};
+			}),
+		);
+
+		return enriched;
+	}
+
+	async assignMessToHostel(
+		hostelId: string,
+		messId: string,
+		actorId: string,
+		actorEmail?: string,
+	) {
+		const resolvedActorId = await this.resolveActorUserId(
+			actorId,
+			actorEmail,
+		);
+
+		// Verify hostel exists and get gender
+		const hostel = await prisma.hostel.findUnique({
+			where: { id: hostelId },
+		});
+		if (!hostel) {
+			throw new AppError("Hostel not found", 404, "HOSTEL_NOT_FOUND");
+		}
+
+		// Verify mess exists and check gender match
+		const mess = await prisma.mess.findUnique({
+			where: { id: messId },
+		});
+		if (!mess) {
+			throw new AppError("Mess not found", 404, "MESS_NOT_FOUND");
+		}
+
+		if (hostel.gender !== mess.gender) {
+			throw new AppError(
+				"Hostel and mess genders must match",
+				400,
+				"GENDER_MISMATCH",
+			);
+		}
+
+		// Check if mapping already exists
+		const existing = await prisma.hostelMessMapping.findUnique({
+			where: { hostelId },
+		});
+
+		if (existing) {
+			throw new AppError(
+				"Hostel already has a mess assigned",
+				409,
+				"MAPPING_ALREADY_EXISTS",
+			);
+		}
+
+		const now = new Date();
+		const previousEndDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+		return prisma.$transaction(async (tx: any) => {
+			const mapping = await tx.hostelMessMapping.create({
+				data: {
+					hostelId,
+					messId,
+				},
+				include: {
+					hostel: true,
+					mess: true,
+				},
+			});
+
+			const currentStudents = await tx.hostelAssignment.findMany({
+				where: {
+					hostelId,
+					isCurrent: true,
+				},
+				select: { studentId: true },
+			});
+
+			for (const entry of currentStudents) {
+				const existingMess = await tx.messAssignment.findFirst({
+					where: {
+						studentId: entry.studentId,
+						isCurrent: true,
+					},
+					orderBy: { startDate: "desc" },
+				});
+
+				if (existingMess) {
+					await tx.messAssignment.update({
+						where: { id: existingMess.id },
+						data: { isCurrent: false, endDate: previousEndDate },
+					});
+				}
+
+				await tx.messAssignment.create({
+					data: {
+						studentId: entry.studentId,
+						messId,
+						startDate: now,
+						isCurrent: true,
+						createdById: resolvedActorId,
+						autoAssigned: true,
+					},
+				});
+			}
+
+			return mapping;
+		});
+	}
+
+	async updateHostelMess(
+		hostelId: string,
+		messId: string | undefined,
+		actorId: string,
+		actorEmail?: string,
+	) {
+		const resolvedActorId = await this.resolveActorUserId(
+			actorId,
+			actorEmail,
+		);
+
+		// Verify hostel exists
+		const hostel = await prisma.hostel.findUnique({
+			where: { id: hostelId },
+		});
+		if (!hostel) {
+			throw new AppError("Hostel not found", 404, "HOSTEL_NOT_FOUND");
+		}
+
+		// Get current mapping
+		const currentMapping = await prisma.hostelMessMapping.findUnique({
+			where: { hostelId },
+		});
+		if (!currentMapping) {
+			throw new AppError(
+				"No mess assigned to this hostel",
+				404,
+				"MAPPING_NOT_FOUND",
+			);
+		}
+
+		// If messId provided, verify and check gender match
+		if (messId && messId !== currentMapping.messId) {
+			const newMess = await prisma.mess.findUnique({
+				where: { id: messId },
+			});
+			if (!newMess) {
+				throw new AppError("Mess not found", 404, "MESS_NOT_FOUND");
+			}
+
+			if (hostel.gender !== newMess.gender) {
+				throw new AppError(
+					"Hostel and mess genders must match",
+					400,
+					"GENDER_MISMATCH",
+				);
+			}
+
+			const now = new Date();
+			const previousEndDate = new Date(
+				now.getTime() - 24 * 60 * 60 * 1000,
+			);
+
+			return prisma.$transaction(async (tx: any) => {
+				const updated = await tx.hostelMessMapping.update({
+					where: { hostelId },
+					data: { messId },
+					include: {
+						hostel: true,
+						mess: true,
+					},
+				});
+
+				const currentStudents = await tx.hostelAssignment.findMany({
+					where: {
+						hostelId,
+						isCurrent: true,
+					},
+					select: { studentId: true },
+				});
+
+				for (const entry of currentStudents) {
+					const existingMess = await tx.messAssignment.findFirst({
+						where: {
+							studentId: entry.studentId,
+							isCurrent: true,
+						},
+						orderBy: { startDate: "desc" },
+					});
+
+					if (existingMess) {
+						await tx.messAssignment.update({
+							where: { id: existingMess.id },
+							data: {
+								isCurrent: false,
+								endDate: previousEndDate,
+							},
+						});
+					}
+
+					await tx.messAssignment.create({
+						data: {
+							studentId: entry.studentId,
+							messId,
+							startDate: now,
+							isCurrent: true,
+							createdById: resolvedActorId,
+							autoAssigned: true,
+						},
+					});
+				}
+
+				return updated;
+			});
+		}
+
+		return currentMapping;
+	}
+
+	async unassignMessFromHostel(hostelId: string) {
+		// Verify hostel exists
+		const hostel = await prisma.hostel.findUnique({
+			where: { id: hostelId },
+		});
+		if (!hostel) {
+			throw new AppError("Hostel not found", 404, "HOSTEL_NOT_FOUND");
+		}
+
+		// Check if mapping exists
+		const mapping = await prisma.hostelMessMapping.findUnique({
+			where: { hostelId },
+		});
+		if (!mapping) {
+			throw new AppError(
+				"No mess assigned to this hostel",
+				404,
+				"MAPPING_NOT_FOUND",
+			);
+		}
+
+		// Check if students are assigned to this hostel
+		const studentCount = await prisma.hostelAssignment.count({
+			where: {
+				hostelId,
+				isCurrent: true,
+			},
+		});
+
+		if (studentCount > 0) {
+			throw new AppError(
+				`Cannot unassign mess. ${studentCount} student(s) are currently assigned to this hostel.`,
+				409,
+				"STUDENTS_ASSIGNED_TO_HOSTEL",
+			);
+		}
+
+		// Delete mapping
+		await prisma.hostelMessMapping.delete({
+			where: { hostelId },
+		});
+
+		return { success: true };
 	}
 }
 

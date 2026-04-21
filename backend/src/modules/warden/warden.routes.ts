@@ -142,4 +142,35 @@ router.post(
 	wardenController.importStudents.bind(wardenController),
 );
 
+/**
+ * Hostel-Mess Mapping Routes
+ */
+router.get(
+	"/hostel-mess-mappings",
+	authenticate,
+	authorize("WARDEN"),
+	wardenController.getHostelMessMappings.bind(wardenController),
+);
+
+router.post(
+	"/hostels/:hostelId/mess",
+	authenticate,
+	authorize("WARDEN"),
+	wardenController.assignMessToHostel.bind(wardenController),
+);
+
+router.patch(
+	"/hostels/:hostelId/mess",
+	authenticate,
+	authorize("WARDEN"),
+	wardenController.updateHostelMess.bind(wardenController),
+);
+
+router.delete(
+	"/hostels/:hostelId/mess",
+	authenticate,
+	authorize("WARDEN"),
+	wardenController.unassignMessFromHostel.bind(wardenController),
+);
+
 export default router;

@@ -2,6 +2,7 @@ import { parse } from "csv-parse/sync";
 import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../../shared/errors/AppError.js";
 import {
+	assignHostelMessSchema,
 	assignInchargeSchema,
 	createHostelRentConfigSchema,
 	createHostelSchema,
@@ -11,6 +12,7 @@ import {
 	endInchargeAssignmentSchema,
 	importHostelsSchema,
 	importStudentsSchema,
+	updateHostelMessSchema,
 	updateHostelSchema,
 	updateMessSchema,
 	updateRoomSchema,
@@ -454,6 +456,124 @@ export class WardenController {
 			const result = await wardenService.importHostelsAndRooms(
 				validated.data.rows,
 			);
+
+			res.json({ success: true, data: result });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	/**
+	 * Hostel-Mess Mapping Handlers
+	 */
+	async getHostelMessMappings(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const mappings = await wardenService.getHostelMessMappings();
+			res.json({ success: true, data: mappings });
+		} catch (error) {
+			next(error);
+		}
+	}
+	async assignMessToHostel(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			if (!req.user) {
+				throw new AppError(
+					"User not authenticated",
+					401,
+					"NOT_AUTHENTICATED",
+				);
+			}
+
+			const hostelId = this.getSingleParam(
+				req.params.hostelId,
+				"Hostel ID",
+			);
+			const { messId } = req.body;
+
+			const validated = assignHostelMessSchema.safeParse({ messId });
+			if (!validated.success) {
+				throw new AppError(
+					"Validation failed: " + validated.error.message,
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const result = await wardenService.assignMessToHostel(
+				hostelId,
+				validated.data.messId,
+				req.user.userId,
+				req.user.email,
+			);
+
+			res.status(201).json({ success: true, data: result });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async updateHostelMess(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			if (!req.user) {
+				throw new AppError(
+					"User not authenticated",
+					401,
+					"NOT_AUTHENTICATED",
+				);
+			}
+
+			const hostelId = this.getSingleParam(
+				req.params.hostelId,
+				"Hostel ID",
+			);
+			const { messId } = req.body;
+
+			const validated = updateHostelMessSchema.safeParse({ messId });
+			if (!validated.success) {
+				throw new AppError(
+					"Validation failed: " + validated.error.message,
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const result = await wardenService.updateHostelMess(
+				hostelId,
+				validated.data.messId,
+				req.user.userId,
+				req.user.email,
+			);
+
+			res.json({ success: true, data: result });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async unassignMessFromHostel(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const hostelId = this.getSingleParam(
+				req.params.hostelId,
+				"Hostel ID",
+			);
+
+			const result = await wardenService.unassignMessFromHostel(hostelId);
 
 			res.json({ success: true, data: result });
 		} catch (error) {

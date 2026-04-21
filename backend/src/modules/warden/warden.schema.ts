@@ -138,3 +138,22 @@ export const endInchargeAssignmentSchema = z
 		endDate: z.coerce.date(),
 	})
 	.strict();
+
+export const assignHostelMessSchema = z
+	.object({
+		messId: z.string().uuid("Invalid mess ID"),
+	})
+	.strict();
+
+export const updateHostelMessSchema = z
+	.object({
+		messId: z.string().uuid("Invalid mess ID").optional(),
+		isActive: z.boolean().optional(),
+	})
+	.strict()
+	.refine((value) => Object.keys(value).length > 0, {
+		message: "At least one field is required",
+	});
+
+export type AssignHostelMessRequest = z.infer<typeof assignHostelMessSchema>;
+export type UpdateHostelMessRequest = z.infer<typeof updateHostelMessSchema>;

@@ -47,4 +47,49 @@ router.patch(
 	studentsController.endCurrentMessAssignment.bind(studentsController),
 );
 
+/**
+ * Student Self-Assignment Routes
+ */
+router.get(
+	"/self/profile",
+	authenticate,
+	authorize("STUDENT"),
+	studentsController.getSelfProfile.bind(studentsController),
+);
+
+router.patch(
+	"/self/profile",
+	authenticate,
+	authorize("STUDENT"),
+	studentsController.updateSelfProfile.bind(studentsController),
+);
+
+router.get(
+	"/self/available-hostels",
+	authenticate,
+	authorize("STUDENT"),
+	studentsController.getAvailableHostels.bind(studentsController),
+);
+
+router.get(
+	"/self/hostels/:hostelId/rooms",
+	authenticate,
+	authorize("STUDENT"),
+	studentsController.getHostelRooms.bind(studentsController),
+);
+
+router.post(
+	"/self/assign-hostel-room",
+	authenticate,
+	authorize("STUDENT"),
+	studentsController.selfAssignHostelRoom.bind(studentsController),
+);
+
+router.post(
+	"/self/change-hostel-room",
+	authenticate,
+	authorize("STUDENT"),
+	studentsController.selfChangeHostelRoom.bind(studentsController),
+);
+
 export default router;

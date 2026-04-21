@@ -8,6 +8,7 @@ const navItems = [
 	{ href: "/warden/students", label: "Students" },
 	{ href: "/warden/hostels", label: "Hostels" },
 	{ href: "/warden/messes", label: "Messes" },
+	{ href: "/warden/hostel-mess-mapping", label: "Hostel-Mess Mapping" },
 	{ href: "/warden/extras", label: "Extras" },
 	{ href: "/warden/billing", label: "Billing" },
 	{ href: "/warden/import", label: "CSV Import" },

@@ -32,6 +32,10 @@ const StudentBillingPage = lazy(
 const StudentBillDetailPage = lazy(
 	() => import("@/pages/student/StudentBillDetailPage"),
 );
+const StudentProfilePage = lazy(
+	() => import("@/pages/student/StudentProfilePage"),
+);
+const AssignHostelPage = lazy(() => import("@/pages/student/AssignHostelPage"));
 const WardenDashboardPage = lazy(
 	() => import("@/pages/warden/WardenDashboardPage"),
 );
@@ -50,10 +54,15 @@ const InchargeExtrasPage = lazy(
 );
 const HostelsPage = lazy(() => import("@/pages/warden/HostelsPage"));
 const MessesPage = lazy(() => import("@/pages/warden/MessesPage"));
-const WardenStudentsPage = lazy(() => import("@/pages/warden/WardenStudentsPage"));
+const WardenStudentsPage = lazy(
+	() => import("@/pages/warden/WardenStudentsPage"),
+);
 const ImportPage = lazy(() => import("@/pages/warden/ImportPage"));
 const WardenExtrasPage = lazy(() => import("@/pages/warden/ExtrasPage"));
 const WardenBillingPage = lazy(() => import("@/pages/warden/BillingPage"));
+const HostelMessMappingPage = lazy(
+	() => import("@/pages/warden/HostelMessMappingPage"),
+);
 
 const wrap = (el: JSX.Element) => (
 	<Suspense fallback={<div>Loading…</div>}>{el}</Suspense>
@@ -99,6 +108,14 @@ export const router = createBrowserRouter([
 					{
 						path: "/student/billing/:billId",
 						element: wrap(<StudentBillDetailPage />),
+					},
+					{
+						path: "/student/profile",
+						element: wrap(<StudentProfilePage />),
+					},
+					{
+						path: "/student/assign-hostel",
+						element: wrap(<AssignHostelPage />),
 					},
 				],
 			},
@@ -163,6 +180,10 @@ export const router = createBrowserRouter([
 					{
 						path: "/warden/messes",
 						element: wrap(<MessesPage />),
+					},
+					{
+						path: "/warden/hostel-mess-mapping",
+						element: wrap(<HostelMessMappingPage />),
 					},
 					{
 						path: "/warden/extras",

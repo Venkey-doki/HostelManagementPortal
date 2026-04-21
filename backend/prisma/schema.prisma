@@ -140,6 +140,7 @@ model Hostel {
   assignments HostelAssignment[]
   rentConfigs HostelRentConfig[]
   complaints  Complaint[]
+  messMapping HostelMessMapping?
 
   @@map("hostels")
 }
@@ -198,19 +199,37 @@ model Mess {
   waivers             MessDayWaiver[]
   extraItems          MessExtraItem[]
   studentExtras       StudentExtra[]
+  hostelMappings      HostelMessMapping[]
 
   @@map("messes")
 }
 
+model HostelMessMapping {
+  id        String   @id @default(uuid()) @db.Uuid
+  hostelId  String   @unique @map("hostel_id") @db.Uuid
+  messId    String   @map("mess_id") @db.Uuid
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  hostel Hostel @relation(fields: [hostelId], references: [id])
+  mess   Mess   @relation(fields: [messId], references: [id])
+
+  @@index([hostelId])
+  @@index([messId, isActive])
+  @@map("hostel_mess_mappings")
+}
+
 model MessAssignment {
-  id          String    @id @default(uuid()) @db.Uuid
-  studentId   String    @map("student_id") @db.Uuid
-  messId      String    @map("mess_id") @db.Uuid
-  startDate   DateTime  @map("start_date") @db.Date
-  endDate     DateTime? @map("end_date") @db.Date
-  isCurrent   Boolean   @default(true) @map("is_current")
-  createdById String    @map("created_by") @db.Uuid
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id           String    @id @default(uuid()) @db.Uuid
+  studentId    String    @map("student_id") @db.Uuid
+  messId       String    @map("mess_id") @db.Uuid
+  startDate    DateTime  @map("start_date") @db.Date
+  endDate      DateTime? @map("end_date") @db.Date
+  isCurrent    Boolean   @default(true) @map("is_current")
+  createdById  String    @map("created_by") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  autoAssigned Boolean   @default(false) @map("auto_assigned")
 
   student   Student @relation(fields: [studentId], references: [id])
   mess      Mess    @relation(fields: [messId], references: [id])
