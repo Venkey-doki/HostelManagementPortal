@@ -6,21 +6,21 @@
 
 ## Project Snapshot
 
-| Attribute | Value |
-|-----------|-------|
-| System type | Single-college hostel + mess management platform |
-| Students | ~2,000 (2,000 active at peak) |
-| Hostels | 5 boys hostels + 3 girls hostels = **8 total** |
-| Messes | 2 boys messes + 1 girls mess = **3 total** |
-| Peak concurrent users | ~500 |
-| Architecture | Modular Monolith |
-| Database | PostgreSQL (Prisma ORM) |
-| Cache + Queue | Redis + BullMQ |
-| Frontend | **React 18 (Vite + React Router v6)** |
-| Backend | Node.js + Express |
-| Language | TypeScript end-to-end |
-| File Storage | Cloudinary |
-| Email | Resend |
+| Attribute             | Value                                            |
+| --------------------- | ------------------------------------------------ |
+| System type           | Single-college hostel + mess management platform |
+| Students              | ~2,000 (2,000 active at peak)                    |
+| Hostels               | 5 boys hostels + 3 girls hostels = **8 total**   |
+| Messes                | 2 boys messes + 1 girls mess = **3 total**       |
+| Peak concurrent users | ~500                                             |
+| Architecture          | Modular Monolith                                 |
+| Database              | PostgreSQL (Prisma ORM)                          |
+| Cache + Queue         | Redis + BullMQ                                   |
+| Frontend              | **React 18 (Vite + React Router v6)**            |
+| Backend               | Node.js + Express                                |
+| Language              | TypeScript end-to-end                            |
+| File Storage          | Cloudinary                                       |
+| Email                 | Resend                                           |
 
 ---
 
@@ -58,6 +58,7 @@ This system is **fundamentally relational and transactional**. Billing calculati
 ### Cache + Queue: Redis ✓
 
 Redis serves two roles:
+
 - **Cache:** Dashboard stats, monthly bills once generated, student attendance calendars — all cacheable with TTLs.
 - **Queue:** BullMQ runs on Redis for leave auto-approval, billing generation, and notification dispatch jobs. Redis is the only dependency you need to add beyond PostgreSQL.
 
@@ -76,11 +77,11 @@ Prisma generates TypeScript types from the schema — no runtime type mismatches
 
 ### Supporting Services
 
-| Service | Choice | Reason |
-|---------|--------|--------|
-| File Storage | Cloudinary | Generous free tier, accepts payment screenshots, returns stable CDN URLs. No infrastructure vs S3. |
-| Email | Resend | 3,000 free emails/month, excellent deliverability, simple API. |
-| Validation | Zod | Single schema definition on both frontend and backend. Shared validation logic, runtime type safety. |
+| Service      | Choice     | Reason                                                                                               |
+| ------------ | ---------- | ---------------------------------------------------------------------------------------------------- |
+| File Storage | Cloudinary | Generous free tier, accepts payment screenshots, returns stable CDN URLs. No infrastructure vs S3.   |
+| Email        | Resend     | 3,000 free emails/month, excellent deliverability, simple API.                                       |
+| Validation   | Zod        | Single schema definition on both frontend and backend. Shared validation logic, runtime type safety. |
 
 ---
 
@@ -632,16 +633,16 @@ audit_logs {
 
 ### 3.6 Indexing Strategy
 
-| Table | Index | Reason |
-|-------|-------|--------|
-| `attendance` | `(student_id, date)` | Calendar view per student — most common query |
-| `attendance` | `(mess_id, date)` | Incharge marks attendance for whole mess on a date |
-| `leaves` | `(status, auto_approve_at)` | Auto-approval job scans PENDING leaves where due |
-| `leaves` | `(student_id, start_date, end_date)` | Billing overlap calculation |
-| `bills` | `(student_id, billing_month)` | Student's bill for a given month |
-| `payments` | `(status, created_at)` | Warden's pending payments queue |
-| `notifications` | `(user_id, is_read)` | Bell icon unread count — called on every page load |
-| `audit_logs` | `(entity_type, entity_id)` | Fetch all events for a specific leave/bill/payment |
+| Table           | Index                                | Reason                                             |
+| --------------- | ------------------------------------ | -------------------------------------------------- |
+| `attendance`    | `(student_id, date)`                 | Calendar view per student — most common query      |
+| `attendance`    | `(mess_id, date)`                    | Incharge marks attendance for whole mess on a date |
+| `leaves`        | `(status, auto_approve_at)`          | Auto-approval job scans PENDING leaves where due   |
+| `leaves`        | `(student_id, start_date, end_date)` | Billing overlap calculation                        |
+| `bills`         | `(student_id, billing_month)`        | Student's bill for a given month                   |
+| `payments`      | `(status, created_at)`               | Warden's pending payments queue                    |
+| `notifications` | `(user_id, is_read)`                 | Bell icon unread count — called on every page load |
+| `audit_logs`    | `(entity_type, entity_id)`           | Fetch all events for a specific leave/bill/payment |
 
 ---
 
@@ -717,6 +718,7 @@ backend/
 ### 4.2 Frontend Folder Structure (React 18 + Vite + React Router v6)
 
 > **Key differences from Next.js:**
+>
 > - No `app/` directory or file-based routing — all routes are declared explicitly in `src/router.tsx` using React Router v6
 > - No `layout.tsx` files — shared layouts are React components wrapping `<Outlet />`
 > - No `page.tsx` convention — each page is a regular `.tsx` component in `src/pages/`
@@ -803,117 +805,184 @@ This file replaces Next.js file-based routing entirely. All routes are declared 
 
 ```tsx
 // src/router.tsx
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
 
-import AuthLayout from '@/layouts/AuthLayout';
-import StudentLayout from '@/layouts/StudentLayout';
-import InchargeLayout from '@/layouts/InchargeLayout';
-import WardenLayout from '@/layouts/WardenLayout';
-import AdminLayout from '@/layouts/AdminLayout';
-import ProtectedRoute from '@/components/shared/ProtectedRoute';
+import AuthLayout from "@/layouts/AuthLayout";
+import StudentLayout from "@/layouts/StudentLayout";
+import InchargeLayout from "@/layouts/InchargeLayout";
+import WardenLayout from "@/layouts/WardenLayout";
+import AdminLayout from "@/layouts/AdminLayout";
+import ProtectedRoute from "@/components/shared/ProtectedRoute";
 
 // Lazy-loaded pages (replaces Next.js automatic code splitting)
-const LoginPage             = lazy(() => import('@/pages/auth/LoginPage'));
-const ChangePasswordPage    = lazy(() => import('@/pages/auth/ChangePasswordPage'));
+const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
+const ChangePasswordPage = lazy(
+	() => import("@/pages/auth/ChangePasswordPage"),
+);
 
-const StudentDashboardPage  = lazy(() => import('@/pages/student/StudentDashboardPage'));
-const AttendancePage        = lazy(() => import('@/pages/student/AttendancePage'));
-const LeavesPage            = lazy(() => import('@/pages/student/LeavesPage'));
-const NewLeavePage          = lazy(() => import('@/pages/student/NewLeavePage'));
-const BillingPage           = lazy(() => import('@/pages/student/BillingPage'));
-const BillDetailPage        = lazy(() => import('@/pages/student/BillDetailPage'));
-const StudentComplaintsPage = lazy(() => import('@/pages/student/ComplaintsPage'));
+const StudentDashboardPage = lazy(
+	() => import("@/pages/student/StudentDashboardPage"),
+);
+const AttendancePage = lazy(() => import("@/pages/student/AttendancePage"));
+const LeavesPage = lazy(() => import("@/pages/student/LeavesPage"));
+const NewLeavePage = lazy(() => import("@/pages/student/NewLeavePage"));
+const BillingPage = lazy(() => import("@/pages/student/BillingPage"));
+const BillDetailPage = lazy(() => import("@/pages/student/BillDetailPage"));
+const StudentComplaintsPage = lazy(
+	() => import("@/pages/student/ComplaintsPage"),
+);
 
-const InchargeDashboardPage  = lazy(() => import('@/pages/incharge/InchargeDashboardPage'));
-const AttendanceMarkingPage  = lazy(() => import('@/pages/incharge/AttendanceMarkingPage'));
+const InchargeDashboardPage = lazy(
+	() => import("@/pages/incharge/InchargeDashboardPage"),
+);
+const AttendanceMarkingPage = lazy(
+	() => import("@/pages/incharge/AttendanceMarkingPage"),
+);
 
-const WardenDashboardPage    = lazy(() => import('@/pages/warden/WardenDashboardPage'));
-const LeavesApprovalPage     = lazy(() => import('@/pages/warden/LeavesApprovalPage'));
-const PaymentsVerificationPage = lazy(() => import('@/pages/warden/PaymentsVerificationPage'));
-const WardenComplaintsPage   = lazy(() => import('@/pages/warden/ComplaintsManagementPage'));
-const StudentsListPage       = lazy(() => import('@/pages/warden/StudentsListPage'));
-const ReportsPage            = lazy(() => import('@/pages/warden/ReportsPage'));
+const WardenDashboardPage = lazy(
+	() => import("@/pages/warden/WardenDashboardPage"),
+);
+const LeavesApprovalPage = lazy(
+	() => import("@/pages/warden/LeavesApprovalPage"),
+);
+const PaymentsVerificationPage = lazy(
+	() => import("@/pages/warden/PaymentsVerificationPage"),
+);
+const WardenComplaintsPage = lazy(
+	() => import("@/pages/warden/ComplaintsManagementPage"),
+);
+const StudentsListPage = lazy(() => import("@/pages/warden/StudentsListPage"));
+const ReportsPage = lazy(() => import("@/pages/warden/ReportsPage"));
 
-const UsersPage   = lazy(() => import('@/pages/admin/UsersPage'));
-const HostelsPage = lazy(() => import('@/pages/admin/HostelsPage'));
-const MessesPage  = lazy(() => import('@/pages/admin/MessesPage'));
-const ImportPage  = lazy(() => import('@/pages/admin/ImportPage'));
+const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
+const HostelsPage = lazy(() => import("@/pages/admin/HostelsPage"));
+const MessesPage = lazy(() => import("@/pages/admin/MessesPage"));
+const ImportPage = lazy(() => import("@/pages/admin/ImportPage"));
 
-const wrap = (el: JSX.Element) => <Suspense fallback={<div>Loading…</div>}>{el}</Suspense>;
+const wrap = (el: JSX.Element) => (
+	<Suspense fallback={<div>Loading…</div>}>{el}</Suspense>
+);
 
 export const router = createBrowserRouter([
-  // ── Auth routes ──────────────────────────────────────────
-  {
-    element: <AuthLayout />,
-    children: [
-      { path: '/login',           element: wrap(<LoginPage />) },
-      { path: '/change-password', element: wrap(<ChangePasswordPage />) },
-    ],
-  },
+	// ── Auth routes ──────────────────────────────────────────
+	{
+		element: <AuthLayout />,
+		children: [
+			{ path: "/login", element: wrap(<LoginPage />) },
+			{ path: "/change-password", element: wrap(<ChangePasswordPage />) },
+		],
+	},
 
-  // ── Student routes ───────────────────────────────────────
-  {
-    element: <ProtectedRoute allowedRoles={['STUDENT']} />,  // guard
-    children: [{
-      element: <StudentLayout />,
-      children: [
-        { path: '/student/dashboard',       element: wrap(<StudentDashboardPage />) },
-        { path: '/student/attendance',      element: wrap(<AttendancePage />) },
-        { path: '/student/leaves',          element: wrap(<LeavesPage />) },
-        { path: '/student/leaves/new',      element: wrap(<NewLeavePage />) },
-        { path: '/student/billing',         element: wrap(<BillingPage />) },
-        { path: '/student/billing/:billId', element: wrap(<BillDetailPage />) },  // replaces Next.js [billId]
-        { path: '/student/complaints',      element: wrap(<StudentComplaintsPage />) },
-      ],
-    }],
-  },
+	// ── Student routes ───────────────────────────────────────
+	{
+		element: <ProtectedRoute allowedRoles={["STUDENT"]} />, // guard
+		children: [
+			{
+				element: <StudentLayout />,
+				children: [
+					{
+						path: "/student/dashboard",
+						element: wrap(<StudentDashboardPage />),
+					},
+					{
+						path: "/student/attendance",
+						element: wrap(<AttendancePage />),
+					},
+					{ path: "/student/leaves", element: wrap(<LeavesPage />) },
+					{
+						path: "/student/leaves/new",
+						element: wrap(<NewLeavePage />),
+					},
+					{
+						path: "/student/billing",
+						element: wrap(<BillingPage />),
+					},
+					{
+						path: "/student/billing/:billId",
+						element: wrap(<BillDetailPage />),
+					}, // replaces Next.js [billId]
+					{
+						path: "/student/complaints",
+						element: wrap(<StudentComplaintsPage />),
+					},
+				],
+			},
+		],
+	},
 
-  // ── Incharge routes ──────────────────────────────────────
-  {
-    element: <ProtectedRoute allowedRoles={['MESS_INCHARGE']} />,
-    children: [{
-      element: <InchargeLayout />,
-      children: [
-        { path: '/incharge/dashboard',   element: wrap(<InchargeDashboardPage />) },
-        { path: '/incharge/attendance',  element: wrap(<AttendanceMarkingPage />) },
-      ],
-    }],
-  },
+	// ── Incharge routes ──────────────────────────────────────
+	{
+		element: <ProtectedRoute allowedRoles={["MESS_INCHARGE"]} />,
+		children: [
+			{
+				element: <InchargeLayout />,
+				children: [
+					{
+						path: "/incharge/dashboard",
+						element: wrap(<InchargeDashboardPage />),
+					},
+					{
+						path: "/incharge/attendance",
+						element: wrap(<AttendanceMarkingPage />),
+					},
+				],
+			},
+		],
+	},
 
-  // ── Warden routes ────────────────────────────────────────
-  {
-    element: <ProtectedRoute allowedRoles={['WARDEN']} />,
-    children: [{
-      element: <WardenLayout />,
-      children: [
-        { path: '/warden/dashboard',  element: wrap(<WardenDashboardPage />) },
-        { path: '/warden/leaves',     element: wrap(<LeavesApprovalPage />) },
-        { path: '/warden/payments',   element: wrap(<PaymentsVerificationPage />) },
-        { path: '/warden/complaints', element: wrap(<WardenComplaintsPage />) },
-        { path: '/warden/students',   element: wrap(<StudentsListPage />) },
-        { path: '/warden/reports',    element: wrap(<ReportsPage />) },
-      ],
-    }],
-  },
+	// ── Warden routes ────────────────────────────────────────
+	{
+		element: <ProtectedRoute allowedRoles={["WARDEN"]} />,
+		children: [
+			{
+				element: <WardenLayout />,
+				children: [
+					{
+						path: "/warden/dashboard",
+						element: wrap(<WardenDashboardPage />),
+					},
+					{
+						path: "/warden/leaves",
+						element: wrap(<LeavesApprovalPage />),
+					},
+					{
+						path: "/warden/payments",
+						element: wrap(<PaymentsVerificationPage />),
+					},
+					{
+						path: "/warden/complaints",
+						element: wrap(<WardenComplaintsPage />),
+					},
+					{
+						path: "/warden/students",
+						element: wrap(<StudentsListPage />),
+					},
+					{ path: "/warden/reports", element: wrap(<ReportsPage />) },
+				],
+			},
+		],
+	},
 
-  // ── Admin routes ─────────────────────────────────────────
-  {
-    element: <ProtectedRoute allowedRoles={['WARDEN']} />,
-    children: [{
-      element: <AdminLayout />,
-      children: [
-        { path: '/admin/users',   element: wrap(<UsersPage />) },
-        { path: '/admin/hostels', element: wrap(<HostelsPage />) },
-        { path: '/admin/messes',  element: wrap(<MessesPage />) },
-        { path: '/admin/import',  element: wrap(<ImportPage />) },
-      ],
-    }],
-  },
+	// ── Admin routes ─────────────────────────────────────────
+	{
+		element: <ProtectedRoute allowedRoles={["WARDEN"]} />,
+		children: [
+			{
+				element: <AdminLayout />,
+				children: [
+					{ path: "/admin/users", element: wrap(<UsersPage />) },
+					{ path: "/admin/hostels", element: wrap(<HostelsPage />) },
+					{ path: "/admin/messes", element: wrap(<MessesPage />) },
+					{ path: "/admin/import", element: wrap(<ImportPage />) },
+				],
+			},
+		],
+	},
 
-  // ── Fallback ─────────────────────────────────────────────
-  { path: '/', element: <Navigate to="/login" replace /> },
-  { path: '*', element: <Navigate to="/login" replace /> },
+	// ── Fallback ─────────────────────────────────────────────
+	{ path: "/", element: <Navigate to="/login" replace /> },
+	{ path: "*", element: <Navigate to="/login" replace /> },
 ]);
 ```
 
@@ -925,26 +994,27 @@ Replaces Next.js layout-level auth guards. This is a standard React Router v6 pa
 
 ```tsx
 // src/components/shared/ProtectedRoute.tsx
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuthStore } from '@/lib/store';
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuthStore } from "@/lib/store";
 
 interface Props {
-  allowedRoles: string[];
+	allowedRoles: string[];
 }
 
 export default function ProtectedRoute({ allowedRoles }: Props) {
-  const { user } = useAuthStore();
+	const { user } = useAuthStore();
 
-  // Not logged in → go to login
-  if (!user) return <Navigate to="/login" replace />;
+	// Not logged in → go to login
+	if (!user) return <Navigate to="/login" replace />;
 
-  // Must change password first
-  if (user.mustChangePwd) return <Navigate to="/change-password" replace />;
+	// Must change password first
+	if (user.mustChangePwd) return <Navigate to="/change-password" replace />;
 
-  // Wrong role for this section
-  if (!allowedRoles.includes(user.role)) return <Navigate to="/login" replace />;
+	// Wrong role for this section
+	if (!allowedRoles.includes(user.role))
+		return <Navigate to="/login" replace />;
 
-  return <Outlet />;
+	return <Outlet />;
 }
 ```
 
@@ -956,24 +1026,24 @@ Each layout wraps role-specific pages and renders `<Outlet />` for child routes.
 
 ```tsx
 // src/layouts/StudentLayout.tsx
-import { Outlet } from 'react-router-dom';
-import Sidebar from '@/components/shared/Sidebar';
-import NotificationBell from '@/components/shared/NotificationBell';
+import { Outlet } from "react-router-dom";
+import Sidebar from "@/components/shared/Sidebar";
+import NotificationBell from "@/components/shared/NotificationBell";
 
 export default function StudentLayout() {
-  return (
-    <div className="flex h-screen">
-      <Sidebar role="STUDENT" />
-      <main className="flex-1 overflow-y-auto">
-        <header className="flex justify-end p-4 border-b">
-          <NotificationBell />
-        </header>
-        <div className="p-6">
-          <Outlet />   {/* child page renders here */}
-        </div>
-      </main>
-    </div>
-  );
+	return (
+		<div className="flex h-screen">
+			<Sidebar role="STUDENT" />
+			<main className="flex-1 overflow-y-auto">
+				<header className="flex justify-end p-4 border-b">
+					<NotificationBell />
+				</header>
+				<div className="p-6">
+					<Outlet /> {/* child page renders here */}
+				</div>
+			</main>
+		</div>
+	);
 }
 
 // Repeat the same pattern for InchargeLayout, WardenLayout, AdminLayout
@@ -988,23 +1058,19 @@ Next.js uses folder names like `[billId]/page.tsx`. In React Router, dynamic seg
 
 ```tsx
 // src/pages/student/BillDetailPage.tsx
-import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 export default function BillDetailPage() {
-  const { billId } = useParams<{ billId: string }>();   // replaces Next.js params prop
+	const { billId } = useParams<{ billId: string }>(); // replaces Next.js params prop
 
-  const { data: bill } = useQuery({
-    queryKey: ['bill', billId],
-    queryFn: () => api.get(`/bills/${billId}`).then(r => r.data),
-  });
+	const { data: bill } = useQuery({
+		queryKey: ["bill", billId],
+		queryFn: () => api.get(`/bills/${billId}`).then((r) => r.data),
+	});
 
-  return (
-    <div>
-      {/* line items breakdown + payment form */}
-    </div>
-  );
+	return <div>{/* line items breakdown + payment form */}</div>;
 }
 ```
 
@@ -1014,110 +1080,110 @@ export default function BillDetailPage() {
 
 #### Auth
 
-| Method | Route | Role | Description |
-|--------|-------|------|-------------|
-| POST | `/api/v1/auth/login` | All | Returns access + refresh tokens |
-| POST | `/api/v1/auth/refresh` | All | Rotate refresh token |
-| POST | `/api/v1/auth/logout` | All | Invalidate refresh token in Redis |
-| PATCH | `/api/v1/auth/change-password` | All | Force on first login |
+| Method | Route                          | Role | Description                       |
+| ------ | ------------------------------ | ---- | --------------------------------- |
+| POST   | `/api/v1/auth/login`           | All  | Returns access + refresh tokens   |
+| POST   | `/api/v1/auth/refresh`         | All  | Rotate refresh token              |
+| POST   | `/api/v1/auth/logout`          | All  | Invalidate refresh token in Redis |
+| PATCH  | `/api/v1/auth/change-password` | All  | Force on first login              |
 
 #### Attendance
 
-| Method | Route | Role | Description |
-|--------|-------|------|-------------|
-| GET | `/api/v1/attendance/me?month=YYYY-MM` | Student | Calendar data for student |
-| GET | `/api/v1/attendance/:studentId` | Warden+ | View any student's attendance |
-| POST | `/api/v1/attendance/bulk` | Incharge | Mark attendance for whole mess for a date |
-| PUT | `/api/v1/attendance/:id` | Incharge | Correct/backdate an attendance record |
-| POST | `/api/v1/attendance/waive` | Incharge | Mark a full day as waived for the mess |
+| Method | Route                                 | Role     | Description                               |
+| ------ | ------------------------------------- | -------- | ----------------------------------------- |
+| GET    | `/api/v1/attendance/me?month=YYYY-MM` | Student  | Calendar data for student                 |
+| GET    | `/api/v1/attendance/:studentId`       | Warden+  | View any student's attendance             |
+| POST   | `/api/v1/attendance/bulk`             | Incharge | Mark attendance for whole mess for a date |
+| PUT    | `/api/v1/attendance/:id`              | Incharge | Correct/backdate an attendance record     |
+| POST   | `/api/v1/attendance/waive`            | Incharge | Mark a full day as waived for the mess    |
 
 #### Leaves
 
-| Method | Route | Role | Description |
-|--------|-------|------|-------------|
-| GET | `/api/v1/leaves/me` | Student | Student's leave history |
-| POST | `/api/v1/leaves` | Student | Apply for leave (validated: 2 days advance) |
-| DELETE | `/api/v1/leaves/:id` | Student | Cancel if PENDING; set return_date if APPROVED |
-| GET | `/api/v1/leaves/pending` | Warden | All PENDING leaves for action |
-| PATCH | `/api/v1/leaves/:id/approve` | Warden | Approve leave |
-| PATCH | `/api/v1/leaves/:id/reject` | Warden | Reject with reason |
-| PATCH | `/api/v1/leaves/:id/return` | Student | Mark early return (sets return_date) |
+| Method | Route                        | Role    | Description                                    |
+| ------ | ---------------------------- | ------- | ---------------------------------------------- |
+| GET    | `/api/v1/leaves/me`          | Student | Student's leave history                        |
+| POST   | `/api/v1/leaves`             | Student | Apply for leave (validated: 2 days advance)    |
+| DELETE | `/api/v1/leaves/:id`         | Student | Cancel if PENDING; set return_date if APPROVED |
+| GET    | `/api/v1/leaves/pending`     | Warden  | All PENDING leaves for action                  |
+| PATCH  | `/api/v1/leaves/:id/approve` | Warden  | Approve leave                                  |
+| PATCH  | `/api/v1/leaves/:id/reject`  | Warden  | Reject with reason                             |
+| PATCH  | `/api/v1/leaves/:id/return`  | Student | Mark early return (sets return_date)           |
 
 #### Billing & Payments
 
-| Method | Route | Role | Description |
-|--------|-------|------|-------------|
-| GET | `/api/v1/bills/me` | Student | All bills with line items and ledger |
-| GET | `/api/v1/bills/:studentId` | Warden+ | View student's full billing history |
-| POST | `/api/v1/payments` | Student | Submit payment proof (multipart: ref + screenshot) |
-| GET | `/api/v1/payments/pending` | Warden | Queue of unverified payments |
-| PATCH | `/api/v1/payments/:id/verify` | Warden | Verify and credit to student ledger |
-| PATCH | `/api/v1/payments/:id/reject` | Warden | Reject with reason, notify student |
+| Method | Route                         | Role    | Description                                        |
+| ------ | ----------------------------- | ------- | -------------------------------------------------- |
+| GET    | `/api/v1/bills/me`            | Student | All bills with line items and ledger               |
+| GET    | `/api/v1/bills/:studentId`    | Warden+ | View student's full billing history                |
+| POST   | `/api/v1/payments`            | Student | Submit payment proof (multipart: ref + screenshot) |
+| GET    | `/api/v1/payments/pending`    | Warden  | Queue of unverified payments                       |
+| PATCH  | `/api/v1/payments/:id/verify` | Warden  | Verify and credit to student ledger                |
+| PATCH  | `/api/v1/payments/:id/reject` | Warden  | Reject with reason, notify student                 |
 
 #### Complaints
 
-| Method | Route | Role | Description |
-|--------|-------|------|-------------|
-| POST | `/api/v1/complaints` | Student | Raise a complaint |
-| GET | `/api/v1/complaints/me` | Student | Student's own complaints |
-| GET | `/api/v1/complaints` | Warden | All complaints (filter by status/hostel) |
-| PATCH | `/api/v1/complaints/:id/assign` | Warden | Assign to technician |
-| PATCH | `/api/v1/complaints/:id/resolve` | Warden | Mark resolved with notes |
+| Method | Route                            | Role    | Description                              |
+| ------ | -------------------------------- | ------- | ---------------------------------------- |
+| POST   | `/api/v1/complaints`             | Student | Raise a complaint                        |
+| GET    | `/api/v1/complaints/me`          | Student | Student's own complaints                 |
+| GET    | `/api/v1/complaints`             | Warden  | All complaints (filter by status/hostel) |
+| PATCH  | `/api/v1/complaints/:id/assign`  | Warden  | Assign to technician                     |
+| PATCH  | `/api/v1/complaints/:id/resolve` | Warden  | Mark resolved with notes                 |
 
 #### Messes & Extras
 
-| Method | Route | Role | Description |
-|--------|-------|------|-------------|
-| GET | `/api/v1/messes` | Incharge+ | List all active messes |
-| GET | `/api/v1/messes/:id/extras` | Incharge+ | Extra items menu for a mess |
-| POST | `/api/v1/messes/:id/extras` | Admin | Add extra item to mess menu |
-| POST | `/api/v1/student-extras` | Incharge | Add extra charge to a student |
+| Method | Route                       | Role      | Description                   |
+| ------ | --------------------------- | --------- | ----------------------------- |
+| GET    | `/api/v1/messes`            | Incharge+ | List all active messes        |
+| GET    | `/api/v1/messes/:id/extras` | Incharge+ | Extra items menu for a mess   |
+| POST   | `/api/v1/messes/:id/extras` | Admin     | Add extra item to mess menu   |
+| POST   | `/api/v1/student-extras`    | Incharge  | Add extra charge to a student |
 
 #### Reports
 
-| Method | Route | Role | Description |
-|--------|-------|------|-------------|
-| GET | `/api/v1/reports/billing-summary` | Warden+ | Monthly billing totals, collection rate |
-| GET | `/api/v1/reports/defaulters` | Warden+ | Students with outstanding balances |
-| GET | `/api/v1/reports/attendance` | Warden+ | Attendance rates by mess/hostel/period |
-| GET | `/api/v1/reports/complaints` | Warden+ | Complaint stats, resolution times |
-| GET | `/api/v1/reports/export` | Warden+ | PDF/Excel export with `?type=&period=` params |
+| Method | Route                             | Role    | Description                                   |
+| ------ | --------------------------------- | ------- | --------------------------------------------- |
+| GET    | `/api/v1/reports/billing-summary` | Warden+ | Monthly billing totals, collection rate       |
+| GET    | `/api/v1/reports/defaulters`      | Warden+ | Students with outstanding balances            |
+| GET    | `/api/v1/reports/attendance`      | Warden+ | Attendance rates by mess/hostel/period        |
+| GET    | `/api/v1/reports/complaints`      | Warden+ | Complaint stats, resolution times             |
+| GET    | `/api/v1/reports/export`          | Warden+ | PDF/Excel export with `?type=&period=` params |
 
 #### Admin
 
-| Method | Route | Role | Description |
-|--------|-------|------|-------------|
-| POST | `/api/v1/admin/students/import` | Admin | CSV bulk import |
-| POST | `/api/v1/admin/hostels` | Admin | Create hostel |
-| POST | `/api/v1/admin/messes` | Admin | Create mess |
-| POST | `/api/v1/admin/hostel-rent-config` | Admin | Set semester rent config |
-| POST | `/api/v1/admin/users` | Admin | Create warden/incharge account |
-| GET | `/api/v1/admin/audit-logs` | Admin | View audit logs with filters |
-| POST | `/api/v1/admin/technicians` | Admin | Add technician to registry |
+| Method | Route                              | Role  | Description                    |
+| ------ | ---------------------------------- | ----- | ------------------------------ |
+| POST   | `/api/v1/admin/students/import`    | Admin | CSV bulk import                |
+| POST   | `/api/v1/admin/hostels`            | Admin | Create hostel                  |
+| POST   | `/api/v1/admin/messes`             | Admin | Create mess                    |
+| POST   | `/api/v1/admin/hostel-rent-config` | Admin | Set semester rent config       |
+| POST   | `/api/v1/admin/users`              | Admin | Create warden/incharge account |
+| GET    | `/api/v1/admin/audit-logs`         | Admin | View audit logs with filters   |
+| POST   | `/api/v1/admin/technicians`        | Admin | Add technician to registry     |
 
 ---
 
 ### 4.8 RBAC Matrix
 
-| Capability | Student | Incharge | Warden | Super Admin |
-|------------|---------|----------|--------|-------------|
-| View own attendance | ✓ | — | — | ✓ |
-| Mark / backdate attendance | — | ✓ | ✓ | ✓ |
-| Waive a mess day | — | ✓ | ✓ | ✓ |
-| Add extras to student | — | ✓ | ✓ | ✓ |
-| Apply for leave | ✓ | — | — | — |
-| Approve / reject leave | — | — | ✓ | ✓ |
-| View own bills + ledger | ✓ | — | — | ✓ |
-| View all student bills | — | — | ✓ | ✓ |
-| Submit payment proof | ✓ | — | — | — |
-| Verify / reject payments | — | — | ✓ | ✓ |
-| Raise complaint | ✓ | — | — | — |
-| Assign / resolve complaints | — | — | ✓ | ✓ |
-| Generate bills (manual trigger) | — | — | — | ✓ |
-| Import students (CSV) | — | — | — | ✓ |
-| Manage hostels / messes / rent config | — | — | — | ✓ |
-| View / export reports | — | — | ✓ | ✓ |
-| View audit logs | — | — | — | ✓ |
+| Capability                            | Student | Incharge | Warden | Super Admin |
+| ------------------------------------- | ------- | -------- | ------ | ----------- |
+| View own attendance                   | ✓       | —        | —      | ✓           |
+| Mark / backdate attendance            | —       | ✓        | ✓      | ✓           |
+| Waive a mess day                      | —       | ✓        | ✓      | ✓           |
+| Add extras to student                 | —       | ✓        | ✓      | ✓           |
+| Apply for leave                       | ✓       | —        | —      | —           |
+| Approve / reject leave                | —       | —        | ✓      | ✓           |
+| View own bills + ledger               | ✓       | —        | —      | ✓           |
+| View all student bills                | —       | —        | ✓      | ✓           |
+| Submit payment proof                  | ✓       | —        | —      | —           |
+| Verify / reject payments              | —       | —        | ✓      | ✓           |
+| Raise complaint                       | ✓       | —        | —      | —           |
+| Assign / resolve complaints           | —       | —        | ✓      | ✓           |
+| Generate bills (manual trigger)       | —       | —        | —      | ✓           |
+| Import students (CSV)                 | —       | —        | —      | ✓           |
+| Manage hostels / messes / rent config | —       | —        | —      | ✓           |
+| View / export reports                 | —       | —        | ✓      | ✓           |
+| View audit logs                       | —       | —        | —      | ✓           |
 
 ---
 
@@ -1137,17 +1203,23 @@ export default function BillDetailPage() {
 ```typescript
 // AppError.ts — all thrown errors extend this
 class AppError extends Error {
-  constructor(
-    public message: string,
-    public statusCode: number,
-    public code: string,         // e.g. 'LEAVE_TOO_EARLY', 'BILL_ALREADY_PAID'
-    public isOperational = true  // false = programming error → 500 + alert
-  ) { super(message); }
+	constructor(
+		public message: string,
+		public statusCode: number,
+		public code: string, // e.g. 'LEAVE_TOO_EARLY', 'BILL_ALREADY_PAID'
+		public isOperational = true, // false = programming error → 500 + alert
+	) {
+		super(message);
+	}
 }
 
 // Usage in service layer
 if (daysBefore < 2) {
-  throw new AppError('Leave must be applied at least 2 days in advance', 422, 'LEAVE_TOO_EARLY');
+	throw new AppError(
+		"Leave must be applied at least 2 days in advance",
+		422,
+		"LEAVE_TOO_EARLY",
+	);
 }
 
 // Global error handler:
@@ -1161,44 +1233,46 @@ if (daysBefore < 2) {
 
 ### 5.1 State Management
 
-| Concern | Tool | Why |
-|---------|------|-----|
+| Concern                 | Tool                         | Why                                                                                           |
+| ----------------------- | ---------------------------- | --------------------------------------------------------------------------------------------- |
 | Server state (API data) | React Query (TanStack Query) | Caching, background refetch, loading states, optimistic updates. No manual `useEffect/fetch`. |
-| Client state | Zustand | Auth user object + unread notification count only. Avoids Redux boilerplate. |
-| Forms | React Hook Form + Zod | Shared Zod schemas between backend and frontend. `zodResolver` bridges both. |
-| UI Components | shadcn/ui + Tailwind CSS | Accessible components. Consistent design system. |
-| Routing | React Router v6 | Declarative routing with nested layouts and `<Outlet />`. Replaces Next.js App Router. |
+| Client state            | Zustand                      | Auth user object + unread notification count only. Avoids Redux boilerplate.                  |
+| Forms                   | React Hook Form + Zod        | Shared Zod schemas between backend and frontend. `zodResolver` bridges both.                  |
+| UI Components           | shadcn/ui + Tailwind CSS     | Accessible components. Consistent design system.                                              |
+| Routing                 | React Router v6              | Declarative routing with nested layouts and `<Outlet />`. Replaces Next.js App Router.        |
 
 ### 5.2 Entry Point — `main.tsx`
 
 ```tsx
 // src/main.tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { RouterProvider } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { router } from './router';
-import { queryClient } from './lib/queryClient';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { RouterProvider } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { router } from "./router";
+import { queryClient } from "./lib/queryClient";
+import "./index.css";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  </React.StrictMode>
+ReactDOM.createRoot(document.getElementById("root")!).render(
+	<React.StrictMode>
+		<QueryClientProvider client={queryClient}>
+			<RouterProvider router={router} />
+		</QueryClientProvider>
+	</React.StrictMode>,
 );
 ```
 
 ### 5.3 Key UI Components
 
 **AttendanceCalendar** (Student view)
+
 - Month view calendar
 - Day cell colors: green = present (shows meals), red = absent (charged), yellow = on leave (waived), grey = waived by incharge, blue = leave without waiver (charged)
 - Click day to see meal breakdown (B/L/D toggles)
 - Header stats: Present days / Chargeable days / Waived days
 
 **AttendanceMarkingGrid** (Incharge view)
+
 - Shows all students assigned to the mess for a selected date
 - Date selector at top with backdate support
 - 3 toggles per student row: B / L / D (breakfast/lunch/dinner)
@@ -1207,6 +1281,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 - Visual diff if editing an existing record
 
 **BillCard + Ledger** (Student view)
+
 - Expandable card per billing month
 - Header: total amount + balance due + status badge (GENERATED / PARTIALLY_PAID / PAID)
 - Expanded: line items table (hostel rent, mess charges × days, each extra item, adjustments)
@@ -1214,6 +1289,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 - Shows exactly how every rupee is computed
 
 **LeaveForm** (Student)
+
 - Date range picker with minimum start = today + 2
 - Duration display updates live
 - Shows: "Leave qualifies for waiver (>2 days)" or "No waiver for ≤2 days"
@@ -1221,6 +1297,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 - Running total leave days used this year shown below form
 
 **PaymentProofForm** (Student)
+
 - Select bill(s) to pay against
 - Enter amount and transaction reference number
 - Upload screenshot (drag-and-drop, max 5MB, JPEG/PNG/PDF only)
@@ -1228,6 +1305,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 - Disabled if bill is already PAID
 
 **NotificationBell** (All users)
+
 - Polls every 30 seconds via React Query `refetchInterval`
 - Shows unread count badge
 - Click opens popover with paginated notification list
@@ -1243,21 +1321,21 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 //   router.push('/student/billing/abc-123');
 
 // In React Router v6:
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 function NotificationBell() {
-  const navigate = useNavigate();
+	const navigate = useNavigate();
 
-  function handleNotificationClick(notif: Notification) {
-    if (notif.reference_type === 'bill') {
-      navigate(`/student/billing/${notif.reference_id}`);
-    } else if (notif.reference_type === 'leave') {
-      navigate('/student/leaves');
-    } else if (notif.reference_type === 'complaint') {
-      navigate('/student/complaints');
-    }
-  }
-  // ...
+	function handleNotificationClick(notif: Notification) {
+		if (notif.reference_type === "bill") {
+			navigate(`/student/billing/${notif.reference_id}`);
+		} else if (notif.reference_type === "leave") {
+			navigate("/student/leaves");
+		} else if (notif.reference_type === "complaint") {
+			navigate("/student/complaints");
+		}
+	}
+	// ...
 }
 ```
 
@@ -1269,8 +1347,8 @@ function NotificationBell() {
 //   <Link href="/student/leaves/new">Apply Leave</Link>
 
 // In React Router v6:
-import { Link } from 'react-router-dom';
-<Link to="/student/leaves/new">Apply Leave</Link>
+import { Link } from "react-router-dom";
+<Link to="/student/leaves/new">Apply Leave</Link>;
 ```
 
 ### 5.6 Performance Considerations
@@ -1302,8 +1380,8 @@ For every day in the billing period, the engine checks in this order:
 
 1. **Mess-day waiver?** → Not charged (highest priority, skips all other checks)
 2. **Approved leave covers this day?** → Check effective duration
-   - If effective duration > 2 days AND day is within effective leave range → **Waived (not charged)**
-   - If effective duration ≤ 2 days → Falls through to Rule 3
+    - If effective duration > 2 days AND day is within effective leave range → **Waived (not charged)**
+    - If effective duration ≤ 2 days → Falls through to Rule 3
 3. **Everything else** → **Charged** (present, absent without leave, 1-2 day leave, day after return_date)
 
 ### Full Calculation Pseudocode
@@ -1376,15 +1454,15 @@ function generateMonthlyBill(studentId, year, month):
 
 ### Billing Edge Cases
 
-| Scenario | Handling |
-|----------|----------|
-| Leave spans two billing months | Duration checked on full leave object. Each month's billing loop checks days in its own period independently. A 9-day cross-month leave qualifies for waiver in both months. |
-| Student returns early from leave | `return_date` stored on leave. Effective duration = `min(end_date, return_date-1) - start_date + 1`. Charged from `return_date` onwards. |
-| Leave auto-approved AFTER billing runs | Auto-approval sweep at 11:45 PM on last day handles most cases. If a leave slips through, create a negative adjustment on next month's bill via `bill_line_items` with `type = ADJUSTMENT`. |
-| Mess day waived + student on leave same day | Mess waiver takes priority (first check in loop). Day not charged. |
-| Student transferred to new hostel mid-semester | Hostel rent config uses current assignment at time of billing month. Historical records preserved via `hostel_assignments` history. |
-| No attendance record (student absent, no leave) | Still charged. Absence without approved leave is not waived. Billing engine charges all chargeable days regardless of attendance record existence. |
-| 1-2 day leave (no waiver) | Detected by `effectiveDuration <= 2` check. Days fall through to `chargeableDays++`. |
+| Scenario                                        | Handling                                                                                                                                                                                    |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leave spans two billing months                  | Duration checked on full leave object. Each month's billing loop checks days in its own period independently. A 9-day cross-month leave qualifies for waiver in both months.                |
+| Student returns early from leave                | `return_date` stored on leave. Effective duration = `min(end_date, return_date-1) - start_date + 1`. Charged from `return_date` onwards.                                                    |
+| Leave auto-approved AFTER billing runs          | Auto-approval sweep at 11:45 PM on last day handles most cases. If a leave slips through, create a negative adjustment on next month's bill via `bill_line_items` with `type = ADJUSTMENT`. |
+| Mess day waived + student on leave same day     | Mess waiver takes priority (first check in loop). Day not charged.                                                                                                                          |
+| Student transferred to new hostel mid-semester  | Hostel rent config uses current assignment at time of billing month. Historical records preserved via `hostel_assignments` history.                                                         |
+| No attendance record (student absent, no leave) | Still charged. Absence without approved leave is not waived. Billing engine charges all chargeable days regardless of attendance record existence.                                          |
+| 1-2 day leave (no waiver)                       | Detected by `effectiveDuration <= 2` check. Days fall through to `chargeableDays++`.                                                                                                        |
 
 ---
 
@@ -1421,36 +1499,39 @@ CANCELLED is terminal
 // Also: a cron job triggers a forced sweep at 11:45 PM daily
 
 async function leaveAutoApproveWorker() {
-  const overdueLeaves = await prisma.leave.findMany({
-    where: {
-      status: 'PENDING',
-      auto_approve_at: { lte: new Date() }
-    }
-  });
+	const overdueLeaves = await prisma.leave.findMany({
+		where: {
+			status: "PENDING",
+			auto_approve_at: { lte: new Date() },
+		},
+	});
 
-  for (const leave of overdueLeaves) {
-    await prisma.$transaction([
-      prisma.leave.update({
-        where: { id: leave.id },
-        data: { status: 'AUTO_APPROVED', actioned_at: new Date() }
-      }),
-      prisma.auditLog.create({
-        data: {
-          user_id: null,              // system action
-          action: 'LEAVE_AUTO_APPROVED',
-          entity_type: 'leave',
-          entity_id: leave.id,
-          new_value: { status: 'AUTO_APPROVED', trigger: 'scheduler' }
-        }
-      })
-    ]);
-    // Enqueue notification (non-blocking)
-    await notificationQueue.add('send', {
-      userId: leave.student.user_id,
-      type: 'LEAVE_AUTO_APPROVED',
-      referenceId: leave.id
-    });
-  }
+	for (const leave of overdueLeaves) {
+		await prisma.$transaction([
+			prisma.leave.update({
+				where: { id: leave.id },
+				data: { status: "AUTO_APPROVED", actioned_at: new Date() },
+			}),
+			prisma.auditLog.create({
+				data: {
+					user_id: null, // system action
+					action: "LEAVE_AUTO_APPROVED",
+					entity_type: "leave",
+					entity_id: leave.id,
+					new_value: {
+						status: "AUTO_APPROVED",
+						trigger: "scheduler",
+					},
+				},
+			}),
+		]);
+		// Enqueue notification (non-blocking)
+		await notificationQueue.add("send", {
+			userId: leave.student.user_id,
+			type: "LEAVE_AUTO_APPROVED",
+			referenceId: leave.id,
+		});
+	}
 }
 ```
 
@@ -1496,12 +1577,12 @@ status = RESOLVED (resolution notes visible to student)
 
 ## 9. Background Jobs (BullMQ + Redis)
 
-| Queue | Trigger | Job | Retry Policy |
-|-------|---------|-----|--------------|
-| `leave-auto-approve` | Cron every 30 min + forced 11:45 PM daily | Find PENDING leaves where `auto_approve_at <= now()`, update to AUTO_APPROVED, emit notification | 3 retries with exponential backoff |
-| `billing-generate` | Cron: 2:00 AM on 1st of each month | Generate bills for all active students for previous month | 1 retry. Distributed lock prevents double-run. |
-| `notification-send` | Triggered by other jobs/controllers | Write in-app notification to DB + send email via Resend | 5 retries. Email failures don't fail the in-app notification. |
-| `report-export` | On-demand (user triggers) | Generate PDF/Excel report, upload to Cloudinary, email download link | 2 retries. Runs async to avoid blocking HTTP request. |
+| Queue                | Trigger                                   | Job                                                                                              | Retry Policy                                                  |
+| -------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| `leave-auto-approve` | Cron every 30 min + forced 11:45 PM daily | Find PENDING leaves where `auto_approve_at <= now()`, update to AUTO_APPROVED, emit notification | 3 retries with exponential backoff                            |
+| `billing-generate`   | Cron: 2:00 AM on 1st of each month        | Generate bills for all active students for previous month                                        | 1 retry. Distributed lock prevents double-run.                |
+| `notification-send`  | Triggered by other jobs/controllers       | Write in-app notification to DB + send email via Resend                                          | 5 retries. Email failures don't fail the in-app notification. |
+| `report-export`      | On-demand (user triggers)                 | Generate PDF/Excel report, upload to Cloudinary, email download link                             | 2 retries. Runs async to avoid blocking HTTP request.         |
 
 > **Concurrency safety:** The billing job uses a **distributed lock** (Redis SETNX) to prevent two billing job instances running simultaneously (e.g. on server restart). Lock key: `lock:billing-generate:{year}-{month}`. Lock TTL: 30 minutes.
 
@@ -1512,6 +1593,7 @@ status = RESOLVED (resolution notes visible to student)
 ### Architecture: Two-Layer
 
 **In-App Notifications**
+
 - Written to `notifications` table in PostgreSQL
 - Frontend polls every 30 seconds via React Query `refetchInterval: 30_000`
 - Unread count shown on bell icon in header
@@ -1520,6 +1602,7 @@ status = RESOLVED (resolution notes visible to student)
 - "Mark all read" button
 
 **Email Notifications**
+
 - Sent via Resend API
 - Each notification type has its own HTML email template
 - Email failures are retried 5 times via BullMQ
@@ -1527,18 +1610,18 @@ status = RESOLVED (resolution notes visible to student)
 
 ### Notification Event Map
 
-| Event | Recipient | In-App | Email |
-|-------|-----------|--------|-------|
-| Leave approved by warden | Student | ✓ | ✓ |
-| Leave rejected by warden | Student | ✓ | ✓ (with reason) |
-| Leave auto-approved | Student | ✓ | ✓ |
-| Monthly bill generated | Student | ✓ | ✓ (with summary) |
-| Payment proof verified | Student | ✓ | ✓ |
-| Payment proof rejected | Student | ✓ | ✓ (with reason) |
-| Complaint assigned to technician | Student | ✓ | ✓ |
-| Complaint resolved | Student | ✓ | ✓ (with notes) |
-| New leave pending (warden action needed) | Warden | ✓ | — |
-| New payment pending verification | Warden | ✓ | — |
+| Event                                    | Recipient | In-App | Email            |
+| ---------------------------------------- | --------- | ------ | ---------------- |
+| Leave approved by warden                 | Student   | ✓      | ✓                |
+| Leave rejected by warden                 | Student   | ✓      | ✓ (with reason)  |
+| Leave auto-approved                      | Student   | ✓      | ✓                |
+| Monthly bill generated                   | Student   | ✓      | ✓ (with summary) |
+| Payment proof verified                   | Student   | ✓      | ✓                |
+| Payment proof rejected                   | Student   | ✓      | ✓ (with reason)  |
+| Complaint assigned to technician         | Student   | ✓      | ✓                |
+| Complaint resolved                       | Student   | ✓      | ✓ (with notes)   |
+| New leave pending (warden action needed) | Warden    | ✓      | —                |
+| New payment pending verification         | Warden    | ✓      | —                |
 
 ---
 
@@ -1546,18 +1629,18 @@ status = RESOLVED (resolution notes visible to student)
 
 ### OWASP Top 10 Coverage
 
-| Threat | Mitigation |
-|--------|------------|
-| Broken Access Control | RBAC middleware on every route. Students can only access their own `userId` — checked in service layer (`req.user.studentId === params.studentId`), not just at controller level. |
-| SQL Injection | Prisma ORM — all queries parameterized. `$queryRaw` uses tagged template literals (also parameterized). |
-| Broken Authentication | bcrypt (rounds=12) for passwords. JWT short-lived (15 min). Refresh tokens in httpOnly cookie. Forced password change on first login. Rate limit: 5 failed logins per IP per 15 min. |
-| Security Misconfiguration | Helmet.js sets all security headers. CORS locked to frontend origin. Environment variables validated with Zod on startup — server refuses to start with missing config. |
-| Sensitive Data Exposure | Password hashes never in API responses. Payment screenshot URLs are signed Cloudinary URLs (expire after 1 hour). Student data strictly role-gated. |
-| XSS | React JSX escapes by default. Content-Security-Policy header via Helmet. No `dangerouslySetInnerHTML`. |
-| CSRF | `SameSite=Strict` on refresh token cookie. API endpoints require Bearer token in Authorization header — cookie-only requests are rejected. |
-| Insecure File Upload | Cloudinary handles upload directly from frontend (signed upload preset). MIME type validated on client and by Cloudinary. Max 5MB. Only JPEG/PNG/PDF accepted. |
-| Enumeration | UUID primary keys — no sequential IDs. Login error message is generic: "Invalid credentials" — does not reveal whether the email exists. |
-| Rate Limiting | Global: 100 req/min per IP. Login: 5 attempts/15 min per IP. Report export: 3 requests/hour per user. |
+| Threat                    | Mitigation                                                                                                                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Broken Access Control     | RBAC middleware on every route. Students can only access their own `userId` — checked in service layer (`req.user.studentId === params.studentId`), not just at controller level.    |
+| SQL Injection             | Prisma ORM — all queries parameterized. `$queryRaw` uses tagged template literals (also parameterized).                                                                              |
+| Broken Authentication     | bcrypt (rounds=12) for passwords. JWT short-lived (15 min). Refresh tokens in httpOnly cookie. Forced password change on first login. Rate limit: 5 failed logins per IP per 15 min. |
+| Security Misconfiguration | Helmet.js sets all security headers. CORS locked to frontend origin. Environment variables validated with Zod on startup — server refuses to start with missing config.              |
+| Sensitive Data Exposure   | Password hashes never in API responses. Payment screenshot URLs are signed Cloudinary URLs (expire after 1 hour). Student data strictly role-gated.                                  |
+| XSS                       | React JSX escapes by default. Content-Security-Policy header via Helmet. No `dangerouslySetInnerHTML`.                                                                               |
+| CSRF                      | `SameSite=Strict` on refresh token cookie. API endpoints require Bearer token in Authorization header — cookie-only requests are rejected.                                           |
+| Insecure File Upload      | Cloudinary handles upload directly from frontend (signed upload preset). MIME type validated on client and by Cloudinary. Max 5MB. Only JPEG/PNG/PDF accepted.                       |
+| Enumeration               | UUID primary keys — no sequential IDs. Login error message is generic: "Invalid credentials" — does not reveal whether the email exists.                                             |
+| Rate Limiting             | Global: 100 req/min per IP. Login: 5 attempts/15 min per IP. Report export: 3 requests/hour per user.                                                                                |
 
 ### Audit Log Access
 
@@ -1569,14 +1652,14 @@ status = RESOLVED (resolution notes visible to student)
 
 ## 12. Caching Strategy (Redis)
 
-| Cache Key | TTL | Content | Invalidated When |
-|-----------|-----|---------|------------------|
-| `bill:{studentId}:{month}` | 24 hours | Frozen monthly bill + line items | Payment verified (updates `amount_paid`); adjustment added |
-| `attendance:{studentId}:{month}` | 1 hour | Calendar data for student month | Any attendance record in that month is modified |
-| `notif-count:{userId}` | 30 seconds | Unread notification count (integer) | New notification created for this user |
-| `refresh:{userId}` | 7 days | Current valid refresh token | Logout or token rotation |
-| `students:mess:{messId}` | 1 hour | List of students assigned to a mess | New mess assignment, or student deactivated |
-| `lock:billing:{year}-{month}` | 30 min | Distributed billing job lock flag | Billing job completes or TTL expires |
+| Cache Key                        | TTL        | Content                             | Invalidated When                                           |
+| -------------------------------- | ---------- | ----------------------------------- | ---------------------------------------------------------- |
+| `bill:{studentId}:{month}`       | 24 hours   | Frozen monthly bill + line items    | Payment verified (updates `amount_paid`); adjustment added |
+| `attendance:{studentId}:{month}` | 1 hour     | Calendar data for student month     | Any attendance record in that month is modified            |
+| `notif-count:{userId}`           | 30 seconds | Unread notification count (integer) | New notification created for this user                     |
+| `refresh:{userId}`               | 7 days     | Current valid refresh token         | Logout or token rotation                                   |
+| `students:mess:{messId}`         | 1 hour     | List of students assigned to a mess | New mess assignment, or student deactivated                |
+| `lock:billing:{year}-{month}`    | 30 min     | Distributed billing job lock flag   | Billing job completes or TTL expires                       |
 
 **Pattern:** Cache-aside throughout. Check Redis → miss → query PostgreSQL → write to Redis → return. Cache writes are non-blocking (fire-and-forget). Cache misses are always safe — they just hit the DB.
 
@@ -1607,6 +1690,7 @@ External services (all free tier):
 ```
 
 > **Deploying the React SPA:** Run `vite build` — this produces a `dist/` folder of static HTML/JS/CSS files. Deploy this folder to Vercel (drag and drop) or Render Static Site. Configure a single catch-all redirect: all paths → `index.html` so React Router can handle client-side navigation. On Vercel, add a `vercel.json`:
+>
 > ```json
 > { "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
 > ```
@@ -1643,38 +1727,38 @@ External services (all free tier):
 
 ```yaml
 services:
-  api:
-    build: ./backend
-    env_file: .env
-    depends_on: [db, redis]
-    ports: ["4000:4000"]
+    api:
+        build: ./backend
+        env_file: .env
+        depends_on: [db, redis]
+        ports: ["4000:4000"]
 
-  worker:
-    build: ./backend
-    command: node dist/worker.js     # same image, different entry point
-    env_file: .env
-    depends_on: [db, redis]
+    worker:
+        build: ./backend
+        command: node dist/worker.js # same image, different entry point
+        env_file: .env
+        depends_on: [db, redis]
 
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: hostel_mgmt
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes: ["pg_data:/var/lib/postgresql/data"]
+    db:
+        image: postgres:16
+        environment:
+            POSTGRES_DB: hostel_mgmt
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        volumes: ["pg_data:/var/lib/postgresql/data"]
 
-  redis:
-    image: redis:7-alpine
-    volumes: ["redis_data:/data"]
+    redis:
+        image: redis:7-alpine
+        volumes: ["redis_data:/data"]
 
-  frontend:
-    build: ./frontend
-    ports: ["3000:80"]              # Vite preview / Nginx serves static dist/
-    env_file: .env.local
+    frontend:
+        build: ./frontend
+        ports: ["3000:80"] # Vite preview / Nginx serves static dist/
+        env_file: .env.local
 
 volumes:
-  pg_data:
-  redis_data:
+    pg_data:
+    redis_data:
 ```
 
 ### CI/CD Pipeline (GitHub Actions)
@@ -1769,37 +1853,37 @@ OWASP checklist walkthrough. Rate limiting tuning. Redis caching on all hot path
 - **Recommended team:** 1 backend engineer + 1 frontend engineer + 1 part-time QA/PM
 - **Solo developer:** Can hit MVP (Phases 1–3) in ~10 weeks working full-time
 - **Testing priorities:**
-  - Billing engine: unit tests for every edge case in `billing.engine.ts`
-  - Leave validation: unit tests for all business rules
-  - Auth/RBAC: integration tests covering all role combinations
-  - UI: Playwright E2E for critical student flows (apply leave, submit payment)
+    - Billing engine: unit tests for every edge case in `billing.engine.ts`
+    - Leave validation: unit tests for all business rules
+    - Auth/RBAC: integration tests covering all role combinations
+    - UI: Playwright E2E for critical student flows (apply leave, submit payment)
 
 ---
 
 ## Appendix A — Business Rules Quick Reference
 
-| Rule | Detail |
-|------|--------|
-| Leave advance requirement | Must be applied at least **2 calendar days** before start date |
-| Leave auto-approval | If warden takes no action within **48 hours** of application, leave is AUTO_APPROVED |
-| Leave waiver threshold | Only leaves with **effective duration > 2 days** qualify for mess fee waiver |
-| Leave waiver scope | Waiver applies to **all days** of the leave including the first 2 |
-| Maximum leave per year | **60 days** total (2 months) per academic year per student |
-| No retroactive leave | Students cannot apply leave for past or current day |
-| Mess charge rule | If student is present for **any one meal** in a day → charged **full day rate** |
-| Mess day waiver | If incharge marks a day as waived → **no student is charged** for that day, overrides all other rules |
-| Hostel rent billing | Charged in the **specific month** configured per semester (not monthly). Only appears on bill when `due_month` matches billing month. |
-| Bill generation | Auto-generated at **2:00 AM on 1st** of each month for previous month |
-| Bill freeze | Bills are **frozen immediately on generation**. Corrections via adjustment line items on next bill. |
-| Partial payments | Allowed. Student can pay any amount against any bill. Balance tracked in real time. |
-| Payment verification | Manual — warden or accountant reviews reference number + screenshot |
-| Incharge per mess | Each mess has exactly one current incharge at a time |
-| Student per mess | No mid-semester mess switch. Assigned at semester start. |
-| Complaint resolution | Warden marks resolved (after technician reports completion). Student cannot mark resolved. |
-| Complaint photo | Not supported |
-| Technician login | Technicians have no system login. Name + phone only. |
-| Soft deletes | All critical tables use `deleted_at` for soft delete to preserve billing history |
-| Audit logs | Append-only. No updates or deletes. Both user actions and system actions are logged. |
+| Rule                      | Detail                                                                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Leave advance requirement | Must be applied at least **2 calendar days** before start date                                                                        |
+| Leave auto-approval       | If warden takes no action within **48 hours** of application, leave is AUTO_APPROVED                                                  |
+| Leave waiver threshold    | Only leaves with **effective duration > 2 days** qualify for mess fee waiver                                                          |
+| Leave waiver scope        | Waiver applies to **all days** of the leave including the first 2                                                                     |
+| Maximum leave per year    | **60 days** total (2 months) per academic year per student                                                                            |
+| No retroactive leave      | Students cannot apply leave for past or current day                                                                                   |
+| Mess charge rule          | If student is present for **any one meal** in a day → charged **full day rate**                                                       |
+| Mess day waiver           | If incharge marks a day as waived → **no student is charged** for that day, overrides all other rules                                 |
+| Hostel rent billing       | Charged in the **specific month** configured per semester (not monthly). Only appears on bill when `due_month` matches billing month. |
+| Bill generation           | Auto-generated at **2:00 AM on 1st** of each month for previous month                                                                 |
+| Bill freeze               | Bills are **frozen immediately on generation**. Corrections via adjustment line items on next bill.                                   |
+| Partial payments          | Allowed. Student can pay any amount against any bill. Balance tracked in real time.                                                   |
+| Payment verification      | Manual — warden or accountant reviews reference number + screenshot                                                                   |
+| Incharge per mess         | Each mess has exactly one current incharge at a time                                                                                  |
+| Student per mess          | No mid-semester mess switch. Assigned at semester start.                                                                              |
+| Complaint resolution      | Warden marks resolved (after technician reports completion). Student cannot mark resolved.                                            |
+| Complaint photo           | Not supported                                                                                                                         |
+| Technician login          | Technicians have no system login. Name + phone only.                                                                                  |
+| Soft deletes              | All critical tables use `deleted_at` for soft delete to preserve billing history                                                      |
+| Audit logs                | Append-only. No updates or deletes. Both user actions and system actions are logged.                                                  |
 
 ---
 
@@ -1910,25 +1994,25 @@ enum BillLineItemType {
 
 This appendix is a quick reference for every Next.js concept used in the original design and its React equivalent in this project.
 
-| Next.js Concept | React Equivalent |
-|-----------------|-----------------|
-| `app/` directory + file-based routing | `src/router.tsx` with `createBrowserRouter` (React Router v6) |
-| `page.tsx` file | Any `.tsx` component in `src/pages/` |
-| `layout.tsx` with `{children}` | Layout component with `<Outlet />` (React Router v6) |
-| Route group `(student)/layout.tsx` | `<ProtectedRoute>` wrapper + `<StudentLayout>` in router |
-| Dynamic route `[billId]/page.tsx` | Route path `/billing/:billId` + `useParams()` hook |
-| `import { useRouter } from 'next/navigation'` | `import { useNavigate } from 'react-router-dom'` |
-| `router.push('/path')` | `navigate('/path')` |
-| `import Link from 'next/link'` | `import { Link } from 'react-router-dom'` |
-| `<Link href="/path">` | `<Link to="/path">` |
-| `NEXT_PUBLIC_` env prefix | `VITE_` env prefix; accessed via `import.meta.env.VITE_*` |
-| Next.js automatic code splitting | `React.lazy()` + `<Suspense>` |
-| `next build` | `vite build` → outputs `dist/` |
-| `next start` | Serve `dist/` with Nginx or `vite preview` |
-| App Router loading.tsx | `<Suspense fallback={<Loading />}>` |
-| Server Components | Not applicable — this app is a pure client-side SPA |
-| API routes (`app/api/`) | Not used — all API is in the Express backend |
+| Next.js Concept                               | React Equivalent                                              |
+| --------------------------------------------- | ------------------------------------------------------------- |
+| `app/` directory + file-based routing         | `src/router.tsx` with `createBrowserRouter` (React Router v6) |
+| `page.tsx` file                               | Any `.tsx` component in `src/pages/`                          |
+| `layout.tsx` with `{children}`                | Layout component with `<Outlet />` (React Router v6)          |
+| Route group `(student)/layout.tsx`            | `<ProtectedRoute>` wrapper + `<StudentLayout>` in router      |
+| Dynamic route `[billId]/page.tsx`             | Route path `/billing/:billId` + `useParams()` hook            |
+| `import { useRouter } from 'next/navigation'` | `import { useNavigate } from 'react-router-dom'`              |
+| `router.push('/path')`                        | `navigate('/path')`                                           |
+| `import Link from 'next/link'`                | `import { Link } from 'react-router-dom'`                     |
+| `<Link href="/path">`                         | `<Link to="/path">`                                           |
+| `NEXT_PUBLIC_` env prefix                     | `VITE_` env prefix; accessed via `import.meta.env.VITE_*`     |
+| Next.js automatic code splitting              | `React.lazy()` + `<Suspense>`                                 |
+| `next build`                                  | `vite build` → outputs `dist/`                                |
+| `next start`                                  | Serve `dist/` with Nginx or `vite preview`                    |
+| App Router loading.tsx                        | `<Suspense fallback={<Loading />}>`                           |
+| Server Components                             | Not applicable — this app is a pure client-side SPA           |
+| API routes (`app/api/`)                       | Not used — all API is in the Express backend                  |
 
 ---
 
-*End of Master System Design Document*
+_End of Master System Design Document_
