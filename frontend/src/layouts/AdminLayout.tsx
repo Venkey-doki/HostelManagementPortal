@@ -3,6 +3,8 @@ import { Outlet } from "react-router-dom";
 
 const navItems = [
 	{ href: "/admin/dashboard", label: "Dashboard" },
+	{ href: "/warden/leaves", label: "Leave Approvals" },
+	{ href: "/warden/payments", label: "Payment Verification" },
 	{ href: "/admin/hostels", label: "Hostels" },
 	{ href: "/admin/messes", label: "Messes" },
 	{ href: "/admin/students", label: "Students" },

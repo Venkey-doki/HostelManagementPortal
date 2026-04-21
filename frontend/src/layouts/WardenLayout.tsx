@@ -6,13 +6,18 @@ const navItems = [
 	{ href: "/warden/leaves", label: "Leave Approvals" },
 	{ href: "/warden/payments", label: "Payment Verification" },
 	{ href: "/warden/students", label: "Students" },
+	{ href: "/admin/hostels", label: "Hostels" },
+	{ href: "/admin/messes", label: "Messes" },
+	{ href: "/admin/extras", label: "Extras" },
+	{ href: "/admin/billing", label: "Billing" },
+	{ href: "/admin/import", label: "CSV Import" },
 ];
 
 export default function WardenLayout() {
 	return (
 		<PortalLayout
 			title="Warden"
-			subtitle="Operations desk"
+			subtitle="Operations and management desk"
 			accentLabel="Warden portal"
 			navItems={navItems}
 		>

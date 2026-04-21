@@ -1,9 +1,14 @@
-import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-type LeaveStatus = "PENDING" | "APPROVED" | "REJECTED" | "AUTO_APPROVED" | "CANCELLED";
+type LeaveStatus =
+	| "PENDING"
+	| "APPROVED"
+	| "REJECTED"
+	| "AUTO_APPROVED"
+	| "CANCELLED";
 
 interface StudentLeaveItem {
 	id: string;
@@ -20,19 +25,41 @@ interface StudentLeaveItem {
 }
 interface StudentLeavesResponse {
 	leaves: StudentLeaveItem[];
-	summary: { PENDING: number; APPROVED: number; REJECTED: number; AUTO_APPROVED: number; CANCELLED: number; usedDays: number; remainingDays: number };
+	summary: {
+		PENDING: number;
+		APPROVED: number;
+		REJECTED: number;
+		AUTO_APPROVED: number;
+		CANCELLED: number;
+		usedDays: number;
+	};
 	assignmentSnapshot: {
-		hostelAssignment: { hostel: { id: string; name: string }; room: { id: string; roomNumber: string } } | null;
+		hostelAssignment: {
+			hostel: { id: string; name: string };
+			room: { id: string; roomNumber: string };
+		} | null;
 		messAssignment: { mess: { id: string; name: string } } | null;
 	};
 }
 
 function addDays(date: Date, days: number): Date {
-	return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + days));
+	return new Date(
+		Date.UTC(
+			date.getUTCFullYear(),
+			date.getUTCMonth(),
+			date.getUTCDate() + days,
+		),
+	);
 }
-function toDateInputValue(date: Date): string { return date.toISOString().slice(0, 10); }
+function toDateInputValue(date: Date): string {
+	return date.toISOString().slice(0, 10);
+}
 function formatDate(value: string) {
-	return new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
+	return new Intl.DateTimeFormat("en-IN", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric",
+	}).format(new Date(value));
 }
 
 const STATUS_BADGE: Record<LeaveStatus, string> = {
@@ -64,54 +91,96 @@ export default function StudentLeavesPage() {
 
 	const applyMutation = useMutation({
 		mutationFn: async () => {
-			const res = await api.post("/leaves", { startDate, endDate, reason: reason || undefined });
+			const res = await api.post("/leaves", {
+				startDate,
+				endDate,
+				reason: reason || undefined,
+			});
 			return res.data.data as StudentLeaveItem;
 		},
 		onSuccess: async () => {
 			setFormSuccess("Leave application submitted.");
 			setFormError("");
 			setReason("");
-			await queryClient.invalidateQueries({ queryKey: ["student-leaves"] });
+			await queryClient.invalidateQueries({
+				queryKey: ["student-leaves"],
+			});
 		},
-		onError: (err: any) => { setFormError(err.response?.data?.error?.message ?? "Failed to apply leave"); },
+		onError: (err: any) => {
+			setFormError(
+				err.response?.data?.error?.message ?? "Failed to apply leave",
+			);
+		},
 	});
 
 	const cancelMutation = useMutation({
-		mutationFn: async (id: string) => (await api.delete(`/leaves/${id}`)).data.data,
+		mutationFn: async (id: string) =>
+			(await api.delete(`/leaves/${id}`)).data.data,
 		onSuccess: async () => {
 			setFormSuccess("Leave cancelled.");
-			await queryClient.invalidateQueries({ queryKey: ["student-leaves"] });
+			await queryClient.invalidateQueries({
+				queryKey: ["student-leaves"],
+			});
 		},
-		onError: (err: any) => { setFormError(err.response?.data?.error?.message ?? "Failed to cancel leave"); },
+		onError: (err: any) => {
+			setFormError(
+				err.response?.data?.error?.message ?? "Failed to cancel leave",
+			);
+		},
 	});
 
 	const returnMutation = useMutation({
-		mutationFn: async ({ leaveId, returnDate }: { leaveId: string; returnDate: string }) =>
-			(await api.patch(`/leaves/${leaveId}/return`, { returnDate })).data.data,
+		mutationFn: async ({
+			leaveId,
+			returnDate,
+		}: {
+			leaveId: string;
+			returnDate: string;
+		}) =>
+			(await api.patch(`/leaves/${leaveId}/return`, { returnDate })).data
+				.data,
 		onSuccess: async () => {
 			setFormSuccess("Return date saved.");
-			await queryClient.invalidateQueries({ queryKey: ["student-leaves"] });
+			await queryClient.invalidateQueries({
+				queryKey: ["student-leaves"],
+			});
 		},
-		onError: (err: any) => { setFormError(err.response?.data?.error?.message ?? "Failed to mark return"); },
+		onError: (err: any) => {
+			setFormError(
+				err.response?.data?.error?.message ?? "Failed to mark return",
+			);
+		},
 	});
 
-	const summaryStats = useMemo(() => [
-		{ label: "Pending", value: data?.summary.PENDING ?? 0 },
-		{ label: "Approved", value: (data?.summary.APPROVED ?? 0) + (data?.summary.AUTO_APPROVED ?? 0) },
-		{ label: "Days used", value: data?.summary.usedDays ?? 0 },
-		{ label: "Days remaining", value: data?.summary.remainingDays ?? 0 },
-	], [data]);
+	const summaryStats = useMemo(
+		() => [
+			{ label: "Pending", value: data?.summary.PENDING ?? 0 },
+			{
+				label: "Approved",
+				value:
+					(data?.summary.APPROVED ?? 0) +
+					(data?.summary.AUTO_APPROVED ?? 0),
+			},
+			{ label: "Days used", value: data?.summary.usedDays ?? 0 },
+			{ label: "Max/request", value: 60 },
+		],
+		[data],
+	);
 
-	const inputClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
+	const inputClass =
+		"w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 	return (
 		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex items-start justify-between gap-4 flex-wrap">
 				<div>
-					<h1 className="text-xl font-bold text-slate-900">Leave Management</h1>
+					<h1 className="text-xl font-bold text-slate-900">
+						Leave Management
+					</h1>
 					<p className="mt-0.5 text-sm text-slate-500">
-						Apply with 2-day advance notice. Maximum 60 days per year.
+						Apply with 2-day advance notice. A single request can be
+						up to 60 days.
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -119,7 +188,7 @@ export default function StudentLeavesPage() {
 						Days used: {data?.summary.usedDays ?? 0}
 					</span>
 					<span className="text-xs px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium">
-						Remaining: {data?.summary.remainingDays ?? 0}
+						Max/request: 60 days
 					</span>
 				</div>
 			</div>
@@ -127,9 +196,16 @@ export default function StudentLeavesPage() {
 			{/* Stat cards */}
 			<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
 				{summaryStats.map((s) => (
-					<div key={s.label} className="bg-white rounded-lg border border-slate-200 p-4">
-						<p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{s.label}</p>
-						<p className="mt-1 text-2xl font-bold text-slate-900">{s.value}</p>
+					<div
+						key={s.label}
+						className="bg-white rounded-lg border border-slate-200 p-4"
+					>
+						<p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+							{s.label}
+						</p>
+						<p className="mt-1 text-2xl font-bold text-slate-900">
+							{s.value}
+						</p>
 					</div>
 				))}
 			</div>
@@ -137,44 +213,90 @@ export default function StudentLeavesPage() {
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{/* Apply for leave */}
 				<div className="bg-white rounded-lg border border-slate-200 p-5">
-					<h2 className="text-sm font-semibold text-slate-900 mb-4">Apply for Leave</h2>
+					<h2 className="text-sm font-semibold text-slate-900 mb-4">
+						Apply for Leave
+					</h2>
 					{formError && (
-						<div className="mb-3 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">{formError}</div>
+						<div className="mb-3 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
+							{formError}
+						</div>
 					)}
 					{formSuccess && (
-						<div className="mb-3 px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-xs text-green-700">{formSuccess}</div>
+						<div className="mb-3 px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-xs text-green-700">
+							{formSuccess}
+						</div>
 					)}
 					<div className="grid grid-cols-2 gap-3 mb-3">
 						<div>
-							<label className="block text-xs font-medium text-slate-700 mb-1">Start date</label>
-							<input type="date" min={initialStart} value={startDate} onChange={(e) => { setStartDate(e.target.value); if (endDate < e.target.value) setEndDate(e.target.value); }} className={inputClass} />
+							<label className="block text-xs font-medium text-slate-700 mb-1">
+								Start date
+							</label>
+							<input
+								type="date"
+								min={initialStart}
+								value={startDate}
+								onChange={(e) => {
+									setStartDate(e.target.value);
+									if (endDate < e.target.value)
+										setEndDate(e.target.value);
+								}}
+								className={inputClass}
+							/>
 						</div>
 						<div>
-							<label className="block text-xs font-medium text-slate-700 mb-1">End date</label>
-							<input type="date" min={startDate} value={endDate} onChange={(e) => setEndDate(e.target.value)} className={inputClass} />
+							<label className="block text-xs font-medium text-slate-700 mb-1">
+								End date
+							</label>
+							<input
+								type="date"
+								min={startDate}
+								value={endDate}
+								onChange={(e) => setEndDate(e.target.value)}
+								className={inputClass}
+							/>
 						</div>
 					</div>
 					<div className="mb-4">
-						<label className="block text-xs font-medium text-slate-700 mb-1">Reason (optional)</label>
-						<textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Brief reason for leave…" className={inputClass} />
+						<label className="block text-xs font-medium text-slate-700 mb-1">
+							Reason (optional)
+						</label>
+						<textarea
+							rows={3}
+							value={reason}
+							onChange={(e) => setReason(e.target.value)}
+							placeholder="Brief reason for leave…"
+							className={inputClass}
+						/>
 					</div>
 					<button
 						type="button"
-						onClick={() => { setFormError(""); setFormSuccess(""); applyMutation.mutate(); }}
+						onClick={() => {
+							setFormError("");
+							setFormSuccess("");
+							applyMutation.mutate();
+						}}
 						disabled={applyMutation.isPending}
 						className="w-full py-2 px-4 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 disabled:opacity-60 transition-colors"
 					>
-						{applyMutation.isPending ? "Submitting…" : "Submit leave request"}
+						{applyMutation.isPending
+							? "Submitting…"
+							: "Submit leave request"}
 					</button>
-					<p className="mt-2 text-xs text-slate-400">Leave must be applied at least 2 days in advance.</p>
+					<p className="mt-2 text-xs text-slate-400">
+						Leave must be applied at least 2 days in advance.
+					</p>
 				</div>
 
 				{/* Assignment snapshot */}
 				<div className="bg-white rounded-lg border border-slate-200 p-5">
-					<h2 className="text-sm font-semibold text-slate-900 mb-4">Current Assignment</h2>
+					<h2 className="text-sm font-semibold text-slate-900 mb-4">
+						Current Assignment
+					</h2>
 					<div className="space-y-3">
 						<div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-							<p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Hostel & Room</p>
+							<p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+								Hostel & Room
+							</p>
 							<p className="text-sm text-slate-900">
 								{data?.assignmentSnapshot.hostelAssignment
 									? `${data.assignmentSnapshot.hostelAssignment.hostel.name} · Room ${data.assignmentSnapshot.hostelAssignment.room.roomNumber}`
@@ -182,9 +304,12 @@ export default function StudentLeavesPage() {
 							</p>
 						</div>
 						<div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-							<p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Mess</p>
+							<p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+								Mess
+							</p>
 							<p className="text-sm text-slate-900">
-								{data?.assignmentSnapshot.messAssignment?.mess.name ?? "No active mess assignment"}
+								{data?.assignmentSnapshot.messAssignment?.mess
+									.name ?? "No active mess assignment"}
 							</p>
 						</div>
 					</div>
@@ -194,41 +319,79 @@ export default function StudentLeavesPage() {
 			{/* Leave history */}
 			<div className="bg-white rounded-lg border border-slate-200">
 				<div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-					<h2 className="text-sm font-semibold text-slate-900">Leave History</h2>
-					{isLoading && <span className="text-xs text-slate-400">Loading…</span>}
+					<h2 className="text-sm font-semibold text-slate-900">
+						Leave History
+					</h2>
+					{isLoading && (
+						<span className="text-xs text-slate-400">Loading…</span>
+					)}
 				</div>
 				{!data?.leaves.length ? (
-					<p className="text-center py-10 text-sm text-slate-400">No leave requests yet.</p>
+					<p className="text-center py-10 text-sm text-slate-400">
+						No leave requests yet.
+					</p>
 				) : (
 					<div className="divide-y divide-slate-100">
 						{data.leaves.map((leave) => {
-							const returnValue = returnDates[leave.id] ?? toDateInputValue(new Date());
-							const isReturnable = (leave.status === "APPROVED" || leave.status === "AUTO_APPROVED") && !leave.returnDate;
+							const returnValue =
+								returnDates[leave.id] ??
+								toDateInputValue(new Date());
+							const isReturnable =
+								(leave.status === "APPROVED" ||
+									leave.status === "AUTO_APPROVED") &&
+								!leave.returnDate;
 							return (
 								<div key={leave.id} className="px-5 py-4">
 									<div className="flex items-start justify-between gap-3 mb-2">
 										<div>
 											<p className="text-sm font-semibold text-slate-900">
-												{formatDate(leave.startDate)} — {formatDate(leave.endDate)}
+												{formatDate(leave.startDate)} —{" "}
+												{formatDate(leave.endDate)}
 											</p>
 											<p className="text-xs text-slate-500 mt-0.5">
-												{leave.duration} day{leave.duration !== 1 ? "s" : ""}
-												{leave.reason ? ` · ${leave.reason}` : ""}
+												{leave.duration} day
+												{leave.duration !== 1
+													? "s"
+													: ""}
+												{leave.reason
+													? ` · ${leave.reason}`
+													: ""}
 											</p>
 										</div>
-										<span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold", STATUS_BADGE[leave.status])}>
+										<span
+											className={cn(
+												"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold",
+												STATUS_BADGE[leave.status],
+											)}
+										>
 											{leave.status.replace("_", " ")}
 										</span>
 									</div>
 									<div className="flex flex-wrap gap-2 text-xs text-slate-400 mb-2">
-										<span>Applied {formatDate(leave.appliedOn)}</span>
-										{leave.returnDate && <span className="text-green-600">Returned {formatDate(leave.returnDate)}</span>}
-										{leave.rejectionReason && <span className="text-red-600">{leave.rejectionReason}</span>}
+										<span>
+											Applied{" "}
+											{formatDate(leave.appliedOn)}
+										</span>
+										{leave.returnDate && (
+											<span className="text-green-600">
+												Returned{" "}
+												{formatDate(leave.returnDate)}
+											</span>
+										)}
+										{leave.rejectionReason && (
+											<span className="text-red-600">
+												{leave.rejectionReason}
+											</span>
+										)}
 									</div>
 									{leave.status === "PENDING" && (
 										<button
 											type="button"
-											onClick={() => { setFormError(""); setFormSuccess(""); cancelMutation.mutate(leave.id); }}
+											onClick={() => {
+												setFormError("");
+												setFormSuccess("");
+												cancelMutation.mutate(leave.id);
+											}}
 											disabled={cancelMutation.isPending}
 											className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
 										>
@@ -237,14 +400,33 @@ export default function StudentLeavesPage() {
 									)}
 									{isReturnable && (
 										<div className="flex items-center gap-2 mt-2">
-											<input type="date" min={leave.startDate} max={leave.endDate} value={returnValue}
-												onChange={(e) => setReturnDates((c) => ({ ...c, [leave.id]: e.target.value }))}
+											<input
+												type="date"
+												min={leave.startDate}
+												max={leave.endDate}
+												value={returnValue}
+												onChange={(e) =>
+													setReturnDates((c) => ({
+														...c,
+														[leave.id]:
+															e.target.value,
+													}))
+												}
 												className="px-2 py-1 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
 											/>
 											<button
 												type="button"
-												onClick={() => { setFormError(""); setFormSuccess(""); returnMutation.mutate({ leaveId: leave.id, returnDate: returnValue }); }}
-												disabled={returnMutation.isPending}
+												onClick={() => {
+													setFormError("");
+													setFormSuccess("");
+													returnMutation.mutate({
+														leaveId: leave.id,
+														returnDate: returnValue,
+													});
+												}}
+												disabled={
+													returnMutation.isPending
+												}
 												className="text-xs px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-60 transition-colors"
 											>
 												Mark returned

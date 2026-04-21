@@ -2,6 +2,16 @@ import { Link } from "react-router-dom";
 
 const adminModules = [
 	{
+		to: "/warden/leaves",
+		label: "Leave Approvals",
+		desc: "Review and action pending student leave requests.",
+	},
+	{
+		to: "/warden/payments",
+		label: "Payment Verification",
+		desc: "Verify or reject student payment proofs.",
+	},
+	{
 		to: "/admin/hostels",
 		label: "Hostels",
 		desc: "Create hostels, add rooms, manage capacity.",
@@ -38,17 +48,34 @@ export default function AdminDashboardPage() {
 		<div className="space-y-6">
 			<div className="flex items-start justify-between gap-4 flex-wrap">
 				<div>
-					<p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Control room</p>
-					<h1 className="text-xl font-bold text-slate-900">Admin Dashboard</h1>
+					<p className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+						Control room
+					</p>
+					<h1 className="text-xl font-bold text-slate-900">
+						Admin Dashboard
+					</h1>
 					<p className="mt-0.5 text-sm text-slate-500">
-						Manage campus structure, configure mess extras, onboard students, and run monthly billing.
+						Manage campus structure, configure mess extras, onboard
+						students, and run monthly billing.
 					</p>
 				</div>
 				<div className="flex gap-2">
-					<Link to="/admin/extras" className="px-4 py-2 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition-colors">
+					<Link
+						to="/warden/leaves"
+						className="px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-semibold hover:bg-green-800 transition-colors"
+					>
+						Review leaves
+					</Link>
+					<Link
+						to="/admin/extras"
+						className="px-4 py-2 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition-colors"
+					>
 						Manage extras
 					</Link>
-					<Link to="/admin/billing" className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors">
+					<Link
+						to="/admin/billing"
+						className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+					>
 						Generate bills
 					</Link>
 				</div>
@@ -62,8 +89,12 @@ export default function AdminDashboardPage() {
 						to={m.to}
 						className="group bg-white rounded-lg border border-slate-200 p-5 hover:border-blue-300 hover:shadow-sm transition-all"
 					>
-						<p className="text-sm font-bold text-slate-900 group-hover:text-blue-700 mb-1">{m.label}</p>
-						<p className="text-xs text-slate-500 leading-relaxed">{m.desc}</p>
+						<p className="text-sm font-bold text-slate-900 group-hover:text-blue-700 mb-1">
+							{m.label}
+						</p>
+						<p className="text-xs text-slate-500 leading-relaxed">
+							{m.desc}
+						</p>
 					</Link>
 				))}
 			</div>

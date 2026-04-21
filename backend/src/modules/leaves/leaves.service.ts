@@ -188,6 +188,15 @@ export class LeavesService {
 			);
 		}
 
+		const requestedDuration = differenceInDaysInclusive(startDate, endDate);
+		if (requestedDuration > MAX_LEAVE_DAYS) {
+			throw new AppError(
+				"A single leave request cannot exceed 60 days",
+				422,
+				"LEAVE_DURATION_EXCEEDED",
+			);
+		}
+
 		const existingLeaves = await prisma.leave.findMany({
 			where: {
 				studentId,
@@ -214,35 +223,10 @@ export class LeavesService {
 				);
 			}
 		}
-
-		const { start: yearStart, end: yearEnd } = academicYearWindow(today);
-		const usedDays = existingLeaves.reduce((total, existing) => {
-			return (
-				total +
-				overlapDays(effectiveLeaveWindow(existing), {
-					start: yearStart,
-					end: yearEnd,
-				})
-			);
-		}, 0);
-
-		const requestedDays = overlapDays(requestedWindow, {
-			start: yearStart,
-			end: yearEnd,
-		});
-		if (usedDays + requestedDays > MAX_LEAVE_DAYS) {
-			throw new AppError(
-				"Leave limit exceeded for the current academic year",
-				422,
-				"LEAVE_LIMIT_EXCEEDED",
-			);
-		}
 	}
 
 	async getStudentLeaves(studentId: string) {
 		await this.ensureStudentExists(studentId);
-		const today = normalizeDate(new Date());
-		const { start: yearStart, end: yearEnd } = academicYearWindow(today);
 
 		const [leaves, assignmentSnapshot] = await Promise.all([
 			prisma.leave.findMany({
@@ -261,10 +245,10 @@ export class LeavesService {
 			}
 			return (
 				total +
-				overlapDays(effectiveLeaveWindow(leave), {
-					start: yearStart,
-					end: yearEnd,
-				})
+				overlapDays(
+					effectiveLeaveWindow(leave),
+					effectiveLeaveWindow(leave),
+				)
 			);
 		}, 0);
 
@@ -287,7 +271,6 @@ export class LeavesService {
 			summary: {
 				...summary,
 				usedDays,
-				remainingDays: Math.max(MAX_LEAVE_DAYS - usedDays, 0),
 			},
 			assignmentSnapshot,
 		};
