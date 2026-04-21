@@ -14,6 +14,16 @@ type AttendanceRow = {
 	dinner: boolean;
 };
 
+function addDays(date: Date, days: number): Date {
+	return new Date(
+		Date.UTC(
+			date.getUTCFullYear(),
+			date.getUTCMonth(),
+			date.getUTCDate() + days,
+		),
+	);
+}
+
 export class AttendanceService {
 	private normalizeDate(date: Date): Date {
 		return new Date(
@@ -40,7 +50,7 @@ export class AttendanceService {
 		}
 	}
 
-	private async resolveInchargeMess(userId: string, date: Date) {
+	private async resolveInchargeMess(userId: string) {
 		const assignment = await prisma.inchargeAssignment.findFirst({
 			where: {
 				userId,
@@ -107,10 +117,7 @@ export class AttendanceService {
 		const normalizedDate = this.normalizeDate(date);
 		this.assertNotFuture(normalizedDate);
 
-		const messId = await this.resolveInchargeMess(
-			inchargeUserId,
-			normalizedDate,
-		);
+		const messId = await this.resolveInchargeMess(inchargeUserId);
 
 		const [mess, assignments, attendanceRows, waiver] = await Promise.all([
 			prisma.mess.findUnique({
@@ -216,10 +223,7 @@ export class AttendanceService {
 		const normalizedDate = this.normalizeDate(input.date);
 		this.assertNotFuture(normalizedDate);
 
-		const messId = await this.resolveInchargeMess(
-			inchargeUserId,
-			normalizedDate,
-		);
+		const messId = await this.resolveInchargeMess(inchargeUserId);
 		await this.ensureStudentBelongsToMessOnDate(
 			input.studentId,
 			messId,
@@ -263,10 +267,7 @@ export class AttendanceService {
 		const normalizedDate = this.normalizeDate(input.date);
 		this.assertNotFuture(normalizedDate);
 
-		const messId = await this.resolveInchargeMess(
-			inchargeUserId,
-			normalizedDate,
-		);
+		const messId = await this.resolveInchargeMess(inchargeUserId);
 		await this.ensureNotWaived(messId, normalizedDate);
 
 		const studentIds = Array.from(
@@ -331,54 +332,92 @@ export class AttendanceService {
 
 	async setMessDayWaiver(
 		inchargeUserId: string,
-		input: { date: Date; reason?: string | undefined },
+		input: {
+			date?: Date | undefined;
+			startDate?: Date | undefined;
+			endDate?: Date | undefined;
+			reason?: string | undefined;
+		},
 	) {
-		const normalizedDate = this.normalizeDate(input.date);
-		this.assertNotFuture(normalizedDate);
+		const rawStart = input.date ?? input.startDate;
+		const rawEnd = input.date ?? input.endDate;
 
-		const messId = await this.resolveInchargeMess(
-			inchargeUserId,
-			normalizedDate,
-		);
+		if (!rawStart || !rawEnd) {
+			throw new AppError("Invalid waiver range", 422, "VALIDATION_ERROR");
+		}
 
-		await prisma.$transaction([
-			prisma.messDayWaiver.upsert({
-				where: {
-					messId_date: {
+		const normalizedStartDate = this.normalizeDate(rawStart);
+		const normalizedEndDate = this.normalizeDate(rawEnd);
+
+		if (normalizedEndDate < normalizedStartDate) {
+			throw new AppError(
+				"Start date must be before or equal to end date",
+				422,
+				"VALIDATION_ERROR",
+			);
+		}
+
+		this.assertNotFuture(normalizedStartDate);
+		this.assertNotFuture(normalizedEndDate);
+
+		const messId = await this.resolveInchargeMess(inchargeUserId);
+
+		const waiverDates: Date[] = [];
+		for (
+			let cursor = new Date(normalizedStartDate.getTime());
+			cursor <= normalizedEndDate;
+			cursor = addDays(cursor, 1)
+		) {
+			waiverDates.push(new Date(cursor.getTime()));
+		}
+
+		await prisma.$transaction(async (tx) => {
+			for (const waiverDate of waiverDates) {
+				await tx.messDayWaiver.upsert({
+					where: {
+						messId_date: {
+							messId,
+							date: waiverDate,
+						},
+					},
+					update: {
+						reason: input.reason ?? null,
+						createdById: inchargeUserId,
+					},
+					create: {
 						messId,
-						date: normalizedDate,
+						date: waiverDate,
+						reason: input.reason ?? null,
+						createdById: inchargeUserId,
+					},
+				});
+			}
+
+			await tx.attendance.deleteMany({
+				where: {
+					messId,
+					date: {
+						gte: normalizedStartDate,
+						lte: normalizedEndDate,
 					},
 				},
-				update: {
-					reason: input.reason ?? null,
-					createdById: inchargeUserId,
-				},
-				create: {
-					messId,
-					date: normalizedDate,
-					reason: input.reason ?? null,
-					createdById: inchargeUserId,
-				},
-			}),
-			prisma.attendance.deleteMany({
-				where: {
-					messId,
-					date: normalizedDate,
-				},
-			}),
-		]);
+			});
+		});
 
-		return { success: true, messId, date: this.dateKey(normalizedDate) };
+		return {
+			success: true,
+			messId,
+			startDate: this.dateKey(normalizedStartDate),
+			endDate: this.dateKey(normalizedEndDate),
+			totalDays: waiverDates.length,
+		};
 	}
 
 	async removeMessDayWaiver(inchargeUserId: string, date: Date) {
 		const normalizedDate = this.normalizeDate(date);
 		this.assertNotFuture(normalizedDate);
 
-		const messId = await this.resolveInchargeMess(
-			inchargeUserId,
-			normalizedDate,
-		);
+		const messId = await this.resolveInchargeMess(inchargeUserId);
 
 		await prisma.messDayWaiver.deleteMany({
 			where: { messId, date: normalizedDate },

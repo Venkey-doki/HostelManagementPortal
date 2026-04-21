@@ -72,7 +72,7 @@ export class ExtrasService {
 		return assignment;
 	}
 
-	private async resolveInchargeMess(userId: string, date: Date) {
+	private async resolveInchargeMess(userId: string) {
 		const assignment = await prisma.inchargeAssignment.findFirst({
 			where: {
 				userId,
@@ -190,10 +190,7 @@ export class ExtrasService {
 			student.id,
 			date,
 		);
-		const inchargeAssignment = await this.resolveInchargeMess(
-			actorUserId,
-			date,
-		);
+		const inchargeAssignment = await this.resolveInchargeMess(actorUserId);
 
 		if (
 			assignment.messId !== extraItem.messId ||

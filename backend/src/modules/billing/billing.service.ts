@@ -74,6 +74,26 @@ function parseMonth(month: string) {
 	return getBillingPeriod(month);
 }
 
+function currentMonthKey(now = new Date()) {
+	return getBillingMonthKey(normalizeDate(now));
+}
+
+function resolveEffectivePeriodEnd(
+	month: string,
+	periodEnd: Date,
+	now = new Date(),
+) {
+	const current = normalizeDate(now);
+	const monthKey = month;
+	const todayMonthKey = currentMonthKey(current);
+
+	if (monthKey === todayMonthKey) {
+		return current;
+	}
+
+	return periodEnd;
+}
+
 function toDecimalString(value: number | string | null | undefined): string {
 	if (value === null || value === undefined) {
 		return "0.00";
@@ -153,6 +173,7 @@ export class BillingService {
 		month: string,
 	): Promise<BillingContext> {
 		const { periodStart, periodEnd } = parseMonth(month);
+		const effectivePeriodEnd = resolveEffectivePeriodEnd(month, periodEnd);
 		const [student, hostelAssignment, messAssignment] = await Promise.all([
 			prisma.student.findFirst({
 				where: { id: studentId, deletedAt: null, isActive: true },
@@ -165,7 +186,7 @@ export class BillingService {
 			prisma.hostelAssignment.findFirst({
 				where: {
 					studentId,
-					startDate: { lte: periodEnd },
+					startDate: { lte: effectivePeriodEnd },
 					OR: [{ endDate: null }, { endDate: { gte: periodStart } }],
 				},
 				include: {
@@ -176,7 +197,7 @@ export class BillingService {
 			prisma.messAssignment.findFirst({
 				where: {
 					studentId,
-					startDate: { lte: periodEnd },
+					startDate: { lte: effectivePeriodEnd },
 					OR: [{ endDate: null }, { endDate: { gte: periodStart } }],
 				},
 				include: {
@@ -223,7 +244,7 @@ export class BillingService {
 			prisma.messDayWaiver.findMany({
 				where: {
 					messId: messAssignment.messId,
-					date: { gte: periodStart, lte: periodEnd },
+					date: { gte: periodStart, lte: effectivePeriodEnd },
 				},
 				select: { date: true, reason: true },
 				orderBy: [{ date: "asc" }],
@@ -234,7 +255,7 @@ export class BillingService {
 					status: {
 						in: [LeaveStatus.APPROVED, LeaveStatus.AUTO_APPROVED],
 					},
-					startDate: { lte: periodEnd },
+					startDate: { lte: effectivePeriodEnd },
 					endDate: { gte: periodStart },
 				},
 				select: {
@@ -248,7 +269,7 @@ export class BillingService {
 			prisma.studentExtra.findMany({
 				where: {
 					studentId,
-					date: { gte: periodStart, lte: periodEnd },
+					date: { gte: periodStart, lte: effectivePeriodEnd },
 				},
 				include: {
 					extraItem: { select: { name: true, unit: true } },
@@ -260,7 +281,7 @@ export class BillingService {
 		return {
 			billingMonth: month,
 			periodStart,
-			periodEnd,
+			periodEnd: effectivePeriodEnd,
 			student: {
 				id: student.id,
 				rollNumber: student.rollNumber,
@@ -576,6 +597,14 @@ export class BillingService {
 		actorUserId: string | null,
 		studentId?: string,
 	) {
+		if (month > currentMonthKey()) {
+			throw new AppError(
+				"Cannot generate bills for a future month",
+				422,
+				"FUTURE_BILLING_MONTH_NOT_ALLOWED",
+			);
+		}
+
 		const lockKey = getLockKey(month);
 		const acquired = await redis.set(lockKey, "1", {
 			NX: true,

@@ -36,10 +36,32 @@ export const bulkMarkAttendanceSchema = z
 
 export const setMessDayWaiverSchema = z
 	.object({
-		date: z.coerce.date(),
+		date: z.coerce.date().optional(),
+		startDate: z.coerce.date().optional(),
+		endDate: z.coerce.date().optional(),
 		reason: z.string().max(255).optional(),
 	})
-	.strict();
+	.strict()
+	.refine(
+		(value) =>
+			value.date !== undefined ||
+			(value.startDate !== undefined && value.endDate !== undefined),
+		{ message: "Provide either date or startDate/endDate" },
+	)
+	.refine(
+		(value) => {
+			if (value.date !== undefined) {
+				return true;
+			}
+
+			if (value.startDate && value.endDate) {
+				return value.startDate <= value.endDate;
+			}
+
+			return false;
+		},
+		{ message: "startDate must be before or equal to endDate" },
+	);
 
 export const studentCalendarQuerySchema = z
 	.object({
