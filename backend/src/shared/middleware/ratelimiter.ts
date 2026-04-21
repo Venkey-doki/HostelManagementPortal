@@ -21,10 +21,10 @@ export async function loginRateLimiter(
 		const current = await redis.incr(key);
 		if (current === 1) {
 			// First request in this window, set TTL
-			await redis.expire(key, 15 * 60); // 15 minutes
+			await redis.expire(key, 1 * 60); // 15 minutes
 		}
 
-		if (current > 5) {
+		if (current > 15) {
 			throw new AppError(
 				"Too many login attempts. Please try again later.",
 				429,

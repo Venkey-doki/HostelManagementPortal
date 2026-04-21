@@ -1,39 +1,16 @@
 import { api } from "@/lib/api";
 import { useEffect, useMemo, useState } from "react";
 
-interface Mess {
-	id: string;
-	name: string;
-	gender: "MALE" | "FEMALE";
-	perDayCharge: string;
-	isActive: boolean;
-}
-
+interface Mess { id: string; name: string; gender: "MALE" | "FEMALE"; perDayCharge: string; isActive: boolean; }
 interface InchargeAssignment {
-	id: string;
-	startDate: string;
-	endDate: string | null;
-	isCurrent: boolean;
-	user: {
-		id: string;
-		email: string;
-		firstName: string;
-		lastName: string;
-	};
+	id: string; startDate: string; endDate: string | null; isCurrent: boolean;
+	user: { id: string; email: string; firstName: string; lastName: string };
+}
+interface AdminUserResponse {
+	data: { user: { id: string; email: string; firstName: string; lastName: string; role: string }; temporaryPassword: string };
 }
 
-interface AdminUserResponse {
-	data: {
-		user: {
-			id: string;
-			email: string;
-			firstName: string;
-			lastName: string;
-			role: string;
-		};
-		temporaryPassword: string;
-	};
-}
+const inputClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 export default function MessesPage() {
 	const [messes, setMesses] = useState<Mess[]>([]);
@@ -44,555 +21,261 @@ export default function MessesPage() {
 	const [gender, setGender] = useState<"MALE" | "FEMALE">("MALE");
 	const [perDayCharge, setPerDayCharge] = useState("120");
 	const [staffForm, setStaffForm] = useState({
-		email: "",
-		firstName: "",
-		lastName: "",
-		phone: "",
-		password: "",
-		role: "MESS_INCHARGE" as "MESS_INCHARGE" | "WARDEN",
-		messId: "",
+		email: "", firstName: "", lastName: "", phone: "", password: "",
+		role: "MESS_INCHARGE" as "MESS_INCHARGE" | "WARDEN", messId: "",
 	});
 	const [recentStaffId, setRecentStaffId] = useState("");
-	const [inchargeHistory, setInchargeHistory] = useState<
-		Record<string, InchargeAssignment[]>
-	>({});
+	const [inchargeHistory, setInchargeHistory] = useState<Record<string, InchargeAssignment[]>>({});
 
 	const load = async () => {
-		setLoading(true);
-		setError("");
+		setLoading(true); setError("");
 		try {
-			const response = await api.get("/admin/messes");
-			setMesses(response.data.data);
-			setStaffForm((current) => ({
-				...current,
-				messId: current.messId || response.data.data[0]?.id || "",
-			}));
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ?? "Failed to load messes",
-			);
-		} finally {
-			setLoading(false);
-		}
+			const res = await api.get("/admin/messes");
+			setMesses(res.data.data);
+			setStaffForm((c) => ({ ...c, messId: c.messId || res.data.data[0]?.id || "" }));
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to load messes"); }
+		finally { setLoading(false); }
 	};
+	useEffect(() => { void load(); }, []);
 
-	useEffect(() => {
-		void load();
-	}, []);
-
-	const totalCharge = useMemo(
-		() => messes.reduce((sum, mess) => sum + Number(mess.perDayCharge), 0),
-		[messes],
-	);
+	const avgCharge = useMemo(() => messes.length ? Math.round(messes.reduce((s, m) => s + Number(m.perDayCharge), 0) / messes.length) : 0, [messes]);
 
 	const onCreateMess = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setError("");
-		setSuccess("");
+		e.preventDefault(); setError(""); setSuccess("");
 		try {
-			await api.post("/admin/messes", {
-				name,
-				gender,
-				perDayCharge: Number(perDayCharge),
-			});
-			setName("");
-			setPerDayCharge("120");
-			setSuccess("Mess created successfully.");
-			await load();
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ?? "Failed to create mess",
-			);
-		}
+			await api.post("/admin/messes", { name, gender, perDayCharge: Number(perDayCharge) });
+			setName(""); setPerDayCharge("120"); setSuccess("Mess created."); await load();
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to create mess"); }
 	};
 
 	const onCreateStaff = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setError("");
-		setSuccess("");
+		e.preventDefault(); setError(""); setSuccess("");
 		try {
-			const response = await api.post<AdminUserResponse>("/admin/users", {
-				email: staffForm.email,
-				role: staffForm.role,
-				firstName: staffForm.firstName,
-				lastName: staffForm.lastName,
-				phone: staffForm.phone || undefined,
-				password: staffForm.password || undefined,
+			const res = await api.post<AdminUserResponse>("/admin/users", {
+				email: staffForm.email, role: staffForm.role, firstName: staffForm.firstName,
+				lastName: staffForm.lastName, phone: staffForm.phone || undefined, password: staffForm.password || undefined,
 			});
-
-			setRecentStaffId(response.data.data.user.id);
-			setStaffForm((current) => ({
-				...current,
-				email: "",
-				firstName: "",
-				lastName: "",
-				phone: "",
-				password: "",
-			}));
-			setSuccess(
-				`Created ${response.data.data.user.role.toLowerCase()} account.`,
-			);
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ??
-					"Failed to create staff account",
-			);
-		}
+			setRecentStaffId(res.data.data.user.id);
+			setStaffForm((c) => ({ ...c, email: "", firstName: "", lastName: "", phone: "", password: "" }));
+			setSuccess(`Created ${res.data.data.user.role.toLowerCase()} account.`);
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to create staff account"); }
 	};
 
 	const onAssignIncharge = async () => {
-		if (!staffForm.messId || !recentStaffId) {
-			setError("Create a staff account first, then assign it to a mess.");
-			return;
-		}
-
-		setError("");
-		setSuccess("");
+		if (!staffForm.messId || !recentStaffId) { setError("Create a staff account first, then assign."); return; }
+		setError(""); setSuccess("");
 		try {
-			await api.post(
-				`/admin/messes/${staffForm.messId}/incharge-assignment`,
-				{
-					userId: recentStaffId,
-					startDate: new Date().toISOString(),
-				},
-			);
-			setSuccess("Mess incharge assigned successfully.");
-			await load();
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ??
-					"Failed to assign incharge",
-			);
-		}
+			await api.post(`/admin/messes/${staffForm.messId}/incharge-assignment`, { userId: recentStaffId, startDate: new Date().toISOString() });
+			setSuccess("Incharge assigned."); await load();
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to assign incharge"); }
 	};
 
 	const onUpdateMess = async (mess: Mess) => {
 		const nextName = window.prompt("Mess name", mess.name);
 		if (!nextName) return;
-
-		const chargeInput = window.prompt(
-			"Per day charge",
-			String(mess.perDayCharge),
-		);
+		const chargeInput = window.prompt("Per day charge", String(mess.perDayCharge));
 		if (!chargeInput) return;
-
-		setError("");
-		setSuccess("");
+		setError(""); setSuccess("");
 		try {
-			await api.patch(`/admin/messes/${mess.id}`, {
-				name: nextName.trim(),
-				perDayCharge: Number(chargeInput),
-			});
-			setSuccess("Mess updated successfully.");
-			await load();
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ?? "Failed to update mess",
-			);
-		}
+			await api.patch(`/admin/messes/${mess.id}`, { name: nextName.trim(), perDayCharge: Number(chargeInput) });
+			setSuccess("Mess updated."); await load();
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to update mess"); }
 	};
 
 	const onToggleMess = async (mess: Mess) => {
-		setError("");
-		setSuccess("");
+		setError(""); setSuccess("");
 		try {
-			await api.patch(`/admin/messes/${mess.id}`, {
-				isActive: !mess.isActive,
-			});
-			setSuccess(
-				mess.isActive
-					? "Mess deactivated successfully."
-					: "Mess reactivated successfully.",
-			);
-			await load();
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ??
-					"Failed to update mess status",
-			);
-		}
+			await api.patch(`/admin/messes/${mess.id}`, { isActive: !mess.isActive });
+			setSuccess(mess.isActive ? "Mess deactivated." : "Mess reactivated."); await load();
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to update mess"); }
 	};
 
 	const onLoadInchargeHistory = async (messId: string) => {
 		setError("");
 		try {
-			const response = await api.get(
-				`/admin/messes/${messId}/incharge-assignment`,
-			);
-			setInchargeHistory((current) => ({
-				...current,
-				[messId]: response.data.data,
-			}));
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ??
-					"Failed to load incharge history",
-			);
-		}
+			const res = await api.get(`/admin/messes/${messId}/incharge-assignment`);
+			setInchargeHistory((c) => ({ ...c, [messId]: res.data.data }));
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to load incharge history"); }
 	};
 
-	const onEndInchargeAssignment = async (
-		assignmentId: string,
-		messId: string,
-	) => {
-		setError("");
-		setSuccess("");
+	const onEndInchargeAssignment = async (assignmentId: string, messId: string) => {
+		setError(""); setSuccess("");
 		try {
-			await api.patch(`/admin/incharge-assignment/${assignmentId}/end`, {
-				endDate: new Date().toISOString(),
-			});
-			setSuccess("Incharge assignment ended successfully.");
-			await onLoadInchargeHistory(messId);
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ??
-					"Failed to end incharge assignment",
-			);
-		}
+			await api.patch(`/admin/incharge-assignment/${assignmentId}/end`, { endDate: new Date().toISOString() });
+			setSuccess("Incharge assignment ended."); await onLoadInchargeHistory(messId);
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to end assignment"); }
 	};
+
+	const sf = (key: keyof typeof staffForm, val: string) => setStaffForm((c) => ({ ...c, [key]: val }));
 
 	return (
-		<div className="portal-page">
-			<section className="portal-page-header">
+		<div className="space-y-6">
+			<div className="flex items-start justify-between gap-4 flex-wrap">
 				<div>
-					<p className="portal-kicker">Mess management</p>
-					<h1>Messes</h1>
-					<p>
-						Create meal pricing and manage staff assignment workflow
-						from one place.
-					</p>
+					<h1 className="text-xl font-bold text-slate-900">Messes</h1>
+					<p className="mt-0.5 text-sm text-slate-500">Create meal pricing and manage incharge staff assignment.</p>
 				</div>
-				<div className="portal-actions">
-					<span className="portal-pill accent">
-						{messes.length} messes
-					</span>
-					<span className="portal-pill">
-						Avg. INR{" "}
-						{messes.length
-							? Math.round(totalCharge / messes.length)
-							: 0}
-						/day
-					</span>
+				<div className="flex gap-2">
+					<span className="text-xs px-2.5 py-1.5 rounded-md bg-slate-100 text-slate-600 font-medium">{messes.length} messes</span>
+					<span className="text-xs px-2.5 py-1.5 rounded-md bg-slate-100 text-slate-600 font-medium">Avg ₹{avgCharge}/day</span>
 				</div>
-			</section>
+			</div>
 
-			{error ? <div className="portal-alert error">{error}</div> : null}
-			{success ? (
-				<div className="portal-alert success">{success}</div>
-			) : null}
+			{error && <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>}
+			{success && <div className="px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">{success}</div>}
 
-			<div className="portal-grid two">
-				<div className="portal-card">
-					<div className="portal-card-header">
-						<div>
-							<p className="portal-kicker">Add mess</p>
-							<h2>Configure meal pricing</h2>
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				{/* Create mess */}
+				<div className="bg-white rounded-lg border border-slate-200 p-5">
+					<h2 className="text-sm font-semibold text-slate-900 mb-4">Add New Mess</h2>
+					<form onSubmit={onCreateMess} className="space-y-3">
+						<div className="grid grid-cols-2 gap-3">
+							<div>
+								<label className="block text-xs font-medium text-slate-700 mb-1">Mess name</label>
+								<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Boys Mess C" required className={inputClass} />
+							</div>
+							<div>
+								<label className="block text-xs font-medium text-slate-700 mb-1">Gender</label>
+								<select value={gender} onChange={(e) => setGender(e.target.value as "MALE" | "FEMALE")} className={inputClass}>
+									<option value="MALE">Male</option>
+									<option value="FEMALE">Female</option>
+								</select>
+							</div>
 						</div>
-					</div>
-
-					<form className="portal-form-grid" onSubmit={onCreateMess}>
-						<label className="portal-form-label">
-							Mess name
-							<input
-								className="portal-input"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								placeholder="Boys Mess C"
-								required
-							/>
-						</label>
-						<label className="portal-form-label">
-							Gender
-							<select
-								className="portal-select"
-								value={gender}
-								onChange={(e) =>
-									setGender(
-										e.target.value as "MALE" | "FEMALE",
-									)
-								}
-							>
-								<option value="MALE">Male</option>
-								<option value="FEMALE">Female</option>
-							</select>
-						</label>
-						<label className="portal-form-label">
-							Per day charge
-							<input
-								className="portal-input"
-								value={perDayCharge}
-								onChange={(e) =>
-									setPerDayCharge(e.target.value)
-								}
-								type="number"
-								min="1"
-								step="0.01"
-								required
-							/>
-						</label>
-						<button
-							className="portal-button portal-button-primary"
-							type="submit"
-						>
+						<div>
+							<label className="block text-xs font-medium text-slate-700 mb-1">Per day charge (₹)</label>
+							<input type="number" min="1" step="0.01" required value={perDayCharge} onChange={(e) => setPerDayCharge(e.target.value)} className={inputClass} />
+						</div>
+						<button type="submit" className="w-full py-2 px-4 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition-colors">
 							Create mess
 						</button>
 					</form>
 				</div>
 
-				<div className="portal-card">
-					<div className="portal-card-header">
-						<div>
-							<p className="portal-kicker">Staff workflow</p>
-							<h2>Create and assign staff</h2>
-						</div>
-					</div>
-					<form className="portal-form-grid" onSubmit={onCreateStaff}>
-						<div className="portal-form-grid two">
-							<label className="portal-form-label">
-								Role
-								<select
-									className="portal-select"
-									value={staffForm.role}
-									onChange={(e) =>
-										setStaffForm((current) => ({
-											...current,
-											role: e.target.value as
-												| "MESS_INCHARGE"
-												| "WARDEN",
-										}))
-									}
-								>
-									<option value="MESS_INCHARGE">
-										Mess incharge
-									</option>
+				{/* Create staff + assign */}
+				<div className="bg-white rounded-lg border border-slate-200 p-5">
+					<h2 className="text-sm font-semibold text-slate-900 mb-4">Create & Assign Staff</h2>
+					<form onSubmit={onCreateStaff} className="space-y-3">
+						<div className="grid grid-cols-2 gap-3">
+							<div>
+								<label className="block text-xs font-medium text-slate-700 mb-1">Role</label>
+								<select value={staffForm.role} onChange={(e) => sf("role", e.target.value)} className={inputClass}>
+									<option value="MESS_INCHARGE">Mess incharge</option>
 									<option value="WARDEN">Warden</option>
 								</select>
-							</label>
-							<label className="portal-form-label">
-								Mess
-								<select
-									className="portal-select"
-									value={staffForm.messId}
-									onChange={(e) =>
-										setStaffForm((current) => ({
-											...current,
-											messId: e.target.value,
-										}))
-									}
-								>
-									{messes.map((mess) => (
-										<option key={mess.id} value={mess.id}>
-											{mess.name}
-										</option>
-									))}
+							</div>
+							<div>
+								<label className="block text-xs font-medium text-slate-700 mb-1">Assign to mess</label>
+								<select value={staffForm.messId} onChange={(e) => sf("messId", e.target.value)} className={inputClass}>
+									{messes.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
 								</select>
-							</label>
+							</div>
 						</div>
-						<div className="portal-form-grid two">
-							<label className="portal-form-label">
-								First name
-								<input
-									className="portal-input"
-									value={staffForm.firstName}
-									onChange={(e) =>
-										setStaffForm((current) => ({
-											...current,
-											firstName: e.target.value,
-										}))
-									}
-									required
-								/>
-							</label>
-							<label className="portal-form-label">
-								Last name
-								<input
-									className="portal-input"
-									value={staffForm.lastName}
-									onChange={(e) =>
-										setStaffForm((current) => ({
-											...current,
-											lastName: e.target.value,
-										}))
-									}
-									required
-								/>
-							</label>
+						<div className="grid grid-cols-2 gap-3">
+							<div>
+								<label className="block text-xs font-medium text-slate-700 mb-1">First name</label>
+								<input required value={staffForm.firstName} onChange={(e) => sf("firstName", e.target.value)} className={inputClass} />
+							</div>
+							<div>
+								<label className="block text-xs font-medium text-slate-700 mb-1">Last name</label>
+								<input required value={staffForm.lastName} onChange={(e) => sf("lastName", e.target.value)} className={inputClass} />
+							</div>
 						</div>
-						<label className="portal-form-label">
-							Email
-							<input
-								className="portal-input"
-								value={staffForm.email}
-								onChange={(e) =>
-									setStaffForm((current) => ({
-										...current,
-										email: e.target.value,
-									}))
-								}
-								type="email"
-								required
-							/>
-						</label>
-						<div className="portal-form-grid two">
-							<label className="portal-form-label">
-								Phone
-								<input
-									className="portal-input"
-									value={staffForm.phone}
-									onChange={(e) =>
-										setStaffForm((current) => ({
-											...current,
-											phone: e.target.value,
-										}))
-									}
-								/>
-							</label>
-							<label className="portal-form-label">
-								Temporary password
-								<input
-									className="portal-input"
-									value={staffForm.password}
-									onChange={(e) =>
-										setStaffForm((current) => ({
-											...current,
-											password: e.target.value,
-										}))
-									}
-									placeholder="Leave blank to auto-generate"
-								/>
-							</label>
+						<div>
+							<label className="block text-xs font-medium text-slate-700 mb-1">Email</label>
+							<input type="email" required value={staffForm.email} onChange={(e) => sf("email", e.target.value)} className={inputClass} />
 						</div>
-						<button
-							className="portal-button portal-button-secondary"
-							type="submit"
-						>
-							Create staff account
-						</button>
-						<button
-							className="portal-button portal-button-primary"
-							type="button"
-							onClick={() => void onAssignIncharge()}
-						>
-							Assign recent staff to mess
-						</button>
+						<div className="grid grid-cols-2 gap-3">
+							<div>
+								<label className="block text-xs font-medium text-slate-700 mb-1">Phone (optional)</label>
+								<input value={staffForm.phone} onChange={(e) => sf("phone", e.target.value)} className={inputClass} />
+							</div>
+							<div>
+								<label className="block text-xs font-medium text-slate-700 mb-1">Temp password</label>
+								<input placeholder="Auto-generated if blank" value={staffForm.password} onChange={(e) => sf("password", e.target.value)} className={inputClass} />
+							</div>
+						</div>
+						<div className="flex gap-2">
+							<button type="submit" className="flex-1 py-2 px-4 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors">
+								Create account
+							</button>
+							<button type="button" onClick={() => void onAssignIncharge()} disabled={!recentStaffId}
+								className="flex-1 py-2 px-4 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 disabled:opacity-60 transition-colors">
+								Assign to mess
+							</button>
+						</div>
 					</form>
-					{recentStaffId ? (
-						<p
-							className="portal-helper"
-							style={{ marginTop: "12px" }}
-						>
-							Last created staff ID:{" "}
-							<strong>{recentStaffId}</strong>
-						</p>
-					) : (
-						<p
-							className="portal-helper"
-							style={{ marginTop: "12px" }}
-						>
-							Create a staff account first to get an ID for
-							assignment.
+					{recentStaffId && (
+						<p className="mt-3 text-xs text-slate-500">
+							Last created: <code className="font-mono">{recentStaffId}</code>
 						</p>
 					)}
 				</div>
 			</div>
 
-			<div className="portal-card">
-				<div className="portal-card-header">
-					<div>
-						<p className="portal-kicker">Active messes</p>
-						<h2>Configured mess list</h2>
-					</div>
-					{loading ? (
-						<span className="portal-pill">Loading</span>
-					) : null}
+			{/* Messes list */}
+			<div className="bg-white rounded-lg border border-slate-200">
+				<div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+					<h2 className="text-sm font-semibold text-slate-900">Configured Messes</h2>
+					{loading && <span className="text-xs text-slate-400">Loading…</span>}
 				</div>
-				{!loading && messes.length === 0 ? (
-					<div className="portal-empty">
-						No messes configured yet.
-					</div>
-				) : null}
-				<div className="portal-mini-grid">
-					{messes.map((mess) => (
-						<div key={mess.id} className="portal-mini-card">
-							<p className="portal-kicker">
-								{mess.gender} ·{" "}
-								{mess.isActive ? "Active" : "Inactive"}
-							</p>
-							<h3>{mess.name}</h3>
-							<p>INR {mess.perDayCharge} per day</p>
-							<div
-								className="portal-actions"
-								style={{ marginTop: "8px" }}
-							>
-								<button
-									className="portal-button portal-button-secondary"
-									type="button"
-									onClick={() => void onUpdateMess(mess)}
-								>
-									Edit
-								</button>
-								<button
-									className={`portal-button ${mess.isActive ? "portal-button-danger" : "portal-button-primary"}`}
-									type="button"
-									onClick={() => void onToggleMess(mess)}
-								>
-									{mess.isActive
-										? "Deactivate"
-										: "Reactivate"}
-								</button>
-								<button
-									className="portal-button portal-button-secondary"
-									type="button"
-									onClick={() =>
-										void onLoadInchargeHistory(mess.id)
-									}
-								>
-									Load incharge history
-								</button>
-							</div>
-							{inchargeHistory[mess.id]?.length ? (
-								<div style={{ marginTop: "12px" }}>
-									{inchargeHistory[mess.id].map((item) => (
-										<div
-											key={item.id}
-											className="portal-helper"
-											style={{ marginTop: "6px" }}
-										>
-											{item.user.firstName}{" "}
-											{item.user.lastName} ·
-											{new Date(
-												item.startDate,
-											).toLocaleDateString()}{" "}
-											-
-											{item.endDate
-												? new Date(
-														item.endDate,
-													).toLocaleDateString()
-												: "current"}
-											{item.isCurrent ? (
-												<button
-													type="button"
-													className="portal-button portal-button-danger"
-													style={{
-														marginLeft: "8px",
-													}}
-													onClick={() =>
-														void onEndInchargeAssignment(
-															item.id,
-															mess.id,
-														)
-													}
-												>
-													End assignment
-												</button>
-											) : null}
-										</div>
-									))}
+				{!messes.length && !loading ? (
+					<p className="text-center py-10 text-sm text-slate-400">No messes configured yet.</p>
+				) : (
+					<div className="divide-y divide-slate-100">
+						{messes.map((mess) => (
+							<div key={mess.id} className="p-5">
+								<div className="flex items-start justify-between gap-3 mb-3">
+									<div>
+										<p className="text-sm font-bold text-slate-900">{mess.name}</p>
+										<p className="text-xs text-slate-500">{mess.gender} · ₹{Number(mess.perDayCharge).toFixed(2)}/day</p>
+									</div>
+									<div className="flex gap-1.5">
+										<span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${mess.gender === "MALE" ? "bg-blue-50 text-blue-700" : "bg-pink-50 text-pink-700"}`}>
+											{mess.gender}
+										</span>
+										<span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${mess.isActive ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+											{mess.isActive ? "Active" : "Inactive"}
+										</span>
+									</div>
 								</div>
-							) : null}
-						</div>
-					))}
-				</div>
+								<div className="flex gap-2 mb-4">
+									<button type="button" onClick={() => void onUpdateMess(mess)}
+										className="text-xs px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors">
+										Edit
+									</button>
+									<button type="button" onClick={() => void onToggleMess(mess)}
+										className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${mess.isActive ? "border-red-200 text-red-600 hover:bg-red-50" : "border-green-200 text-green-600 hover:bg-green-50"}`}>
+										{mess.isActive ? "Deactivate" : "Reactivate"}
+									</button>
+									<button type="button" onClick={() => void onLoadInchargeHistory(mess.id)}
+										className="text-xs px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors">
+										Incharge history
+									</button>
+								</div>
+
+								{inchargeHistory[mess.id]?.length ? (
+									<div className="space-y-1.5">
+										{inchargeHistory[mess.id].map((item) => (
+											<div key={item.id} className="flex items-center justify-between gap-3 text-xs px-3 py-2 rounded-lg border border-slate-200 bg-slate-50">
+												<span className="text-slate-700 font-medium">{item.user.firstName} {item.user.lastName}</span>
+												<span className="text-slate-400">
+													{new Date(item.startDate).toLocaleDateString()} — {item.endDate ? new Date(item.endDate).toLocaleDateString() : "current"}
+												</span>
+												{item.isCurrent && (
+													<button type="button" onClick={() => void onEndInchargeAssignment(item.id, mess.id)}
+														className="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+														End
+													</button>
+												)}
+											</div>
+										))}
+									</div>
+								) : null}
+							</div>
+						))}
+					</div>
+				)}
 			</div>
 		</div>
 	);

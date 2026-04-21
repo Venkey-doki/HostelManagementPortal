@@ -12,8 +12,10 @@ export const loginSchema = z.object({
 
 export type LoginRequest = z.infer<typeof loginSchema>;
 
+// Note: response schemas use z.literal(true) for the success flag
+// (Zod v3 compatible — v4 allowed `true as const` directly in .object())
 export const loginResponseSchema = z.object({
-	success: true as const,
+	success: z.literal(true),
 	data: z.object({
 		access_token: z.string(),
 		user: z.object({
@@ -35,7 +37,7 @@ export const refreshTokenSchema = z.object({
 });
 
 export const refreshResponseSchema = z.object({
-	success: true as const,
+	success: z.literal(true),
 	data: z.object({
 		access_token: z.string(),
 	}),
@@ -46,7 +48,7 @@ export const logoutSchema = z.object({
 });
 
 export const logoutResponseSchema = z.object({
-	success: true as const,
+	success: z.literal(true),
 	message: z.string(),
 });
 
@@ -73,6 +75,6 @@ export const changePasswordSchema = z
 export type ChangePasswordRequest = z.infer<typeof changePasswordSchema>;
 
 export const changePasswordResponseSchema = z.object({
-	success: true as const,
+	success: z.literal(true),
 	message: z.string(),
 });

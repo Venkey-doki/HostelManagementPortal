@@ -4,12 +4,19 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { env } from "../../config/env.js";
 
-cloudinary.config({
-	cloud_name: env.CLOUDINARY_CLOUD_NAME,
-	api_key: env.CLOUDINARY_API_KEY,
-	api_secret: env.CLOUDINARY_API_SECRET,
-	secure: true,
-});
+// Configure Cloudinary only if credentials are present (v1: falls back to local upload)
+if (
+	env.CLOUDINARY_CLOUD_NAME &&
+	env.CLOUDINARY_API_KEY &&
+	env.CLOUDINARY_API_SECRET
+) {
+	cloudinary.config({
+		cloud_name: env.CLOUDINARY_CLOUD_NAME,
+		api_key: env.CLOUDINARY_API_KEY,
+		api_secret: env.CLOUDINARY_API_SECRET,
+		secure: true,
+	});
+}
 
 const localUploadDir = path.resolve(process.cwd(), "uploads", "payments");
 const localPublicBaseUrl =

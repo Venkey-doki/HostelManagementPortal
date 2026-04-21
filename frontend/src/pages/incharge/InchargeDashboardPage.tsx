@@ -1,117 +1,70 @@
 import { Link } from "react-router-dom";
 
 export default function InchargeDashboardPage() {
+	const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+
+	const quickLinks = [
+		{
+			to: "/incharge/attendance",
+			label: "Mark Attendance",
+			desc: "Breakfast, lunch, and dinner toggles for the daily roster.",
+			cta: "Open roster →",
+		},
+		{
+			to: "/incharge/extras",
+			label: "Add Extras",
+			desc: "Add per-student chargeable items that flow into monthly billing.",
+			cta: "Add extras →",
+		},
+	];
+
+	const infoCards = [
+		{ title: "Backdating", body: "Attendance can be entered for past dates. Future dates are blocked." },
+		{ title: "Mess-day waivers", body: "Set a full-day waiver on holidays. All students get 'WAIVED' status." },
+		{ title: "Extras & billing", body: "Every extra entry flows directly into the month-end billing engine." },
+	];
+
 	return (
-		<div className="portal-page">
-			<section className="portal-page-header">
+		<div className="space-y-6">
+			<div className="flex items-start justify-between gap-4 flex-wrap">
 				<div>
-					<p className="portal-kicker">Mess operations</p>
-					<h1>Incharge dashboard</h1>
-					<p>
-						Mark attendance, manage mess extras, and review the
-						current day’s operational state.
-					</p>
+					<p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Mess floor</p>
+					<h1 className="text-xl font-bold text-slate-900">Incharge Dashboard</h1>
+					<p className="mt-0.5 text-sm text-slate-500">{today}</p>
 				</div>
-				<div className="portal-actions">
-					<Link
-						className="portal-button portal-button-primary"
-						to="/incharge/attendance"
-					>
+				<div className="flex gap-2">
+					<Link to="/incharge/attendance" className="px-4 py-2 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition-colors">
 						Mark attendance
 					</Link>
-					<Link
-						className="portal-button portal-button-secondary"
-						to="/incharge/extras"
-					>
+					<Link to="/incharge/extras" className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors">
 						Add extras
 					</Link>
 				</div>
-			</section>
-
-			<div className="portal-grid four">
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Assigned students</p>
-					<div className="portal-stat-value">182</div>
-					<p className="portal-helper">
-						Count for the current mess roster.
-					</p>
-				</div>
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Marked today</p>
-					<div className="portal-stat-value">156</div>
-					<p className="portal-helper">
-						Attendance entries recorded today.
-					</p>
-				</div>
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Extra charges</p>
-					<div className="portal-stat-value">24</div>
-					<p className="portal-helper">
-						Student extras added for billing.
-					</p>
-				</div>
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Waived days</p>
-					<div className="portal-stat-value">2</div>
-					<p className="portal-helper">
-						Mess-day waivers this cycle.
-					</p>
-				</div>
 			</div>
 
-			<div className="portal-grid two">
-				<div className="portal-card">
-					<div className="portal-card-header">
-						<div>
-							<p className="portal-kicker">Today</p>
-							<h2>Meal checklist</h2>
-						</div>
+			{/* Quick links */}
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				{quickLinks.map((link) => (
+					<div key={link.to} className="bg-white rounded-lg border border-slate-200 p-5">
+						<h3 className="text-base font-bold text-slate-900 mb-1">{link.label}</h3>
+						<p className="text-sm text-slate-500 mb-4 leading-relaxed">{link.desc}</p>
+						<Link to={link.to} className="inline-flex items-center text-sm font-semibold text-blue-700 hover:underline">
+							{link.cta}
+						</Link>
 					</div>
-					<div className="portal-mini-grid">
-						<div className="portal-mini-card">
-							<h3>Breakfast</h3>
-							<p>
-								Morning attendance and confirmations are ready
-								to mark.
-							</p>
+				))}
+			</div>
+
+			{/* Info cards */}
+			<div className="bg-white rounded-lg border border-slate-200 p-5">
+				<h2 className="text-sm font-semibold text-slate-900 mb-4">How this portal works</h2>
+				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+					{infoCards.map((card) => (
+						<div key={card.title} className="p-4 rounded-lg border border-slate-100 bg-slate-50">
+							<p className="text-sm font-semibold text-slate-800 mb-1">{card.title}</p>
+							<p className="text-xs text-slate-500 leading-relaxed">{card.body}</p>
 						</div>
-						<div className="portal-mini-card">
-							<h3>Lunch</h3>
-							<p>
-								Quick toggles and backdate support will live on
-								the attendance screen.
-							</p>
-						</div>
-						<div className="portal-mini-card">
-							<h3>Dinner</h3>
-							<p>
-								Evening meal tracking and extras are used for
-								monthly billing.
-							</p>
-						</div>
-						<div className="portal-mini-card">
-							<h3>Waivers</h3>
-							<p>
-								One-click full-day waiver applies before billing
-								runs.
-							</p>
-						</div>
-					</div>
-				</div>
-				<div className="portal-card">
-					<div className="portal-card-header">
-						<div>
-							<p className="portal-kicker">Billing inputs</p>
-							<h2>Why this matters</h2>
-						</div>
-					</div>
-					<div className="portal-mini-card">
-						<p>
-							The attendance data you enter here flows into the
-							monthly billing engine and the student bill
-							breakdown.
-						</p>
-					</div>
+					))}
 				</div>
 			</div>
 		</div>

@@ -15,6 +15,7 @@ import messesRoutes from "./modules/messes/messes.routes.js";
 import paymentsRoutes from "./modules/payments/payments.routes.js";
 import studentsRoutes from "./modules/students/students.routes.js";
 import { globalErrorHandler } from "./shared/errors/globalErrorHandler.js";
+import { requestLogger } from "./shared/middleware/requestLogger.js";
 import { globalRateLimiter } from "./shared/middleware/rateLimiter.js";
 
 export const app = express();
@@ -25,6 +26,7 @@ const allowedOrigins = new Set([
 ]);
 
 app.use(helmet());
+app.use(requestLogger);
 app.use(
 	cors({
 		origin(origin, callback) {

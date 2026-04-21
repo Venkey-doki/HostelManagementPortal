@@ -14,11 +14,13 @@ const envSchema = z.object({
 	JWT_REFRESH_SECRET: z.string().min(32),
 	JWT_ACCESS_EXPIRES_IN: z.string().min(1),
 	JWT_REFRESH_EXPIRES_IN: z.string().min(1),
-	CLOUDINARY_CLOUD_NAME: z.string().min(1),
-	CLOUDINARY_API_KEY: z.string().min(1),
-	CLOUDINARY_API_SECRET: z.string().min(1),
-	RESEND_API_KEY: z.string().min(1),
-	RESEND_FROM_EMAIL: z.string().email(),
+	// Cloudinary — optional (v2: payment screenshot uploads)
+	CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
+	CLOUDINARY_API_KEY: z.string().min(1).optional(),
+	CLOUDINARY_API_SECRET: z.string().min(1).optional(),
+	// Resend — optional (v2: email notifications)
+	RESEND_API_KEY: z.string().min(1).optional(),
+	RESEND_FROM_EMAIL: z.string().email().optional(),
 	FRONTEND_URL: z.string().url().optional(),
 	BACKEND_PUBLIC_URL: z.string().url().optional(),
 	VITE_API_BASE_URL: z.string().url().optional(),

@@ -2,27 +2,17 @@ import { api } from "@/lib/api";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 interface AttendanceStudentRow {
-	studentId: string;
-	rollNumber: string;
-	firstName: string;
-	lastName: string;
-	email: string;
+	studentId: string; rollNumber: string; firstName: string; lastName: string; email: string;
 }
-
 interface InchargeRosterResponse {
 	date: string;
 	mess: { id: string; name: string; gender: "MALE" | "FEMALE" };
 	waiver: { date: string; reason: string | null } | null;
 	students: AttendanceStudentRow[];
 }
+interface ExtraItem { id: string; name: string; unit: string; price: string; isActive: boolean; }
 
-interface ExtraItem {
-	id: string;
-	name: string;
-	unit: string;
-	price: string;
-	isActive: boolean;
-}
+const selectClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 export default function InchargeExtrasPage() {
 	const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -37,260 +27,147 @@ export default function InchargeExtrasPage() {
 	const [saving, setSaving] = useState(false);
 
 	const load = async () => {
-		setLoading(true);
-		setError("");
+		setLoading(true); setError("");
 		try {
-			const rosterResponse = await api.get("/attendance/incharge", {
-				params: { date },
-			});
-			const rosterData = rosterResponse.data
-				.data as InchargeRosterResponse;
+			const rosterRes = await api.get("/attendance/incharge", { params: { date } });
+			const rosterData = rosterRes.data.data as InchargeRosterResponse;
 			setRoster(rosterData);
-			setStudentId(
-				(current) => current || rosterData.students[0]?.studentId || "",
-			);
+			setStudentId((c) => c || rosterData.students[0]?.studentId || "");
 			if (rosterData.mess?.id) {
-				const extrasResponse = await api.get(
-					`/messes/${rosterData.mess.id}/extras`,
-				);
-				const extrasData = extrasResponse.data.data
-					.items as ExtraItem[];
+				const extrasRes = await api.get(`/messes/${rosterData.mess.id}/extras`);
+				const extrasData = extrasRes.data.data.items as ExtraItem[];
 				setItems(extrasData);
-				setExtraItemId((current) => current || extrasData[0]?.id || "");
+				setExtraItemId((c) => c || extrasData[0]?.id || "");
 			}
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ??
-					"Failed to load extras context",
-			);
-		} finally {
-			setLoading(false);
-		}
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to load extras context"); }
+		finally { setLoading(false); }
 	};
 
-	useEffect(() => {
-		void load();
-	}, [date]);
+	useEffect(() => { void load(); }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
 
-	const totalRate = useMemo(
-		() => items.reduce((sum, item) => sum + Number(item.price), 0),
-		[items],
-	);
+	const activeItems = useMemo(() => items.filter((i) => i.isActive), [items]);
 
-	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		if (!studentId || !extraItemId) {
-			setError("Select a student and extra item");
-			return;
-		}
-
-		setSaving(true);
-		setError("");
-		setSuccess("");
+	const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		if (!studentId || !extraItemId) { setError("Select a student and extra item"); return; }
+		setSaving(true); setError(""); setSuccess("");
 		try {
-			await api.post("/student-extras", {
-				studentId,
-				extraItemId,
-				date,
-				quantity: Number(quantity || 1),
-			});
+			await api.post("/student-extras", { studentId, extraItemId, date, quantity: Number(quantity || 1) });
 			setSuccess("Student extra added successfully.");
 			setQuantity("1");
-		} catch (err: any) {
-			setError(
-				err.response?.data?.error?.message ??
-					"Failed to add student extra",
-			);
-		} finally {
-			setSaving(false);
-		}
+		} catch (err: any) { setError(err.response?.data?.error?.message ?? "Failed to add student extra"); }
+		finally { setSaving(false); }
 	};
 
 	return (
-		<div className="portal-page">
-			<section className="portal-page-header">
+		<div className="space-y-6">
+			{/* Header */}
+			<div className="flex items-start justify-between gap-4 flex-wrap">
 				<div>
-					<p className="portal-kicker">Step 6</p>
-					<h1>Student extras</h1>
-					<p>
-						Add chargeable extras per student per day from the
-						current mess roster.
+					<h1 className="text-xl font-bold text-slate-900">Extras</h1>
+					<p className="mt-0.5 text-sm text-slate-500">
+						Add chargeable extras per student per day from the current mess roster.
 					</p>
 				</div>
-				<div className="portal-actions">
-					<span className="portal-pill accent">
-						{roster?.mess.name ?? "Mess"}
-					</span>
-					<span className="portal-pill">
-						{roster?.students.length ?? 0} students
-					</span>
-				</div>
-			</section>
+				{roster?.mess.name && (
+					<span className="text-xs px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium">{roster.mess.name}</span>
+				)}
+			</div>
 
-			{error ? <div className="portal-alert error">{error}</div> : null}
-			{success ? (
-				<div className="portal-alert success">{success}</div>
-			) : null}
+			{error && <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>}
+			{success && <div className="px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">{success}</div>}
 
-			<div className="portal-grid two">
-				<div className="portal-card">
-					<div className="portal-card-header">
-						<div>
-							<p className="portal-kicker">Date & roster</p>
-							<h2>Select day</h2>
-						</div>
-						{loading ? (
-							<span className="portal-pill">Loading</span>
-						) : null}
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				{/* Date and context */}
+				<div className="bg-white rounded-lg border border-slate-200 p-5">
+					<h2 className="text-sm font-semibold text-slate-900 mb-3">Date & Context</h2>
+					{loading && <p className="text-xs text-slate-400 mb-2">Loading roster…</p>}
+					<div className="mb-3">
+						<label className="block text-xs font-medium text-slate-700 mb-1">Date</label>
+						<input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={selectClass} />
 					</div>
-					<label className="portal-form-label">
-						Date
-						<input
-							className="portal-input"
-							type="date"
-							value={date}
-							onChange={(event) => setDate(event.target.value)}
-						/>
-					</label>
-					{roster?.waiver ? (
-						<p
-							className="portal-helper"
-							style={{ marginTop: "8px" }}
-						>
-							Waived on {roster.waiver.date}
-							{roster.waiver.reason
-								? ` · ${roster.waiver.reason}`
-								: ""}
+					{roster?.waiver && (
+						<p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg">
+							Waived on {roster.waiver.date}{roster.waiver.reason ? ` · ${roster.waiver.reason}` : ""}
 						</p>
-					) : null}
+					)}
+					<div className="mt-4 grid grid-cols-2 gap-3">
+						<div className="p-3 rounded-lg border border-slate-200 bg-slate-50 text-center">
+							<p className="text-xs text-slate-500">Items configured</p>
+							<p className="text-xl font-bold text-slate-900">{activeItems.length}</p>
+						</div>
+						<div className="p-3 rounded-lg border border-slate-200 bg-slate-50 text-center">
+							<p className="text-xs text-slate-500">Students in roster</p>
+							<p className="text-xl font-bold text-slate-900">{roster?.students.length ?? 0}</p>
+						</div>
+					</div>
 				</div>
 
-				<div className="portal-card">
-					<div className="portal-card-header">
+				{/* Add extra form */}
+				<div className="bg-white rounded-lg border border-slate-200 p-5">
+					<h2 className="text-sm font-semibold text-slate-900 mb-4">Add Student Extra</h2>
+					<form onSubmit={onSubmit} className="space-y-3">
 						<div>
-							<p className="portal-kicker">Preview</p>
-							<h2>Current rate base</h2>
+							<label className="block text-xs font-medium text-slate-700 mb-1">Student</label>
+							<select value={studentId} onChange={(e) => setStudentId(e.target.value)} className={selectClass}>
+								{roster?.students.map((s) => (
+									<option key={s.studentId} value={s.studentId}>
+										{s.firstName} {s.lastName} · {s.rollNumber}
+									</option>
+								))}
+							</select>
 						</div>
-					</div>
-					<div className="portal-grid two">
-						<div className="portal-stat">
-							<p className="portal-stat-label">
-								Configured items
-							</p>
-							<div className="portal-stat-value">
-								{items.length}
-							</div>
+						<div>
+							<label className="block text-xs font-medium text-slate-700 mb-1">Extra item</label>
+							<select value={extraItemId} onChange={(e) => setExtraItemId(e.target.value)} className={selectClass}>
+								{activeItems.map((item) => (
+									<option key={item.id} value={item.id}>
+										{item.name} · ₹{Number(item.price).toFixed(2)} / {item.unit}
+									</option>
+								))}
+							</select>
 						</div>
-						<div className="portal-stat">
-							<p className="portal-stat-label">Base rate total</p>
-							<div className="portal-stat-value">
-								₹{totalRate.toFixed(2)}
-							</div>
+						<div>
+							<label className="block text-xs font-medium text-slate-700 mb-1">Quantity</label>
+							<input type="number" min="0.01" step="0.01" value={quantity} onChange={(e) => setQuantity(e.target.value)} className={selectClass} />
 						</div>
-					</div>
-				</div>
-			</div>
-
-			<div className="portal-card">
-				<div className="portal-card-header">
-					<div>
-						<p className="portal-kicker">Add charge</p>
-						<h2>Per-student extra</h2>
-					</div>
-				</div>
-				<form className="portal-grid two" onSubmit={onSubmit}>
-					<label className="portal-form-label">
-						Student
-						<select
-							className="portal-input"
-							value={studentId}
-							onChange={(event) =>
-								setStudentId(event.target.value)
-							}
-						>
-							{roster?.students.map((student) => (
-								<option
-									key={student.studentId}
-									value={student.studentId}
-								>
-									{student.firstName} {student.lastName} ·{" "}
-									{student.rollNumber}
-								</option>
-							))}
-						</select>
-					</label>
-					<label className="portal-form-label">
-						Extra item
-						<select
-							className="portal-input"
-							value={extraItemId}
-							onChange={(event) =>
-								setExtraItemId(event.target.value)
-							}
-						>
-							{items.map((item) => (
-								<option key={item.id} value={item.id}>
-									{item.name} · ₹
-									{Number(item.price).toFixed(2)} /{" "}
-									{item.unit}
-								</option>
-							))}
-						</select>
-					</label>
-					<label className="portal-form-label">
-						Quantity
-						<input
-							className="portal-input"
-							type="number"
-							min="0.01"
-							step="0.01"
-							value={quantity}
-							onChange={(event) =>
-								setQuantity(event.target.value)
-							}
-						/>
-					</label>
-					<div style={{ alignSelf: "end" }}>
-						<button
-							className="portal-button portal-button-primary"
-							type="submit"
-							disabled={saving || !roster?.students.length}
-						>
-							Add extra
+						<button type="submit" disabled={saving || !roster?.students.length}
+							className="w-full py-2.5 px-4 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 disabled:opacity-60 transition-colors">
+							{saving ? "Adding…" : "Add extra"}
 						</button>
-					</div>
-				</form>
+					</form>
+				</div>
 			</div>
 
-			<div className="portal-card">
-				<div className="portal-card-header">
-					<div>
-						<p className="portal-kicker">Rosters</p>
-						<h2>Current students</h2>
-					</div>
+			{/* Roster table */}
+			<div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+				<div className="px-5 py-4 border-b border-slate-100">
+					<h2 className="text-sm font-semibold text-slate-900">Current Mess Roster</h2>
 				</div>
-				<div className="portal-table-wrap">
-					<table className="portal-table">
-						<thead>
-							<tr>
-								<th>Student</th>
-								<th>Roll</th>
-								<th>Email</th>
-							</tr>
-						</thead>
-						<tbody>
-							{roster?.students.map((student) => (
-								<tr key={student.studentId}>
-									<td>
-										{student.firstName} {student.lastName}
-									</td>
-									<td>{student.rollNumber}</td>
-									<td>{student.email}</td>
+				{!roster?.students.length && !loading ? (
+					<p className="text-center py-10 text-sm text-slate-400">No students in this mess for the selected date.</p>
+				) : (
+					<div className="overflow-x-auto">
+						<table className="w-full text-sm">
+							<thead className="bg-slate-50 border-b border-slate-200">
+								<tr>
+									{["Roll No.", "Name", "Email"].map((h) => (
+										<th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+									))}
 								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
+							</thead>
+							<tbody className="divide-y divide-slate-100">
+								{roster?.students.map((s) => (
+									<tr key={s.studentId} className="hover:bg-slate-50">
+										<td className="px-4 py-3 font-mono text-xs text-slate-600">{s.rollNumber}</td>
+										<td className="px-4 py-3 font-medium text-slate-900">{s.firstName} {s.lastName}</td>
+										<td className="px-4 py-3 text-slate-500 text-xs">{s.email}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				)}
 			</div>
 		</div>
 	);

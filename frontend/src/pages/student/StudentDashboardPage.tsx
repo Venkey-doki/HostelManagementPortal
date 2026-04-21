@@ -1,132 +1,101 @@
+import { api } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
 export default function StudentDashboardPage() {
+	const { data: leavesData } = useQuery({
+		queryKey: ["student-leaves-summary"],
+		queryFn: async () => (await api.get("/leaves/me")).data.data as {
+			summary: { PENDING: number; APPROVED: number; AUTO_APPROVED: number; usedDays: number; remainingDays: number };
+		},
+	});
+	const { data: billsData } = useQuery({
+		queryKey: ["student-bills-summary"],
+		queryFn: async () => (await api.get("/bills/me")).data.data as {
+			bills: Array<{ balanceDue: string }>; totalBills: number;
+		},
+	});
+
+	const balanceDue = billsData?.bills.reduce((s, b) => s + Number(b.balanceDue), 0) ?? null;
+	const pendingLeaves = leavesData?.summary.PENDING ?? null;
+
+	const stats = [
+		{
+			label: "Pending leaves",
+			value: pendingLeaves !== null ? String(pendingLeaves) : "—",
+			note: "Awaiting warden review",
+		},
+		{
+			label: "Days remaining",
+			value: leavesData ? String(leavesData.summary.remainingDays) : "—",
+			note: "Of 60-day annual quota",
+		},
+		{
+			label: "Balance due",
+			value: balanceDue !== null ? `₹${balanceDue.toFixed(2)}` : "—",
+			note: "Cumulative across all bills",
+			warn: balanceDue !== null && balanceDue > 0,
+		},
+		{
+			label: "Total bills",
+			value: billsData ? String(billsData.totalBills) : "—",
+			note: "Frozen monthly invoices",
+		},
+	];
+
+	const quickLinks = [
+		{ to: "/student/attendance", label: "Attendance", desc: "Check meal presence and daily status" },
+		{ to: "/student/leaves", label: "Leaves", desc: "Apply for leave and track approvals" },
+		{ to: "/student/billing", label: "Billing", desc: "Monthly bills and payment proofs" },
+		{ to: "/student/extras", label: "Extras", desc: "Monthly extras billing preview" },
+	];
+
 	return (
-		<div className="portal-page">
-			<section className="portal-page-header">
+		<div className="space-y-6">
+			{/* Header */}
+			<div className="flex items-start justify-between gap-4 flex-wrap">
 				<div>
-					<p className="portal-kicker">Student portal</p>
-					<h1>Student dashboard</h1>
-					<p>
-						See your hostel life at a glance and move to attendance,
-						leave, billing, and complaints from one place.
+					<p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Student portal</p>
+					<h1 className="text-xl font-bold text-slate-900">Dashboard</h1>
+					<p className="mt-0.5 text-sm text-slate-500">
+						Your hostel life at a glance — attendance, leaves, billing, and more.
 					</p>
 				</div>
-				<div className="portal-actions">
-					<Link
-						className="portal-button portal-button-primary"
-						to="/student/leaves"
-					>
+				<div className="flex gap-2">
+					<Link to="/student/leaves" className="px-4 py-2 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition-colors">
 						Apply leave
 					</Link>
-					<Link
-						className="portal-button portal-button-secondary"
-						to="/student/extras"
-					>
-						Open extras preview
+					<Link to="/student/extras" className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors">
+						View extras
 					</Link>
-				</div>
-			</section>
-
-			<div className="portal-grid four">
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Attendance</p>
-					<div className="portal-stat-value">96%</div>
-					<p className="portal-helper">
-						This month’s meal attendance trend.
-					</p>
-				</div>
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Chargeable days</p>
-					<div className="portal-stat-value">24</div>
-					<p className="portal-helper">
-						Days included in the latest bill cycle.
-					</p>
-				</div>
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Leave status</p>
-					<div className="portal-stat-value">1</div>
-					<p className="portal-helper">
-						Pending leave application awaiting review.
-					</p>
-				</div>
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Balance due</p>
-					<div className="portal-stat-value">INR 0</div>
-					<p className="portal-helper">
-						No overdue dues in the demo seed.
-					</p>
 				</div>
 			</div>
 
-			<div className="portal-grid two">
-				<div className="portal-card">
-					<div className="portal-card-header">
-						<div>
-							<p className="portal-kicker">Quick access</p>
-							<h2>Student actions</h2>
-						</div>
+			{/* Stats */}
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+				{stats.map((s) => (
+					<div key={s.label} className={`bg-white rounded-lg border p-4 ${s.warn ? "border-red-200" : "border-slate-200"}`}>
+						<p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{s.label}</p>
+						<p className={`mt-1 text-2xl font-bold leading-none ${s.warn ? "text-red-700" : "text-slate-900"}`}>{s.value}</p>
+						<p className="mt-1 text-xs text-slate-400">{s.note}</p>
 					</div>
-					<div className="portal-mini-grid">
+				))}
+			</div>
+
+			{/* Quick access */}
+			<div className="bg-white rounded-lg border border-slate-200 p-5">
+				<h2 className="text-sm font-semibold text-slate-900 mb-4">Quick Access</h2>
+				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+					{quickLinks.map((link) => (
 						<Link
-							className="portal-mini-card"
-							to="/student/attendance"
+							key={link.to}
+							to={link.to}
+							className="p-4 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-colors group"
 						>
-							<h3>Attendance</h3>
-							<p>Check meal presence and daily status.</p>
+							<p className="text-sm font-semibold text-slate-900 group-hover:text-blue-700">{link.label}</p>
+							<p className="mt-0.5 text-xs text-slate-400 leading-relaxed">{link.desc}</p>
 						</Link>
-						<Link className="portal-mini-card" to="/student/leaves">
-							<h3>Leaves</h3>
-							<p>Apply for leave and track approvals.</p>
-						</Link>
-						<Link className="portal-mini-card" to="/student/extras">
-							<h3>Extras</h3>
-							<p>
-								Preview monthly extras that flow into billing.
-							</p>
-						</Link>
-						<Link
-							className="portal-mini-card"
-							to="/student/billing"
-						>
-							<h3>Billing</h3>
-							<p>
-								Open frozen monthly bills and line-item
-								breakdowns.
-							</p>
-						</Link>
-						<Link
-							className="portal-mini-card"
-							to="/student/dashboard"
-						>
-							<h3>Complaints</h3>
-							<p>Raise issues with hostel maintenance.</p>
-						</Link>
-					</div>
-				</div>
-				<div className="portal-card">
-					<div className="portal-card-header">
-						<div>
-							<p className="portal-kicker">Seed data</p>
-							<h2>Account snapshot</h2>
-						</div>
-					</div>
-					<div className="portal-mini-grid">
-						<div className="portal-mini-card">
-							<h3>Hostel</h3>
-							<p>
-								Assigned room and current hostel block appear
-								here once the student profile is selected.
-							</p>
-						</div>
-						<div className="portal-mini-card">
-							<h3>Mess</h3>
-							<p>
-								Mess assignment and daily charge are shown
-								inside the billing view.
-							</p>
-						</div>
-					</div>
+					))}
 				</div>
 			</div>
 		</div>

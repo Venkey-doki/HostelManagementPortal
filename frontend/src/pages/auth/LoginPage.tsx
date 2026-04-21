@@ -5,9 +5,6 @@ import { loginSchema } from "@/schemas/auth";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-/**
- * LoginPage - Student/Warden/Admin login
- */
 export default function LoginPage() {
 	const navigate = useNavigate();
 	const { setUser, setAccessToken } = useAuthStore();
@@ -21,141 +18,99 @@ export default function LoginPage() {
 		e.preventDefault();
 		setError("");
 		setLoading(true);
-
 		try {
-			// Validate with Zod schema
 			const validated = loginSchema.parse({ email, password });
-
-			// Call API
 			const response = await api.post("/auth/login", validated);
 			const { data } = response.data;
-
-			// Store user and token
 			setUser(data.user);
 			setAccessToken(data.access_token);
-
-			// Navigate based on role or must_change_pwd
 			if (data.user.mustChangePwd) {
 				navigate("/change-password");
 			} else {
 				navigate(getDashboardPath(data.user.role));
 			}
 		} catch (err: any) {
-			const errorMsg =
-				err.response?.data?.error?.message ||
-				"Login failed. Please try again.";
-			setError(errorMsg);
+			setError(
+				err.response?.data?.error?.message || "Login failed. Please try again.",
+			);
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	return (
-		<div className="auth-shell">
-			<section className="auth-hero">
-				<div className="auth-hero-panel">
-					<p className="portal-kicker">Hostel Management Portal</p>
-					<h1>
-						One portal for hostel, mess, billing, and approvals.
-					</h1>
-					<p>
-						A single operational console for students, mess
-						incharges, wardens, and admins. Built for a college
-						environment where the data has to stay consistent.
-					</p>
-					<div className="auth-feature-grid">
-						<div className="auth-feature">
-							<h3>Fast login</h3>
-							<p>
-								JWT authentication with refresh token rotation
-								keeps the session smooth.
-							</p>
-						</div>
-						<div className="auth-feature">
-							<h3>Role aware</h3>
-							<p>
-								Each account lands in the correct dashboard
-								after login.
-							</p>
-						</div>
-						<div className="auth-feature">
-							<h3>Billing ready</h3>
-							<p>
-								Attendance and leave flows feed the monthly bill
-								engine.
-							</p>
-						</div>
-						<div className="auth-feature">
-							<h3>Seed data</h3>
-							<p>
-								Use the demo accounts to explore the seeded
-								hostel structure.
-							</p>
-						</div>
-					</div>
+		<div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+			<div className="mb-6">
+				<h2 className="text-xl font-bold text-slate-900">Sign in</h2>
+				<p className="mt-1 text-sm text-slate-500">
+					Use your college-issued credentials to access the portal.
+				</p>
+			</div>
+
+			{error && (
+				<div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+					{error}
 				</div>
-			</section>
+			)}
 
-			<section className="auth-card-wrap">
-				<div className="auth-card">
-					<div className="auth-card-header">
-						<p className="portal-kicker">Sign in</p>
-						<h2>Welcome back</h2>
-						<p>
-							Use your college-issued credentials to access the
-							portal.
-						</p>
-					</div>
-
-					{error ? (
-						<div className="portal-alert error">{error}</div>
-					) : null}
-
-					<form onSubmit={handleLogin} className="auth-form">
-						<label className="portal-form-label">
-							Email
-							<input
-								className="portal-input"
-								type="email"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								placeholder="your@email.com"
-								disabled={loading}
-							/>
-						</label>
-
-						<label className="portal-form-label">
-							Password
-							<input
-								className="portal-input"
-								type="password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								placeholder="••••••••"
-								disabled={loading}
-							/>
-						</label>
-
-						<button
-							className="portal-button portal-button-primary"
-							type="submit"
-							disabled={loading}
-						>
-							{loading ? "Logging in..." : "Login"}
-						</button>
-					</form>
-
-					<div
-						className="portal-card soft"
-						style={{ marginTop: "18px" }}
+			<form onSubmit={handleLogin} className="space-y-4">
+				<div>
+					<label
+						htmlFor="email"
+						className="block text-sm font-medium text-slate-700 mb-1"
 					>
-						<p className="portal-helper">Demo credentials</p>
-						<p className="portal-helper">
-							admin@hostel.local / Admin@12345
-						</p>
-					</div>
+						Email address
+					</label>
+					<input
+						id="email"
+						type="email"
+						autoComplete="email"
+						required
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						disabled={loading}
+						placeholder="your@college.edu"
+						className="w-full px-3 py-2.5 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-500"
+					/>
 				</div>
-			</section>
+
+				<div>
+					<label
+						htmlFor="password"
+						className="block text-sm font-medium text-slate-700 mb-1"
+					>
+						Password
+					</label>
+					<input
+						id="password"
+						type="password"
+						autoComplete="current-password"
+						required
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						disabled={loading}
+						placeholder="••••••••"
+						className="w-full px-3 py-2.5 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-500"
+					/>
+				</div>
+
+				<button
+					type="submit"
+					disabled={loading}
+					className="w-full py-2.5 px-4 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+				>
+					{loading ? "Signing in…" : "Sign in"}
+				</button>
+			</form>
+
+			<div className="mt-5 pt-5 border-t border-slate-100">
+				<p className="text-xs font-medium text-slate-500 mb-1">
+					Demo credentials
+				</p>
+				<p className="text-xs text-slate-400 font-mono">
+					admin@hostel.local / Admin@12345
+				</p>
+			</div>
 		</div>
 	);
 }

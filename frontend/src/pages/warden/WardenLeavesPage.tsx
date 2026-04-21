@@ -1,283 +1,157 @@
+import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 interface WardenPendingLeave {
-	id: string;
-	startDate: string;
-	endDate: string;
-	duration: number;
-	reason: string | null;
-	status: "PENDING";
-	appliedOn: string;
-	autoApproveAt: string;
-	student: {
-		id: string;
-		rollNumber: string;
-		firstName: string;
-		lastName: string;
-		email: string;
-	};
+	id: string; startDate: string; endDate: string; duration: number;
+	reason: string | null; status: "PENDING"; appliedOn: string; autoApproveAt: string;
+	student: { id: string; rollNumber: string; firstName: string; lastName: string; email: string };
 	currentMess: { id: string; name: string } | null;
 	currentHostel: { id: string; name: string; roomNumber: string } | null;
 }
 
-interface WardenPendingLeavesResponse {
-	leaves: WardenPendingLeave[];
+function formatDate(v: string) {
+	return new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(v));
+}
+function formatDateTime(v: string) {
+	return new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(v));
 }
 
-function formatDate(value: string) {
-	return new Intl.DateTimeFormat("en-IN", {
-		day: "2-digit",
-		month: "short",
-		year: "numeric",
-	}).format(new Date(value));
-}
+const inputClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 export default function WardenLeavesPage() {
-	const [rejectionReasons, setRejectionReasons] = useState<
-		Record<string, string>
-	>({});
+	const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 
-	const { data, isLoading, isFetching } = useQuery({
+	const { data, isLoading } = useQuery({
 		queryKey: ["warden-pending-leaves"],
-		queryFn: async () => {
-			const response = await api.get("/leaves/pending");
-			return response.data.data as WardenPendingLeavesResponse;
-		},
+		queryFn: async () => (await api.get("/leaves/pending")).data.data as { leaves: WardenPendingLeave[] },
 	});
 
 	const approveMutation = useMutation({
-		mutationFn: async (leaveId: string) => {
-			const response = await api.patch(`/leaves/${leaveId}/approve`);
-			return response.data.data as WardenPendingLeave;
-		},
-		onSuccess: async () => {
-			setSuccess("Leave approved.");
-			await queryClient.invalidateQueries({
-				queryKey: ["warden-pending-leaves"],
-			});
-		},
-		onError: (err: any) => {
-			setError(
-				err.response?.data?.error?.message ?? "Failed to approve leave",
-			);
-		},
+		mutationFn: async (leaveId: string) => (await api.patch(`/leaves/${leaveId}/approve`)).data.data,
+		onSuccess: async () => { setSuccess("Leave approved."); await queryClient.invalidateQueries({ queryKey: ["warden-pending-leaves"] }); },
+		onError: (err: any) => { setError(err.response?.data?.error?.message ?? "Failed to approve leave"); },
 	});
 
 	const rejectMutation = useMutation({
-		mutationFn: async ({
-			leaveId,
-			rejectionReason,
-		}: {
-			leaveId: string;
-			rejectionReason: string;
-		}) => {
-			const response = await api.patch(`/leaves/${leaveId}/reject`, {
-				rejectionReason,
-			});
-			return response.data.data as WardenPendingLeave;
-		},
-		onSuccess: async (_, variables) => {
+		mutationFn: async ({ leaveId, rejectionReason }: { leaveId: string; rejectionReason: string }) =>
+			(await api.patch(`/leaves/${leaveId}/reject`, { rejectionReason })).data.data,
+		onSuccess: async (_, v) => {
 			setSuccess("Leave rejected.");
-			setRejectionReasons((current) => {
-				const next = { ...current };
-				delete next[variables.leaveId];
-				return next;
-			});
-			await queryClient.invalidateQueries({
-				queryKey: ["warden-pending-leaves"],
-			});
+			setRejectionReasons((c) => { const n = { ...c }; delete n[v.leaveId]; return n; });
+			await queryClient.invalidateQueries({ queryKey: ["warden-pending-leaves"] });
 		},
-		onError: (err: any) => {
-			setError(
-				err.response?.data?.error?.message ?? "Failed to reject leave",
-			);
-		},
+		onError: (err: any) => { setError(err.response?.data?.error?.message ?? "Failed to reject leave"); },
 	});
 
-	const summary = useMemo(
-		() => ({ count: data?.leaves.length ?? 0 }),
-		[data],
-	);
+	const leaves = data?.leaves ?? [];
 
 	return (
-		<div className="portal-page">
-			<section className="portal-page-header">
+		<div className="space-y-6">
+			{/* Header */}
+			<div className="flex items-start justify-between gap-4 flex-wrap">
 				<div>
-					<p className="portal-kicker">Warden console</p>
-					<h1>Leave approvals</h1>
-					<p>
-						Review pending requests, approve or reject them, and
-						keep the 48-hour auto-approval window under control.
+					<h1 className="text-xl font-bold text-slate-900">Leave Approvals</h1>
+					<p className="mt-0.5 text-sm text-slate-500">
+						Review pending requests before auto-approval triggers at the 48-hour mark.
 					</p>
 				</div>
-				<div className="portal-actions">
-					<span className="portal-pill warning">
-						Pending: {summary.count}
+				<div className="flex gap-2">
+					<span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-sm font-semibold text-amber-700">
+						{leaves.length} pending
 					</span>
-					<span className="portal-pill">Auto-approval: 48h</span>
+					<span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-slate-100 text-sm text-slate-600 font-medium">
+						Auto-approval: 48h
+					</span>
 				</div>
-			</section>
+			</div>
 
-			{error ? <div className="portal-alert error">{error}</div> : null}
-			{success ? (
-				<div className="portal-alert success">{success}</div>
-			) : null}
+			{error && <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>}
+			{success && <div className="px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">{success}</div>}
 
-			<div className="portal-card">
-				<div className="portal-card-header">
-					<div>
-						<p className="portal-kicker">Queue</p>
-						<h2>Pending leaves</h2>
-					</div>
-					{isLoading || isFetching ? (
-						<span className="portal-pill">Loading</span>
-					) : null}
+			{/* Queue */}
+			<div className="bg-white rounded-lg border border-slate-200">
+				<div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+					<h2 className="text-sm font-semibold text-slate-900">Pending queue</h2>
+					{isLoading && <span className="text-xs text-slate-400">Loading…</span>}
 				</div>
-
-				{!data?.leaves.length ? (
-					<div className="portal-empty">
-						No pending leave requests.
-					</div>
-				) : null}
-
-				<div className="portal-list">
-					{data?.leaves.map((leave) => {
-						const rejectionReason =
-							rejectionReasons[leave.id] ?? "";
-						return (
-							<div key={leave.id} className="portal-list-item">
-								<div className="portal-list-item-header">
-									<div>
-										<h3>
-											{leave.student.firstName}{" "}
-											{leave.student.lastName}
-											<span className="portal-helper">
-												{" "}
-												· {leave.student.rollNumber}
-											</span>
-										</h3>
-										<p className="portal-helper">
-											{formatDate(leave.startDate)} to{" "}
-											{formatDate(leave.endDate)} ·{" "}
-											{leave.duration} day
-											{leave.duration === 1 ? "" : "s"}
-										</p>
+				{!leaves.length && !isLoading ? (
+					<p className="text-center py-10 text-sm text-slate-400">No pending leave requests. All clear!</p>
+				) : (
+					<div className="divide-y divide-slate-100">
+						{leaves.map((leave) => {
+							const rejReason = rejectionReasons[leave.id] ?? "";
+							return (
+								<div key={leave.id} className="p-5">
+									<div className="flex items-start justify-between gap-3 mb-3">
+										<div>
+											<p className="text-sm font-semibold text-slate-900">
+												{leave.student.firstName} {leave.student.lastName}
+												<span className="ml-2 text-slate-400 font-normal text-xs">· {leave.student.rollNumber}</span>
+											</p>
+											<p className="text-sm text-slate-600 mt-0.5">
+												{formatDate(leave.startDate)} — {formatDate(leave.endDate)}
+												<span className="text-slate-400 ml-1">({leave.duration} day{leave.duration !== 1 ? "s" : ""})</span>
+											</p>
+											{leave.reason && <p className="text-xs text-slate-500 mt-0.5 italic">"{leave.reason}"</p>}
+										</div>
+										<span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 whitespace-nowrap">
+											PENDING
+										</span>
 									</div>
-									<span className="portal-pill warning">
-										Pending
-									</span>
-								</div>
 
-								<div
-									className="portal-actions"
-									style={{ marginTop: "12px" }}
-								>
-									<span className="portal-pill">
-										{leave.student.email}
-									</span>
-									<span className="portal-pill">
-										Mess: {leave.currentMess?.name ?? "N/A"}
-									</span>
-									<span className="portal-pill">
-										Hostel:{" "}
-										{leave.currentHostel
-											? `${leave.currentHostel.name} / ${leave.currentHostel.roomNumber}`
-											: "N/A"}
-									</span>
-									<span className="portal-pill">
-										Auto-approves{" "}
-										{new Intl.DateTimeFormat("en-IN", {
-											day: "2-digit",
-											month: "short",
-											hour: "2-digit",
-											minute: "2-digit",
-										}).format(
-											new Date(leave.autoApproveAt),
-										)}
-									</span>
-								</div>
+									<div className="flex flex-wrap gap-2 mb-4 text-xs text-slate-500">
+										<span>{leave.student.email}</span>
+										<span>· Mess: {leave.currentMess?.name ?? "N/A"}</span>
+										<span>
+											· Hostel: {leave.currentHostel
+												? `${leave.currentHostel.name} / ${leave.currentHostel.roomNumber}`
+												: "N/A"}
+										</span>
+										<span>· Auto-approves: {formatDateTime(leave.autoApproveAt)}</span>
+									</div>
 
-								{leave.reason ? (
-									<p
-										className="portal-helper"
-										style={{ marginTop: "10px" }}
-									>
-										{leave.reason}
-									</p>
-								) : null}
-
-								<div
-									className="portal-grid two"
-									style={{ marginTop: "12px" }}
-								>
-									<div>
-										<label className="portal-form-label">
-											Rejection reason
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										<div>
+											<label className="block text-xs font-medium text-slate-700 mb-1">
+												Rejection reason (required to reject)
+											</label>
 											<textarea
-												className="portal-input"
-												rows={3}
-												value={rejectionReason}
-												onChange={(event) =>
-													setRejectionReasons(
-														(current) => ({
-															...current,
-															[leave.id]:
-																event.target
-																	.value,
-														}),
-													)
-												}
-												placeholder="Optional but recommended"
+												rows={2}
+												value={rejReason}
+												onChange={(e) => setRejectionReasons((c) => ({ ...c, [leave.id]: e.target.value }))}
+												placeholder="Explain rejection reason…"
+												className={cn(inputClass, "resize-none")}
 											/>
-										</label>
-									</div>
-									<div
-										className="portal-actions"
-										style={{ alignSelf: "end" }}
-									>
-										<button
-											className="portal-button portal-button-primary"
-											type="button"
-											onClick={() => {
-												setError("");
-												setSuccess("");
-												approveMutation.mutate(
-													leave.id,
-												);
-											}}
-											disabled={approveMutation.isPending}
-										>
-											Approve
-										</button>
-										<button
-											className="portal-button portal-button-secondary"
-											type="button"
-											onClick={() => {
-												setError("");
-												setSuccess("");
-												rejectMutation.mutate({
-													leaveId: leave.id,
-													rejectionReason,
-												});
-											}}
-											disabled={
-												rejectMutation.isPending ||
-												!rejectionReason.trim()
-											}
-										>
-											Reject
-										</button>
+										</div>
+										<div className="flex items-end gap-2">
+											<button
+												type="button"
+												onClick={() => { setError(""); setSuccess(""); approveMutation.mutate(leave.id); }}
+												disabled={approveMutation.isPending}
+												className="flex-1 py-2 px-4 rounded-lg bg-green-700 text-white text-sm font-semibold hover:bg-green-800 disabled:opacity-60 transition-colors"
+											>
+												Approve
+											</button>
+											<button
+												type="button"
+												onClick={() => { setError(""); setSuccess(""); rejectMutation.mutate({ leaveId: leave.id, rejectionReason: rejReason }); }}
+												disabled={rejectMutation.isPending || !rejReason.trim()}
+												className="flex-1 py-2 px-4 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 disabled:opacity-60 transition-colors"
+											>
+												Reject
+											</button>
+										</div>
 									</div>
 								</div>
-							</div>
-						);
-					})}
-				</div>
+							);
+						})}
+					</div>
+				)}
 			</div>
 		</div>
 	);

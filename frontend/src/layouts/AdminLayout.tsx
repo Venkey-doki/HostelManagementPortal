@@ -2,29 +2,13 @@ import { PortalLayout } from "@/components/shared/PortalLayout";
 import { Outlet } from "react-router-dom";
 
 const navItems = [
-	{ href: "/admin/dashboard", label: "Dashboard", description: "Overview" },
-	{ href: "/admin/hostels", label: "Hostels", description: "Rooms & blocks" },
-	{
-		href: "/admin/messes",
-		label: "Messes",
-		description: "Charges & incharges",
-	},
-	{
-		href: "/admin/students",
-		label: "Students",
-		description: "Directory & assignments",
-	},
-	{
-		href: "/admin/extras",
-		label: "Extras",
-		description: "Mess item setup",
-	},
-	{
-		href: "/admin/billing",
-		label: "Billing",
-		description: "Generate monthly bills",
-	},
-	{ href: "/admin/import", label: "Import", description: "CSV bulk upload" },
+	{ href: "/admin/dashboard", label: "Dashboard" },
+	{ href: "/admin/hostels", label: "Hostels" },
+	{ href: "/admin/messes", label: "Messes" },
+	{ href: "/admin/students", label: "Students" },
+	{ href: "/admin/extras", label: "Extras" },
+	{ href: "/admin/billing", label: "Billing" },
+	{ href: "/admin/import", label: "CSV Import" },
 ];
 
 export default function AdminLayout() {

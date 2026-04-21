@@ -1,118 +1,71 @@
 import { Link } from "react-router-dom";
 
+const adminModules = [
+	{
+		to: "/admin/hostels",
+		label: "Hostels",
+		desc: "Create hostels, add rooms, manage capacity.",
+	},
+	{
+		to: "/admin/messes",
+		label: "Messes",
+		desc: "Add messes, set daily charges, assign incharge staff.",
+	},
+	{
+		to: "/admin/students",
+		label: "Students",
+		desc: "Search students, assign hostel and mess.",
+	},
+	{
+		to: "/admin/extras",
+		label: "Extras Config",
+		desc: "Define extra items per mess for incharge staff.",
+	},
+	{
+		to: "/admin/billing",
+		label: "Billing",
+		desc: "Generate monthly bills for all students.",
+	},
+	{
+		to: "/admin/import",
+		label: "CSV Import",
+		desc: "Bulk-onboard students from CSV with password seeding.",
+	},
+];
+
 export default function AdminDashboardPage() {
 	return (
-		<div className="portal-page">
-			<section className="portal-page-header">
+		<div className="space-y-6">
+			<div className="flex items-start justify-between gap-4 flex-wrap">
 				<div>
-					<p className="portal-kicker">Control room</p>
-					<h1>Admin Dashboard</h1>
-					<p>
-						Create the campus structure, configure mess extras,
-						onboard staff, and keep the hostel and mess setup in
-						sync.
+					<p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Control room</p>
+					<h1 className="text-xl font-bold text-slate-900">Admin Dashboard</h1>
+					<p className="mt-0.5 text-sm text-slate-500">
+						Manage campus structure, configure mess extras, onboard students, and run monthly billing.
 					</p>
 				</div>
-				<div className="portal-actions">
-					<Link
-						className="portal-button portal-button-primary"
-						to="/admin/extras"
-					>
+				<div className="flex gap-2">
+					<Link to="/admin/extras" className="px-4 py-2 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition-colors">
 						Manage extras
 					</Link>
-					<Link
-						className="portal-button portal-button-secondary"
-						to="/admin/hostels"
-					>
-						Manage hostels
+					<Link to="/admin/billing" className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors">
+						Generate bills
 					</Link>
-				</div>
-			</section>
-
-			<div className="portal-grid four">
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Active hostels</p>
-					<div className="portal-stat-value">8</div>
-					<p className="portal-helper">
-						5 boys and 3 girls hostels are configured in the seed
-						data.
-					</p>
-				</div>
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Active messes</p>
-					<div className="portal-stat-value">3</div>
-					<p className="portal-helper">
-						Separate mess setup for boys and girls is ready.
-					</p>
-				</div>
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Demo roles</p>
-					<div className="portal-stat-value">4</div>
-					<p className="portal-helper">
-						Admin, warden, incharge, and student accounts are
-						seeded.
-					</p>
-				</div>
-				<div className="portal-card portal-stat">
-					<p className="portal-stat-label">Phase 1</p>
-					<div className="portal-stat-value">Step 3</div>
-					<p className="portal-helper">
-						Hostel, mess, and student management are now wired up.
-					</p>
 				</div>
 			</div>
 
-			<div className="portal-grid two">
-				<Link
-					className="portal-card portal-mini-card"
-					to="/admin/hostels"
-				>
-					<h3>Hostel structure</h3>
-					<p>
-						Create hostels, add rooms, and keep room capacity data
-						organized.
-					</p>
-				</Link>
-				<Link
-					className="portal-card portal-mini-card"
-					to="/admin/messes"
-				>
-					<h3>Mess setup</h3>
-					<p>
-						Add messes, set daily charges, and assign current
-						incharge staff.
-					</p>
-				</Link>
-				<Link
-					className="portal-card portal-mini-card"
-					to="/admin/extras"
-				>
-					<h3>Extras config</h3>
-					<p>
-						Define extra items per mess so incharge staff can charge
-						them later.
-					</p>
-				</Link>
-				<Link
-					className="portal-card portal-mini-card"
-					to="/admin/students"
-				>
-					<h3>Student directory</h3>
-					<p>
-						Search students and assign hostel or mess from the same
-						screen.
-					</p>
-				</Link>
-				<Link
-					className="portal-card portal-mini-card"
-					to="/admin/import"
-				>
-					<h3>Bulk import</h3>
-					<p>
-						Upload CSV files for fast student onboarding with
-						password seeding.
-					</p>
-				</Link>
+			{/* Module grid */}
+			<div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+				{adminModules.map((m) => (
+					<Link
+						key={m.to}
+						to={m.to}
+						className="group bg-white rounded-lg border border-slate-200 p-5 hover:border-blue-300 hover:shadow-sm transition-all"
+					>
+						<p className="text-sm font-bold text-slate-900 group-hover:text-blue-700 mb-1">{m.label}</p>
+						<p className="text-xs text-slate-500 leading-relaxed">{m.desc}</p>
+					</Link>
+				))}
 			</div>
 		</div>
 	);
