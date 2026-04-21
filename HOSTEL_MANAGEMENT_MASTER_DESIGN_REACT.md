@@ -218,7 +218,7 @@ users {
   email           VARCHAR(255)  UNIQUE NOT NULL
   password_hash   VARCHAR(255)  NOT NULL
   role            ENUM          NOT NULL
-                  -- SUPER_ADMIN | WARDEN | MESS_INCHARGE | STUDENT
+                  -- WARDEN | MESS_INCHARGE | STUDENT
   first_name      VARCHAR(100)  NOT NULL
   last_name       VARCHAR(100)  NOT NULL
   phone           VARCHAR(20)
@@ -883,7 +883,7 @@ export const router = createBrowserRouter([
 
   // ── Warden routes ────────────────────────────────────────
   {
-    element: <ProtectedRoute allowedRoles={['WARDEN', 'SUPER_ADMIN']} />,
+    element: <ProtectedRoute allowedRoles={['WARDEN']} />,
     children: [{
       element: <WardenLayout />,
       children: [
@@ -899,7 +899,7 @@ export const router = createBrowserRouter([
 
   // ── Admin routes ─────────────────────────────────────────
   {
-    element: <ProtectedRoute allowedRoles={['SUPER_ADMIN']} />,
+    element: <ProtectedRoute allowedRoles={['WARDEN']} />,
     children: [{
       element: <AdminLayout />,
       children: [
@@ -1843,7 +1843,7 @@ VITE_API_BASE_URL="http://localhost:4000/api/v1"
 
 ```prisma
 enum Role {
-  SUPER_ADMIN
+  WARDEN
   WARDEN
   MESS_INCHARGE
   STUDENT

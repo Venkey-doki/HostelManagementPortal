@@ -108,7 +108,10 @@ export default function LoginPage() {
 					Demo credentials
 				</p>
 				<p className="text-xs text-slate-400 font-mono">
-					admin@hostel.local / Admin@12345
+					warden@hostel.local / Warden@12345
+				</p>
+				<p className="mt-1 text-xs text-slate-400 font-mono">
+					student1@hostel.local / Student@12345
 				</p>
 			</div>
 		</div>

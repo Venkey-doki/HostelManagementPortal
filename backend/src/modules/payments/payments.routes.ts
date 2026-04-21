@@ -39,21 +39,21 @@ router.post(
 router.get(
 	"/pending",
 	authenticate,
-	authorize("WARDEN", "SUPER_ADMIN"),
+	authorize("WARDEN"),
 	paymentsController.getPendingPayments.bind(paymentsController),
 );
 
 router.patch(
 	"/:id/verify",
 	authenticate,
-	authorize("WARDEN", "SUPER_ADMIN"),
+	authorize("WARDEN"),
 	paymentsController.verifyPayment.bind(paymentsController),
 );
 
 router.patch(
 	"/:id/reject",
 	authenticate,
-	authorize("WARDEN", "SUPER_ADMIN"),
+	authorize("WARDEN"),
 	paymentsController.rejectPayment.bind(paymentsController),
 );
 

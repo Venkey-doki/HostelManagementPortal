@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 export interface User {
 	id: string;
 	email: string;
-	role: "SUPER_ADMIN" | "WARDEN" | "MESS_INCHARGE" | "STUDENT";
+	role: "WARDEN" | "MESS_INCHARGE" | "STUDENT";
 	firstName: string;
 	lastName: string;
 	mustChangePwd: boolean;

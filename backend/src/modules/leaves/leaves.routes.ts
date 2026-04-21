@@ -36,21 +36,21 @@ router.patch(
 router.get(
 	"/pending",
 	authenticate,
-	authorize("WARDEN", "SUPER_ADMIN"),
+	authorize("WARDEN"),
 	leavesController.getPendingLeaves.bind(leavesController),
 );
 
 router.patch(
 	"/:id/approve",
 	authenticate,
-	authorize("WARDEN", "SUPER_ADMIN"),
+	authorize("WARDEN"),
 	leavesController.approveLeave.bind(leavesController),
 );
 
 router.patch(
 	"/:id/reject",
 	authenticate,
-	authorize("WARDEN", "SUPER_ADMIN"),
+	authorize("WARDEN"),
 	leavesController.rejectLeave.bind(leavesController),
 );
 

@@ -8,7 +8,7 @@ const router = Router();
 router.get(
 	"/",
 	authenticate,
-	authorize("SUPER_ADMIN", "WARDEN", "MESS_INCHARGE"),
+	authorize("WARDEN", "MESS_INCHARGE"),
 	messesController.list.bind(messesController),
 );
 

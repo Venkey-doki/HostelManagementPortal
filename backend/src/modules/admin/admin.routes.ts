@@ -24,97 +24,97 @@ const upload = multer({
 });
 
 /**
- * Admin routes - all require SUPER_ADMIN role
+ * Admin routes - all require WARDEN role
  */
 
 router.get(
 	"/hostels",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.listHostels.bind(adminController),
 );
 
 router.post(
 	"/hostels",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.createHostel.bind(adminController),
 );
 
 router.patch(
 	"/hostels/:hostelId",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.updateHostel.bind(adminController),
 );
 
 router.post(
 	"/hostels/:hostelId/rooms",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.createRoom.bind(adminController),
 );
 
 router.patch(
 	"/rooms/:roomId",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.updateRoom.bind(adminController),
 );
 
 router.get(
 	"/messes",
 	authenticate,
-	authorize("SUPER_ADMIN", "WARDEN", "MESS_INCHARGE"),
+	authorize("WARDEN", "MESS_INCHARGE"),
 	adminController.listMesses.bind(adminController),
 );
 
 router.post(
 	"/messes",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.createMess.bind(adminController),
 );
 
 router.patch(
 	"/messes/:messId",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.updateMess.bind(adminController),
 );
 
 router.post(
 	"/messes/:messId/incharge-assignment",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.assignIncharge.bind(adminController),
 );
 
 router.get(
 	"/messes/:messId/incharge-assignment",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.listInchargeAssignments.bind(adminController),
 );
 
 router.patch(
 	"/incharge-assignment/:assignmentId/end",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.endInchargeAssignment.bind(adminController),
 );
 
 router.post(
 	"/hostel-rent-config",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.createHostelRentConfig.bind(adminController),
 );
 
 router.post(
 	"/users",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	adminController.createUser.bind(adminController),
 );
 
@@ -122,7 +122,7 @@ router.post(
 router.post(
 	"/students/import",
 	authenticate,
-	authorize("SUPER_ADMIN"),
+	authorize("WARDEN"),
 	upload.single("file"),
 	adminController.importStudents.bind(adminController),
 );

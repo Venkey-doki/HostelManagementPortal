@@ -461,7 +461,7 @@ users {
   id            UUID          PK  DEFAULT gen_random_uuid()
   email         VARCHAR(255)  UNIQUE NOT NULL
   password_hash VARCHAR(255)  NOT NULL
-  role          ENUM          NOT NULL  -- SUPER_ADMIN | WARDEN | MESS_INCHARGE | STUDENT
+  role          ENUM          NOT NULL  -- WARDEN | MESS_INCHARGE | STUDENT
   first_name    VARCHAR(100)  NOT NULL
   last_name     VARCHAR(100)  NOT NULL
   phone         VARCHAR(20)

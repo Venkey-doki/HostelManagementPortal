@@ -8,42 +8,42 @@ const router = Router();
 router.get(
 	"/",
 	authenticate,
-	authorize("SUPER_ADMIN", "WARDEN"),
+	authorize("WARDEN"),
 	studentsController.list.bind(studentsController),
 );
 
 router.post(
 	"/:studentId/hostel-assignment",
 	authenticate,
-	authorize("SUPER_ADMIN", "WARDEN"),
+	authorize("WARDEN"),
 	studentsController.assignHostel.bind(studentsController),
 );
 
 router.post(
 	"/:studentId/mess-assignment",
 	authenticate,
-	authorize("SUPER_ADMIN", "WARDEN"),
+	authorize("WARDEN"),
 	studentsController.assignMess.bind(studentsController),
 );
 
 router.get(
 	"/:studentId/assignment-history",
 	authenticate,
-	authorize("SUPER_ADMIN", "WARDEN"),
+	authorize("WARDEN"),
 	studentsController.listAssignmentHistory.bind(studentsController),
 );
 
 router.patch(
 	"/:studentId/hostel-assignment/end",
 	authenticate,
-	authorize("SUPER_ADMIN", "WARDEN"),
+	authorize("WARDEN"),
 	studentsController.endCurrentHostelAssignment.bind(studentsController),
 );
 
 router.patch(
 	"/:studentId/mess-assignment/end",
 	authenticate,
-	authorize("SUPER_ADMIN", "WARDEN"),
+	authorize("WARDEN"),
 	studentsController.endCurrentMessAssignment.bind(studentsController),
 );
 

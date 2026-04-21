@@ -1,11 +1,11 @@
 import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 
-type UserRole = "SUPER_ADMIN" | "WARDEN" | "MESS_INCHARGE" | "STUDENT";
+type UserRole = "WARDEN" | "MESS_INCHARGE" | "STUDENT";
 
 /**
  * Authorize Middleware - RBAC (Role-Based Access Control)
- * Usage: router.get('/admin', authorize('SUPER_ADMIN'), controller.method)
+ * Usage: router.get('/admin', authorize('WARDEN'), controller.method)
  */
 
 export function authorize(...allowedRoles: UserRole[]) {

@@ -138,7 +138,7 @@ export const router = createBrowserRouter([
 
 	// ── Warden routes ────────────────────────────────────────
 	{
-		element: <ProtectedRoute allowedRoles={["WARDEN", "SUPER_ADMIN"]} />,
+		element: <ProtectedRoute allowedRoles={["WARDEN"]} />,
 		children: [
 			{
 				element: <WardenLayout />,
@@ -166,7 +166,7 @@ export const router = createBrowserRouter([
 
 	// ── Admin routes ─────────────────────────────────────────
 	{
-		element: <ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />,
+		element: <ProtectedRoute allowedRoles={["WARDEN"]} />,
 		children: [
 			{
 				element: <AdminLayout />,

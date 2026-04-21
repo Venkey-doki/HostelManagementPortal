@@ -14,7 +14,7 @@ const navItems = [
 export default function AdminLayout() {
 	return (
 		<PortalLayout
-			title="Super Admin"
+			title="Administrator"
 			subtitle="Administration console"
 			accentLabel="Management center"
 			navItems={navItems}
