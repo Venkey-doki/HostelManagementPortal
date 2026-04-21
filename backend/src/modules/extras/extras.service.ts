@@ -77,8 +77,6 @@ export class ExtrasService {
 			where: {
 				userId,
 				isCurrent: true,
-				startDate: { lte: date },
-				OR: [{ endDate: null }, { endDate: { gte: date } }],
 			},
 			select: {
 				messId: true,
