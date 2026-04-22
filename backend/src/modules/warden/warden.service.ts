@@ -2,6 +2,17 @@ import * as bcrypt from "bcrypt";
 import { prisma } from "../../infrastructure/database/prisma.js";
 import { AppError } from "../../shared/errors/AppError.js";
 
+function monthStartFromKey(month: string): Date {
+	const [yearText, monthText] = month.split("-");
+	const year = Number(yearText);
+	const monthIndex = Number(monthText) - 1;
+	return new Date(Date.UTC(year, monthIndex, 1));
+}
+
+function monthKey(date: Date): string {
+	return date.toISOString().slice(0, 7);
+}
+
 /**
  * Admin Service - handles admin operations like CSV import
  */
@@ -359,6 +370,95 @@ export class WardenService {
 				deletedAt: nextActive ? null : new Date(),
 			},
 		});
+	}
+
+	async upsertMessMonthlyRate(
+		messId: string,
+		input: { month: string; perDayCharge: number },
+		createdById: string,
+	) {
+		const mess = await prisma.mess.findFirst({
+			where: { id: messId, deletedAt: null },
+			select: { id: true, name: true },
+		});
+
+		if (!mess) {
+			throw new AppError("Mess not found", 404, "MESS_NOT_FOUND");
+		}
+
+		const month = monthStartFromKey(input.month);
+		const rate = await prisma.messMonthlyRate.upsert({
+			where: {
+				messId_month: {
+					messId,
+					month,
+				},
+			},
+			update: {
+				perDayCharge: input.perDayCharge.toFixed(2),
+			},
+			create: {
+				messId,
+				month,
+				perDayCharge: input.perDayCharge.toFixed(2),
+				createdById,
+			},
+			select: {
+				id: true,
+				month: true,
+				perDayCharge: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+
+		return {
+			id: rate.id,
+			messId,
+			month: monthKey(rate.month),
+			perDayCharge: rate.perDayCharge.toString(),
+			createdAt: rate.createdAt.toISOString(),
+			updatedAt: rate.updatedAt.toISOString(),
+		};
+	}
+
+	async listMessMonthlyRates(messId: string, limit = 12) {
+		const mess = await prisma.mess.findFirst({
+			where: { id: messId, deletedAt: null },
+			select: { id: true, name: true, perDayCharge: true },
+		});
+
+		if (!mess) {
+			throw new AppError("Mess not found", 404, "MESS_NOT_FOUND");
+		}
+
+		const rates = await prisma.messMonthlyRate.findMany({
+			where: { messId },
+			orderBy: [{ month: "desc" }],
+			take: limit,
+			select: {
+				id: true,
+				month: true,
+				perDayCharge: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+
+		return {
+			mess: {
+				id: mess.id,
+				name: mess.name,
+				defaultPerDayCharge: mess.perDayCharge.toString(),
+			},
+			rates: rates.map((rate) => ({
+				id: rate.id,
+				month: monthKey(rate.month),
+				perDayCharge: rate.perDayCharge.toString(),
+				createdAt: rate.createdAt.toISOString(),
+				updatedAt: rate.updatedAt.toISOString(),
+			})),
+		};
 	}
 
 	async createHostelRentConfig(

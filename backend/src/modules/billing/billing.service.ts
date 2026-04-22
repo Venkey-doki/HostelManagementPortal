@@ -229,6 +229,16 @@ export class BillingService {
 			);
 		}
 
+		const monthlyMessRate = await prisma.messMonthlyRate.findUnique({
+			where: {
+				messId_month: {
+					messId: messAssignment.messId,
+					month: periodStart,
+				},
+			},
+			select: { perDayCharge: true },
+		});
+
 		const { academicYear, semester } = getAcademicYearForDate(periodStart);
 		const hostelRentConfig = await prisma.hostelRentConfig.findFirst({
 			where: {
@@ -299,7 +309,10 @@ export class BillingService {
 			mess: {
 				messId: messAssignment.messId,
 				messName: messAssignment.mess.name,
-				perDayCharge: messAssignment.mess.perDayCharge.toString(),
+				perDayCharge: (
+					monthlyMessRate?.perDayCharge ??
+					messAssignment.mess.perDayCharge
+				).toString(),
 			},
 			waivers: waivers.map((waiver) => ({
 				date: waiver.date,

@@ -105,6 +105,21 @@ export const updateMessSchema = z
 		message: "At least one field is required",
 	});
 
+const billingMonthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+export const upsertMessMonthlyRateSchema = z
+	.object({
+		month: z.string().regex(billingMonthPattern, "Invalid month format"),
+		perDayCharge: z.coerce.number().positive(),
+	})
+	.strict();
+
+export const listMessMonthlyRatesQuerySchema = z
+	.object({
+		limit: z.coerce.number().int().min(1).max(24).optional(),
+	})
+	.strict();
+
 export const createHostelRentConfigSchema = z
 	.object({
 		hostelId: z.string().uuid(),

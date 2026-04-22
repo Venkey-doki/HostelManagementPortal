@@ -96,6 +96,7 @@ model User {
   complaintsResolved  Complaint[]          @relation("ComplaintResolvedBy")
   notifications       Notification[]
   auditLogs           AuditLog[]           @relation("AuditLogUser")
+  messMonthlyRates    MessMonthlyRate[]    @relation("MessMonthlyRateCreatedBy")
 
   @@index([role])
   @@index([isActive])
@@ -200,8 +201,26 @@ model Mess {
   extraItems          MessExtraItem[]
   studentExtras       StudentExtra[]
   hostelMappings      HostelMessMapping[]
+  monthlyRates        MessMonthlyRate[]
 
   @@map("messes")
+}
+
+model MessMonthlyRate {
+  id           String   @id @default(uuid()) @db.Uuid
+  messId       String   @map("mess_id") @db.Uuid
+  month        DateTime @db.Date
+  perDayCharge Decimal  @map("per_day_charge") @db.Decimal(10, 2)
+  createdById  String   @map("created_by") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  mess      Mess @relation(fields: [messId], references: [id])
+  createdBy User @relation("MessMonthlyRateCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([messId, month])
+  @@index([month])
+  @@map("mess_monthly_rates")
 }
 
 model HostelMessMapping {

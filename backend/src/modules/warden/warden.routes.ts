@@ -98,6 +98,20 @@ router.patch(
 	wardenController.updateMess.bind(wardenController),
 );
 
+router.get(
+	"/messes/:messId/monthly-rates",
+	authenticate,
+	authorize("WARDEN"),
+	wardenController.listMessMonthlyRates.bind(wardenController),
+);
+
+router.post(
+	"/messes/:messId/monthly-rates",
+	authenticate,
+	authorize("WARDEN"),
+	wardenController.upsertMessMonthlyRate.bind(wardenController),
+);
+
 router.post(
 	"/messes/:messId/incharge-assignment",
 	authenticate,

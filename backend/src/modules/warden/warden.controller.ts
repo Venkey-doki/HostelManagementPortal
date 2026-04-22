@@ -12,10 +12,12 @@ import {
 	endInchargeAssignmentSchema,
 	importHostelsSchema,
 	importStudentsSchema,
+	listMessMonthlyRatesQuerySchema,
 	updateHostelMessSchema,
 	updateHostelSchema,
 	updateMessSchema,
 	updateRoomSchema,
+	upsertMessMonthlyRateSchema,
 } from "./warden.schema.js";
 import { wardenService } from "./warden.service.js";
 
@@ -217,6 +219,64 @@ export class WardenController {
 
 			const mess = await wardenService.updateMess(messId, parsed.data);
 			res.json({ success: true, data: mess });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async upsertMessMonthlyRate(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			if (!req.user) {
+				throw new AppError(
+					"User not authenticated",
+					401,
+					"NOT_AUTHENTICATED",
+				);
+			}
+
+			const messId = this.getSingleParam(req.params.messId, "Mess id");
+			const parsed = upsertMessMonthlyRateSchema.safeParse(req.body);
+			if (!parsed.success) {
+				throw new AppError(
+					"Invalid request body",
+					422,
+					"VALIDATION_ERROR",
+				);
+			}
+
+			const rate = await wardenService.upsertMessMonthlyRate(
+				messId,
+				parsed.data,
+				req.user.userId,
+			);
+
+			res.status(201).json({ success: true, data: rate });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async listMessMonthlyRates(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const messId = this.getSingleParam(req.params.messId, "Mess id");
+			const parsed = listMessMonthlyRatesQuerySchema.safeParse(req.query);
+			if (!parsed.success) {
+				throw new AppError("Invalid query", 422, "VALIDATION_ERROR");
+			}
+
+			const data = await wardenService.listMessMonthlyRates(
+				messId,
+				parsed.data.limit ?? 12,
+			);
+			res.json({ success: true, data });
 		} catch (error) {
 			next(error);
 		}
