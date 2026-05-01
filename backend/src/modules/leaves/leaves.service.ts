@@ -551,7 +551,7 @@ export class LeavesService {
 		};
 	}
 
-	async approveLeave(wardenUserId: string, leaveId: string) {
+	async approveLeave(officeUserId: string, leaveId: string) {
 		const leave = await this.getLeaveById(leaveId);
 		if (leave.status !== LeaveStatus.PENDING) {
 			throw new AppError(
@@ -566,7 +566,7 @@ export class LeavesService {
 				where: { id: leaveId },
 				data: {
 					status: LeaveStatus.APPROVED,
-					actionedById: wardenUserId,
+					actionedById: officeUserId,
 					actionedAt: new Date(),
 				},
 			});
@@ -576,7 +576,7 @@ export class LeavesService {
 					action: "LEAVE_APPROVED",
 					entityType: "leave",
 					entityId: leaveId,
-					userId: wardenUserId,
+					userId: officeUserId,
 					oldValue: { status: leave.status },
 					newValue: { status: LeaveStatus.APPROVED },
 				},
@@ -589,7 +589,7 @@ export class LeavesService {
 	}
 
 	async rejectLeave(
-		wardenUserId: string,
+		officeUserId: string,
 		leaveId: string,
 		rejectionReason: string,
 	) {
@@ -607,7 +607,7 @@ export class LeavesService {
 				where: { id: leaveId },
 				data: {
 					status: LeaveStatus.REJECTED,
-					actionedById: wardenUserId,
+					actionedById: officeUserId,
 					actionedAt: new Date(),
 					rejectionReason,
 				},
@@ -618,7 +618,7 @@ export class LeavesService {
 					action: "LEAVE_REJECTED",
 					entityType: "leave",
 					entityId: leaveId,
-					userId: wardenUserId,
+					userId: officeUserId,
 					oldValue: { status: leave.status },
 					newValue: { status: LeaveStatus.REJECTED, rejectionReason },
 				},

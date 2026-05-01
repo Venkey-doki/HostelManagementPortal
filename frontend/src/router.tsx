@@ -6,7 +6,7 @@ import RouteFallback from "@/components/shared/RouteFallback";
 import AuthLayout from "@/layouts/AuthLayout";
 import InchargeLayout from "@/layouts/InchargeLayout";
 import StudentLayout from "@/layouts/StudentLayout";
-import WardenLayout from "@/layouts/WardenLayout";
+import OfficeLayout from "@/layouts/OfficeLayout";
 
 // Lazy load pages
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
@@ -36,12 +36,12 @@ const StudentProfilePage = lazy(
 	() => import("@/pages/student/StudentProfilePage"),
 );
 const AssignHostelPage = lazy(() => import("@/pages/student/AssignHostelPage"));
-const WardenDashboardPage = lazy(
-	() => import("@/pages/warden/WardenDashboardPage"),
+const OfficeDashboardPage = lazy(
+	() => import("@/pages/office/OfficeDashboardPage"),
 );
-const WardenLeavesPage = lazy(() => import("@/pages/warden/WardenLeavesPage"));
-const WardenPaymentsPage = lazy(
-	() => import("@/pages/warden/WardenPaymentsPage"),
+const OfficeLeavesPage = lazy(() => import("@/pages/office/OfficeLeavesPage"));
+const OfficePaymentsPage = lazy(
+	() => import("@/pages/office/OfficePaymentsPage"),
 );
 const InchargeDashboardPage = lazy(
 	() => import("@/pages/incharge/InchargeDashboardPage"),
@@ -52,16 +52,16 @@ const InchargeAttendancePage = lazy(
 const InchargeExtrasPage = lazy(
 	() => import("@/pages/incharge/InchargeExtrasPage"),
 );
-const HostelsPage = lazy(() => import("@/pages/warden/HostelsPage"));
-const MessesPage = lazy(() => import("@/pages/warden/MessesPage"));
-const WardenStudentsPage = lazy(
-	() => import("@/pages/warden/WardenStudentsPage"),
+const HostelsPage = lazy(() => import("@/pages/office/HostelsPage"));
+const MessesPage = lazy(() => import("@/pages/office/MessesPage"));
+const OfficeStudentsPage = lazy(
+	() => import("@/pages/office/OfficeStudentsPage"),
 );
-const ImportPage = lazy(() => import("@/pages/warden/ImportPage"));
-const WardenExtrasPage = lazy(() => import("@/pages/warden/ExtrasPage"));
-const WardenBillingPage = lazy(() => import("@/pages/warden/BillingPage"));
+const ImportPage = lazy(() => import("@/pages/office/ImportPage"));
+const OfficeExtrasPage = lazy(() => import("@/pages/office/ExtrasPage"));
+const OfficeBillingPage = lazy(() => import("@/pages/office/BillingPage"));
 const HostelMessMappingPage = lazy(
-	() => import("@/pages/warden/HostelMessMappingPage"),
+	() => import("@/pages/office/HostelMessMappingPage"),
 );
 
 const wrap = (el: JSX.Element) => (
@@ -146,55 +146,55 @@ export const router = createBrowserRouter([
 		],
 	},
 
-	// ── Warden routes ────────────────────────────────────────
+	// ── Office routes ────────────────────────────────────────
 	{
-		element: <ProtectedRoute allowedRoles={["WARDEN"]} />,
+		element: <ProtectedRoute allowedRoles={["OFFICE"]} />,
 		children: [
 			{
-				element: <WardenLayout />,
+				element: <OfficeLayout />,
 				children: [
 					{
-						path: "/warden/dashboard",
-						element: wrap(<WardenDashboardPage />),
+						path: "/office/dashboard",
+						element: wrap(<OfficeDashboardPage />),
 					},
 					{
-						path: "/warden/leaves",
-						element: wrap(<WardenLeavesPage />),
+						path: "/office/leaves",
+						element: wrap(<OfficeLeavesPage />),
 					},
 					{
-						path: "/warden/payments",
-						element: wrap(<WardenPaymentsPage />),
+						path: "/office/payments",
+						element: wrap(<OfficePaymentsPage />),
 					},
 					{
-						path: "/warden/students",
-						element: wrap(<WardenStudentsPage />),
+						path: "/office/students",
+						element: wrap(<OfficeStudentsPage />),
 					},
 					{
-						path: "/warden/hostels",
+						path: "/office/hostels",
 						element: wrap(<HostelsPage />),
 					},
 					{
-						path: "/warden/hostel",
-						element: <Navigate to="/warden/hostels" replace />,
+						path: "/office/hostel",
+						element: <Navigate to="/office/hostels" replace />,
 					},
 					{
-						path: "/warden/messes",
+						path: "/office/messes",
 						element: wrap(<MessesPage />),
 					},
 					{
-						path: "/warden/hostel-mess-mapping",
+						path: "/office/hostel-mess-mapping",
 						element: wrap(<HostelMessMappingPage />),
 					},
 					{
-						path: "/warden/extras",
-						element: wrap(<WardenExtrasPage />),
+						path: "/office/extras",
+						element: wrap(<OfficeExtrasPage />),
 					},
 					{
-						path: "/warden/billing",
-						element: wrap(<WardenBillingPage />),
+						path: "/office/billing",
+						element: wrap(<OfficeBillingPage />),
 					},
 					{
-						path: "/warden/import",
+						path: "/office/import",
 						element: wrap(<ImportPage />),
 					},
 				],

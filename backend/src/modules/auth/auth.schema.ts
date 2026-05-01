@@ -21,7 +21,7 @@ export const loginResponseSchema = z.object({
 		user: z.object({
 			id: z.string().uuid(),
 			email: z.string(),
-			role: z.enum(["WARDEN", "MESS_INCHARGE", "STUDENT"]),
+			role: z.enum(["OFFICE", "MESS_INCHARGE", "STUDENT"]),
 			firstName: z.string(),
 			lastName: z.string(),
 			mustChangePwd: z.boolean(),

@@ -82,7 +82,7 @@ export default function StudentBillDetailPage() {
 			return (await api.post("/payments", fd)).data.data;
 		},
 		onSuccess: async () => {
-			setSuccessMessage("Payment proof submitted. Warden verification is pending.");
+			setSuccessMessage("Payment proof submitted. Office verification is pending.");
 			setReferenceNumber("");
 			setScreenshot(null);
 			await queryClient.invalidateQueries({ queryKey: ["student-bill", billId] });
@@ -207,7 +207,7 @@ export default function StudentBillDetailPage() {
 					>
 						{submitPaymentMutation.isPending ? "Submitting…" : "Submit proof"}
 					</button>
-					<p className="mt-2 text-xs text-slate-400">Balance updates after warden verification.</p>
+					<p className="mt-2 text-xs text-slate-400">Balance updates after office verification.</p>
 				</div>
 			)}
 

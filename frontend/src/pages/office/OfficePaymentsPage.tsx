@@ -18,19 +18,19 @@ function formatDate(v: string) {
 
 const inputClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none";
 
-export default function WardenPaymentsPage() {
+export default function OfficePaymentsPage() {
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 	const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
 
 	const { data, isLoading } = useQuery({
-		queryKey: ["warden-pending-payments"],
+		queryKey: ["office-pending-payments"],
 		queryFn: async () => (await api.get("/payments/pending")).data.data as { payments: PendingPayment[]; totalPending: number },
 	});
 
 	const verifyMutation = useMutation({
 		mutationFn: async (id: string) => (await api.patch(`/payments/${id}/verify`)).data.data,
-		onSuccess: async () => { setSuccess("Payment verified and credited."); await queryClient.invalidateQueries({ queryKey: ["warden-pending-payments"] }); },
+		onSuccess: async () => { setSuccess("Payment verified and credited."); await queryClient.invalidateQueries({ queryKey: ["office-pending-payments"] }); },
 		onError: (err: any) => { setError(err.response?.data?.error?.message ?? "Failed to verify payment"); },
 	});
 
@@ -40,7 +40,7 @@ export default function WardenPaymentsPage() {
 		onSuccess: async (_, v) => {
 			setSuccess("Payment rejected.");
 			setRejectionReasons((c) => { const n = { ...c }; delete n[v.paymentId]; return n; });
-			await queryClient.invalidateQueries({ queryKey: ["warden-pending-payments"] });
+			await queryClient.invalidateQueries({ queryKey: ["office-pending-payments"] });
 		},
 		onError: (err: any) => { setError(err.response?.data?.error?.message ?? "Failed to reject payment"); },
 	});

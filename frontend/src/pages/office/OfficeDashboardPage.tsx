@@ -2,18 +2,18 @@ import { api } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
-export default function WardenDashboardPage() {
+export default function OfficeDashboardPage() {
 	const { data: leavesData } = useQuery({
-		queryKey: ["warden-pending-leaves-count"],
+		queryKey: ["office-pending-leaves-count"],
 		queryFn: async () => (await api.get("/leaves/pending")).data.data as { leaves: unknown[] },
 	});
 	const { data: paymentsData } = useQuery({
-		queryKey: ["warden-pending-payments-count"],
+		queryKey: ["office-pending-payments-count"],
 		queryFn: async () => (await api.get("/payments/pending")).data.data as { totalPending: number },
 	});
 	const { data: statsData } = useQuery({
-		queryKey: ["warden-dashboard-stats"],
-		queryFn: async () => (await api.get("/warden/dashboard-stats")).data.data as {
+		queryKey: ["office-dashboard-stats"],
+		queryFn: async () => (await api.get("/office/dashboard-stats")).data.data as {
 			totalStudents: number;
 			totalHostels: number;
 			totalMesses: number;
@@ -23,44 +23,44 @@ export default function WardenDashboardPage() {
 
 	const adminModules = [
 		{
-			to: "/warden/leaves",
+			to: "/office/leaves",
 			label: "Leave Approvals",
 			desc: "Review and action pending student leave requests.",
 			count: leavesData?.leaves.length ?? 0,
 		},
 		{
-			to: "/warden/payments",
+			to: "/office/payments",
 			label: "Payment Verification",
 			desc: "Verify or reject student payment proofs.",
 			count: paymentsData?.totalPending ?? 0,
 		},
 		{
-			to: "/warden/students",
+			to: "/office/students",
 			label: "Students Directory",
 			desc: "Search students, assign hostel and mess.",
 		},
 		{
-			to: "/warden/hostels",
+			to: "/office/hostels",
 			label: "Hostels",
 			desc: "Create hostels, add rooms, manage capacity.",
 		},
 		{
-			to: "/warden/messes",
+			to: "/office/messes",
 			label: "Messes",
 			desc: "Add messes, set daily charges, assign incharge staff.",
 		},
 		{
-			to: "/warden/extras",
+			to: "/office/extras",
 			label: "Extras Config",
 			desc: "Define extra items per mess for incharge staff.",
 		},
 		{
-			to: "/warden/billing",
+			to: "/office/billing",
 			label: "Billing",
 			desc: "Generate monthly bills for all students.",
 		},
 		{
-			to: "/warden/import",
+			to: "/office/import",
 			label: "CSV Import",
 			desc: "Bulk-onboard students from CSV with password seeding.",
 		},

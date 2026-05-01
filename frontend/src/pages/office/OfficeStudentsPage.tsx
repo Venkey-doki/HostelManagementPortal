@@ -9,7 +9,7 @@ interface StudentRecord {
 }
 interface ChoiceItem {
 	id: string; name: string; isActive?: boolean;
-	rooms?: Array<{ id: string; roomNumber: string; capacity: number; isActive?: boolean }>;
+	rooms?: Array<{ id: string; roomNumber: string; capacity: number; isActive?: boolean; occupiedCount?: number; availableSeats?: number; isFull?: boolean }>;
 }
 interface AssignmentHistoryResponse {
 	hostelAssignments: Array<{ id: string; startDate: string; endDate: string | null; hostel: { id: string; name: string }; room: { id: string; roomNumber: string } }>;
@@ -18,7 +18,7 @@ interface AssignmentHistoryResponse {
 
 const inputClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-export default function WardenStudentsPage() {
+export default function OfficeStudentsPage() {
 	const [students, setStudents] = useState<StudentRecord[]>([]);
 	const [hostels, setHostels] = useState<ChoiceItem[]>([]);
 	const [messes, setMesses] = useState<ChoiceItem[]>([]);
@@ -34,7 +34,7 @@ export default function WardenStudentsPage() {
 	const selectedStudent = useMemo(() => students.find((s) => s.id === selectedStudentId) ?? null, [students, selectedStudentId]);
 
 	const loadSupportingData = async () => {
-		const [hr, mr] = await Promise.all([api.get("/warden/hostels"), api.get("/warden/messes")]);
+		const [hr, mr] = await Promise.all([api.get("/office/hostels"), api.get("/office/messes")]);
 		setHostels(hr.data.data); setMesses(mr.data.data);
 	};
 
@@ -207,7 +207,15 @@ export default function WardenStudentsPage() {
 									<label className="block text-xs font-medium text-slate-700 mb-1">Room</label>
 									<select value={assignment.roomId} onChange={(e) => sa("roomId", e.target.value)} className={inputClass}>
 										<option value="">Select room</option>
-										{currentHostelRooms.filter((r) => r.isActive).map((r) => <option key={r.id} value={r.id}>{r.roomNumber} (cap {r.capacity})</option>)}
+										{currentHostelRooms.filter((r) => r.isActive).map((r) => {
+											const avail = r.availableSeats ?? r.capacity;
+											const full = r.isFull ?? false;
+											return (
+												<option key={r.id} value={r.id} disabled={full}>
+													{r.roomNumber} — {avail}/{r.capacity} {full ? "(Full)" : "available"}
+												</option>
+											);
+										})}
 									</select>
 								</div>
 							</div>
@@ -219,6 +227,55 @@ export default function WardenStudentsPage() {
 								Assign hostel
 							</button>
 						</form>
+
+						{/* Room vacancy grid */}
+						{assignment.hostelId && currentHostelRooms.length > 0 && (
+							<div className="mt-4 pt-4 border-t border-slate-100">
+								<h3 className="text-xs font-semibold text-slate-700 mb-2">Room Vacancy Overview</h3>
+								<div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+									{currentHostelRooms.filter((r) => r.isActive).map((r) => {
+										const occupied = r.occupiedCount ?? 0;
+										const avail = r.availableSeats ?? r.capacity;
+										const full = r.isFull ?? false;
+										const isSelected = assignment.roomId === r.id;
+										return (
+											<button
+												key={r.id}
+												type="button"
+												onClick={() => { if (!full) sa("roomId", r.id); }}
+												className={`relative p-2 rounded-lg border-2 text-left transition-all text-xs ${
+													isSelected
+														? "border-blue-500 bg-blue-50 ring-1 ring-blue-300"
+														: full
+															? "border-red-200 bg-red-50 opacity-60 cursor-not-allowed"
+															: "border-slate-200 bg-white hover:border-blue-300 cursor-pointer"
+												}`}
+											>
+												<p className="font-semibold text-slate-900">{r.roomNumber}</p>
+												<div className="mt-1 flex items-center gap-1">
+													<span className={`inline-block w-1.5 h-1.5 rounded-full ${full ? "bg-red-500" : avail === r.capacity ? "bg-green-500" : "bg-amber-500"}`} />
+													<span className={`${full ? "text-red-600" : "text-slate-600"}`}>
+														{avail}/{r.capacity}
+													</span>
+												</div>
+												{/* Mini occupancy bar */}
+												<div className="mt-1 h-1 w-full rounded-full bg-slate-200 overflow-hidden">
+													<div
+														className={`h-full rounded-full transition-all ${full ? "bg-red-500" : occupied > 0 ? "bg-amber-500" : "bg-green-500"}`}
+														style={{ width: `${r.capacity > 0 ? (occupied / r.capacity) * 100 : 0}%` }}
+													/>
+												</div>
+											</button>
+										);
+									})}
+								</div>
+								<div className="mt-2 flex gap-3 text-[10px] text-slate-500">
+									<span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-green-500" /> Empty</span>
+									<span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-amber-500" /> Partial</span>
+									<span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-red-500" /> Full</span>
+								</div>
+							</div>
+						)}
 					</div>
 
 					{/* Assign mess */}

@@ -91,13 +91,13 @@ async function upsertStudent(params: {
 }
 
 async function main() {
-	const warden = await upsertUser({
-		email: "warden@hostel.local",
-		role: Role.WARDEN,
+	const office = await upsertUser({
+		email: "office@hostel.local",
+		role: Role.OFFICE,
 		firstName: "Master",
-		lastName: "Warden",
+		lastName: "Office",
 		phone: "+910000000001",
-		password: "Warden@12345",
+		password: "Office@12345",
 	});
 
 	const incharge = await upsertUser({
@@ -319,7 +319,7 @@ async function main() {
 				update: {
 					amount: "18000.00",
 					dueMonth: 7,
-					createdById: warden.id,
+					createdById: office.id,
 				},
 				create: {
 					hostelId: hostel.id,
@@ -327,14 +327,14 @@ async function main() {
 					semester: Semester.FIRST,
 					amount: "18000.00",
 					dueMonth: 7,
-					createdById: warden.id,
+					createdById: office.id,
 				},
 			}),
 		),
 	);
 
 	console.log("Seed complete");
-	console.log("Master Warden:", warden.email, "password: Warden@12345");
+	console.log("Master Office:", office.email, "password: Office@12345");
 	console.log("Mess Incharge:", incharge.email, "password: Incharge@12345");
 	console.log("Students seeded:", students.length);
 }

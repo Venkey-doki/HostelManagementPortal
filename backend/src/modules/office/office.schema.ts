@@ -130,10 +130,10 @@ export const createHostelRentConfigSchema = z
 	})
 	.strict();
 
-export const createWardenUserSchema = z
+export const createOfficeUserSchema = z
 	.object({
 		email: z.string().email(),
-		role: z.enum(["WARDEN", "MESS_INCHARGE"]),
+		role: z.enum(["OFFICE", "MESS_INCHARGE"]),
 		firstName: z.string().min(1).max(100),
 		lastName: z.string().min(1).max(100),
 		phone: z.string().min(7).max(20).optional(),

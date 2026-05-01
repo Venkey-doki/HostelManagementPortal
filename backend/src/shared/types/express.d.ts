@@ -8,7 +8,7 @@ declare global {
 			user?: {
 				userId: string;
 				email: string;
-				role: "WARDEN" | "MESS_INCHARGE" | "STUDENT";
+				role: "OFFICE" | "MESS_INCHARGE" | "STUDENT";
 				studentId?: string;
 			};
 		}

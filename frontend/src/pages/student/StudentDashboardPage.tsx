@@ -40,7 +40,7 @@ export default function StudentDashboardPage() {
 		{
 			label: "Pending leaves",
 			value: pendingLeaves !== null ? String(pendingLeaves) : "—",
-			note: "Awaiting warden review",
+			note: "Awaiting office review",
 		},
 		{
 			label: "Leaves used",

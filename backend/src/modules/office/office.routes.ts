@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { authenticate } from "../../shared/middleware/authenticate.js";
 import { authorize } from "../../shared/middleware/authorize.js";
-import { wardenController } from "./warden.controller.js";
+import { officeController } from "./office.controller.js";
 
 const router = Router();
 
@@ -24,136 +24,136 @@ const upload = multer({
 });
 
 /**
- * Warden routes - all require WARDEN role
+ * Office routes - all require OFFICE role
  */
 
 router.get(
 	"/dashboard-stats",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.getDashboardStats.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.getDashboardStats.bind(officeController),
 );
 
 router.get(
 	"/hostels",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.listHostels.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.listHostels.bind(officeController),
 );
 
 router.post(
 	"/hostels",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.createHostel.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.createHostel.bind(officeController),
 );
 
 router.post(
 	"/hostels/import",
 	authenticate,
-	authorize("WARDEN"),
+	authorize("OFFICE"),
 	upload.single("file"),
-	wardenController.importInfrastructure.bind(wardenController),
+	officeController.importInfrastructure.bind(officeController),
 );
 
 router.patch(
 	"/hostels/:hostelId",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.updateHostel.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.updateHostel.bind(officeController),
 );
 
 router.post(
 	"/hostels/:hostelId/rooms",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.createRoom.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.createRoom.bind(officeController),
 );
 
 router.patch(
 	"/rooms/:roomId",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.updateRoom.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.updateRoom.bind(officeController),
 );
 
 router.get(
 	"/messes",
 	authenticate,
-	authorize("WARDEN", "MESS_INCHARGE"),
-	wardenController.listMesses.bind(wardenController),
+	authorize("OFFICE", "MESS_INCHARGE"),
+	officeController.listMesses.bind(officeController),
 );
 
 router.post(
 	"/messes",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.createMess.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.createMess.bind(officeController),
 );
 
 router.patch(
 	"/messes/:messId",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.updateMess.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.updateMess.bind(officeController),
 );
 
 router.get(
 	"/messes/:messId/monthly-rates",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.listMessMonthlyRates.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.listMessMonthlyRates.bind(officeController),
 );
 
 router.post(
 	"/messes/:messId/monthly-rates",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.upsertMessMonthlyRate.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.upsertMessMonthlyRate.bind(officeController),
 );
 
 router.post(
 	"/messes/:messId/incharge-assignment",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.assignIncharge.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.assignIncharge.bind(officeController),
 );
 
 router.get(
 	"/messes/:messId/incharge-assignment",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.listInchargeAssignments.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.listInchargeAssignments.bind(officeController),
 );
 
 router.patch(
 	"/incharge-assignment/:assignmentId/end",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.endInchargeAssignment.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.endInchargeAssignment.bind(officeController),
 );
 
 router.post(
 	"/hostel-rent-config",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.createHostelRentConfig.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.createHostelRentConfig.bind(officeController),
 );
 
 router.post(
 	"/users",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.createUser.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.createUser.bind(officeController),
 );
 
 // POST /admin/students/import - bulk import from CSV
 router.post(
 	"/students/import",
 	authenticate,
-	authorize("WARDEN"),
+	authorize("OFFICE"),
 	upload.single("file"),
-	wardenController.importStudents.bind(wardenController),
+	officeController.importStudents.bind(officeController),
 );
 
 /**
@@ -162,29 +162,29 @@ router.post(
 router.get(
 	"/hostel-mess-mappings",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.getHostelMessMappings.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.getHostelMessMappings.bind(officeController),
 );
 
 router.post(
 	"/hostels/:hostelId/mess",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.assignMessToHostel.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.assignMessToHostel.bind(officeController),
 );
 
 router.patch(
 	"/hostels/:hostelId/mess",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.updateHostelMess.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.updateHostelMess.bind(officeController),
 );
 
 router.delete(
 	"/hostels/:hostelId/mess",
 	authenticate,
-	authorize("WARDEN"),
-	wardenController.unassignMessFromHostel.bind(wardenController),
+	authorize("OFFICE"),
+	officeController.unassignMessFromHostel.bind(officeController),
 );
 
 export default router;

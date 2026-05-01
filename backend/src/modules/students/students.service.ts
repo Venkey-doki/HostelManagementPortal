@@ -873,7 +873,7 @@ export class StudentsService {
 			const nextEligibleDate = addMonths(currentAssignment.startDate, 6);
 			if (new Date() < nextEligibleDate) {
 				throw new AppError(
-					"You can change hostel and room only once every 6 months. Please contact the warden for a manual change.",
+					"You can change hostel and room only once every 6 months. Please contact the office for a manual change.",
 					409,
 					"HOSTEL_CHANGE_COOLDOWN_ACTIVE",
 				);

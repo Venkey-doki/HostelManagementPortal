@@ -8,7 +8,7 @@ const router = Router();
 router.post(
 	"/generate",
 	authenticate,
-	authorize("WARDEN"),
+	authorize("OFFICE"),
 	billingController.generateMonthBills.bind(billingController),
 );
 
@@ -29,14 +29,14 @@ router.get(
 router.get(
 	"/student/:studentId",
 	authenticate,
-	authorize("WARDEN"),
+	authorize("OFFICE"),
 	billingController.getStudentBillingHistory.bind(billingController),
 );
 
 router.get(
 	"/student/:studentId/:billId",
 	authenticate,
-	authorize("WARDEN"),
+	authorize("OFFICE"),
 	billingController.getStudentBill.bind(billingController),
 );
 

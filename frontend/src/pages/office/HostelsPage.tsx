@@ -35,7 +35,7 @@ export default function HostelsPage() {
 		setLoading(true);
 		setError("");
 		try {
-			const res = await api.get("/warden/hostels");
+			const res = await api.get("/office/hostels");
 			setHostels(res.data.data);
 		} catch (err: any) {
 			setError(
@@ -59,7 +59,7 @@ export default function HostelsPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.post("/warden/hostels", { name, gender });
+			await api.post("/office/hostels", { name, gender });
 			setName("");
 			setGender("MALE");
 			setSuccess("Hostel created.");
@@ -80,7 +80,7 @@ export default function HostelsPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.post(`/warden/hostels/${hostelId}/rooms`, {
+			await api.post(`/office/hostels/${hostelId}/rooms`, {
 				roomNumber: state.roomNumber,
 				capacity: Number(state.capacity || 2),
 			});
@@ -103,7 +103,7 @@ export default function HostelsPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.patch(`/warden/hostels/${hostel.id}`, {
+			await api.patch(`/office/hostels/${hostel.id}`, {
 				name: nextName.trim(),
 			});
 			setSuccess("Hostel updated.");
@@ -119,7 +119,7 @@ export default function HostelsPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.patch(`/warden/hostels/${hostel.id}`, {
+			await api.patch(`/office/hostels/${hostel.id}`, {
 				isActive: !hostel.isActive,
 			});
 			setSuccess(
@@ -144,7 +144,7 @@ export default function HostelsPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.patch(`/warden/rooms/${room.id}`, {
+			await api.patch(`/office/rooms/${room.id}`, {
 				roomNumber: roomNumber.trim(),
 				capacity: Number(capacityInput),
 			});
@@ -161,7 +161,7 @@ export default function HostelsPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.patch(`/warden/rooms/${room.id}`, {
+			await api.patch(`/office/rooms/${room.id}`, {
 				isActive: !room.isActive,
 			});
 			setSuccess(
@@ -209,7 +209,7 @@ export default function HostelsPage() {
 			const formData = new FormData();
 			formData.append("file", importFile);
 
-			const res = await api.post("/warden/hostels/import", formData, {
+			const res = await api.post("/office/hostels/import", formData, {
 				headers: { "Content-Type": "multipart/form-data" },
 			});
 

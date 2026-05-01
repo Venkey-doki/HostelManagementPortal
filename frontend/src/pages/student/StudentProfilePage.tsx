@@ -270,7 +270,7 @@ export default function StudentProfilePage() {
 			setToast({
 				kind: "error",
 				message:
-					"You can change hostel and room only once every 6 months. Please contact the warden for a manual change.",
+					"You can change hostel and room only once every 6 months. Please contact the office for a manual change.",
 			});
 			return;
 		}
@@ -310,7 +310,7 @@ export default function StudentProfilePage() {
 		? "Hostel & Mess"
 		: "Choose Hostel & Room";
 	const assignmentHelper = hasHostelAssignment
-		? "Hostel change is allowed only once every 6 months. Otherwise the warden must change it."
+		? "Hostel change is allowed only once every 6 months. Otherwise the office must change it."
 		: "Enter your hostel, room, and personal details to complete your first assignment.";
 	const assignmentButtonLabel = hasHostelAssignment
 		? assignmentOpen
@@ -701,7 +701,7 @@ export default function StudentProfilePage() {
 									!assignmentOpen && (
 										<div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
 											You can only change hostel and room
-											once every 6 months. A warden can
+											once every 6 months. The office can
 											still do it manually if needed.
 										</div>
 									)}

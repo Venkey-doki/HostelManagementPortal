@@ -17,7 +17,7 @@ function monthKey(date: Date): string {
  * Admin Service - handles admin operations like CSV import
  */
 
-export class WardenService {
+export class OfficeService {
 	async getDashboardStats() {
 		const [totalStudents, totalHostels, totalMesses, activeComplaints] =
 			await Promise.all([
@@ -90,8 +90,25 @@ export class WardenService {
 					where: { hostelId: hostel.id, isCurrent: true },
 				});
 
+				// Enrich each room with occupancy data
+				const enrichedRooms = await Promise.all(
+					hostel.rooms.map(async (room: any) => {
+						const occupiedCount =
+							await prisma.hostelAssignment.count({
+								where: { roomId: room.id, isCurrent: true },
+							});
+						return {
+							...room,
+							occupiedCount,
+							availableSeats: room.capacity - occupiedCount,
+							isFull: occupiedCount >= room.capacity,
+						};
+					}),
+				);
+
 				return {
 					...hostel,
+					rooms: enrichedRooms,
 					roomCount: hostel.rooms.length,
 					studentCount,
 				};
@@ -502,9 +519,9 @@ export class WardenService {
 		});
 	}
 
-	async createWardenUser(input: {
+	async createOfficeUser(input: {
 		email: string;
-		role: "WARDEN" | "MESS_INCHARGE";
+		role: "OFFICE" | "MESS_INCHARGE";
 		firstName: string;
 		lastName: string;
 		phone?: string | undefined;
@@ -1221,4 +1238,4 @@ export class WardenService {
 	}
 }
 
-export const wardenService = new WardenService();
+export const officeService = new OfficeService();

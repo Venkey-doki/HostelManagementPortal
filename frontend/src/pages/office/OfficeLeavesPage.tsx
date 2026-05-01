@@ -4,7 +4,7 @@ import { queryClient } from "@/lib/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-interface WardenPendingLeave {
+interface OfficePendingLeave {
 	id: string; startDate: string; endDate: string; duration: number;
 	reason: string | null; status: "PENDING"; appliedOn: string; autoApproveAt: string;
 	student: { id: string; rollNumber: string; firstName: string; lastName: string; email: string };
@@ -21,19 +21,19 @@ function formatDateTime(v: string) {
 
 const inputClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-export default function WardenLeavesPage() {
+export default function OfficeLeavesPage() {
 	const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 
 	const { data, isLoading } = useQuery({
-		queryKey: ["warden-pending-leaves"],
-		queryFn: async () => (await api.get("/leaves/pending")).data.data as { leaves: WardenPendingLeave[] },
+		queryKey: ["office-pending-leaves"],
+		queryFn: async () => (await api.get("/leaves/pending")).data.data as { leaves: OfficePendingLeave[] },
 	});
 
 	const approveMutation = useMutation({
 		mutationFn: async (leaveId: string) => (await api.patch(`/leaves/${leaveId}/approve`)).data.data,
-		onSuccess: async () => { setSuccess("Leave approved."); await queryClient.invalidateQueries({ queryKey: ["warden-pending-leaves"] }); },
+		onSuccess: async () => { setSuccess("Leave approved."); await queryClient.invalidateQueries({ queryKey: ["office-pending-leaves"] }); },
 		onError: (err: any) => { setError(err.response?.data?.error?.message ?? "Failed to approve leave"); },
 	});
 
@@ -43,7 +43,7 @@ export default function WardenLeavesPage() {
 		onSuccess: async (_, v) => {
 			setSuccess("Leave rejected.");
 			setRejectionReasons((c) => { const n = { ...c }; delete n[v.leaveId]; return n; });
-			await queryClient.invalidateQueries({ queryKey: ["warden-pending-leaves"] });
+			await queryClient.invalidateQueries({ queryKey: ["office-pending-leaves"] });
 		},
 		onError: (err: any) => { setError(err.response?.data?.error?.message ?? "Failed to reject leave"); },
 	});
