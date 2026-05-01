@@ -20,7 +20,7 @@ export const studentReturnLeaveSchema = z
 	})
 	.strict();
 
-export const wardenRejectLeaveSchema = z
+export const officeRejectLeaveSchema = z
 	.object({
 		rejectionReason: z.string().min(1).max(500),
 	})

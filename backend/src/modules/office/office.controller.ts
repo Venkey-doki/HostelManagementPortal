@@ -8,7 +8,7 @@ import {
 	createHostelSchema,
 	createMessSchema,
 	createRoomSchema,
-	createWardenUserSchema,
+	createOfficeUserSchema,
 	endInchargeAssignmentSchema,
 	importHostelsSchema,
 	importStudentsSchema,
@@ -18,21 +18,21 @@ import {
 	updateMessSchema,
 	updateRoomSchema,
 	upsertMessMonthlyRateSchema,
-} from "./warden.schema.js";
-import { wardenService } from "./warden.service.js";
+} from "./office.schema.js";
+import { officeService } from "./office.service.js";
 
 /**
  * Admin Controller - HTTP handlers for admin operations
  */
 
-export class WardenController {
+export class OfficeController {
 	async getDashboardStats(
 		req: Request,
 		res: Response,
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const stats = await wardenService.getDashboardStats();
+			const stats = await officeService.getDashboardStats();
 			res.json({ success: true, data: stats });
 		} catch (error) {
 			next(error);
@@ -64,7 +64,7 @@ export class WardenController {
 				);
 			}
 
-			const hostel = await wardenService.createHostel(parsed.data);
+			const hostel = await officeService.createHostel(parsed.data);
 			res.status(201).json({ success: true, data: hostel });
 		} catch (error) {
 			next(error);
@@ -77,7 +77,7 @@ export class WardenController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const hostels = await wardenService.listHostels();
+			const hostels = await officeService.listHostels();
 			res.json({ success: true, data: hostels });
 		} catch (error) {
 			next(error);
@@ -104,7 +104,7 @@ export class WardenController {
 				);
 			}
 
-			const hostel = await wardenService.updateHostel(
+			const hostel = await officeService.updateHostel(
 				hostelId,
 				parsed.data,
 			);
@@ -134,7 +134,7 @@ export class WardenController {
 				);
 			}
 
-			const room = await wardenService.createRoom(hostelId, parsed.data);
+			const room = await officeService.createRoom(hostelId, parsed.data);
 			res.status(201).json({ success: true, data: room });
 		} catch (error) {
 			next(error);
@@ -158,7 +158,7 @@ export class WardenController {
 				);
 			}
 
-			const room = await wardenService.updateRoom(roomId, parsed.data);
+			const room = await officeService.updateRoom(roomId, parsed.data);
 			res.json({ success: true, data: room });
 		} catch (error) {
 			next(error);
@@ -180,7 +180,7 @@ export class WardenController {
 				);
 			}
 
-			const mess = await wardenService.createMess(parsed.data);
+			const mess = await officeService.createMess(parsed.data);
 			res.status(201).json({ success: true, data: mess });
 		} catch (error) {
 			next(error);
@@ -193,7 +193,7 @@ export class WardenController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const messes = await wardenService.listMesses();
+			const messes = await officeService.listMesses();
 			res.json({ success: true, data: messes });
 		} catch (error) {
 			next(error);
@@ -217,7 +217,7 @@ export class WardenController {
 				);
 			}
 
-			const mess = await wardenService.updateMess(messId, parsed.data);
+			const mess = await officeService.updateMess(messId, parsed.data);
 			res.json({ success: true, data: mess });
 		} catch (error) {
 			next(error);
@@ -248,7 +248,7 @@ export class WardenController {
 				);
 			}
 
-			const rate = await wardenService.upsertMessMonthlyRate(
+			const rate = await officeService.upsertMessMonthlyRate(
 				messId,
 				parsed.data,
 				req.user.userId,
@@ -272,7 +272,7 @@ export class WardenController {
 				throw new AppError("Invalid query", 422, "VALIDATION_ERROR");
 			}
 
-			const data = await wardenService.listMessMonthlyRates(
+			const data = await officeService.listMessMonthlyRates(
 				messId,
 				parsed.data.limit ?? 12,
 			);
@@ -305,7 +305,7 @@ export class WardenController {
 				);
 			}
 
-			const config = await wardenService.createHostelRentConfig(
+			const config = await officeService.createHostelRentConfig(
 				parsed.data,
 				req.user.userId,
 			);
@@ -321,7 +321,7 @@ export class WardenController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const parsed = createWardenUserSchema.safeParse(req.body);
+			const parsed = createOfficeUserSchema.safeParse(req.body);
 			if (!parsed.success) {
 				throw new AppError(
 					"Invalid request body",
@@ -330,7 +330,7 @@ export class WardenController {
 				);
 			}
 
-			const result = await wardenService.createWardenUser(parsed.data);
+			const result = await officeService.createOfficeUser(parsed.data);
 			res.status(201).json({ success: true, data: result });
 		} catch (error) {
 			next(error);
@@ -354,7 +354,7 @@ export class WardenController {
 				);
 			}
 
-			const assignment = await wardenService.assignInchargeToMess({
+			const assignment = await officeService.assignInchargeToMess({
 				messId,
 				userId: parsed.data.userId,
 				startDate: parsed.data.startDate,
@@ -374,7 +374,7 @@ export class WardenController {
 		try {
 			const messId = this.getSingleParam(req.params.messId, "Mess id");
 			const assignments =
-				await wardenService.listInchargeAssignments(messId);
+				await officeService.listInchargeAssignments(messId);
 			res.json({ success: true, data: assignments });
 		} catch (error) {
 			next(error);
@@ -400,7 +400,7 @@ export class WardenController {
 				);
 			}
 
-			const assignment = await wardenService.endInchargeAssignment(
+			const assignment = await officeService.endInchargeAssignment(
 				assignmentId,
 				parsed.data.endDate,
 			);
@@ -457,7 +457,7 @@ export class WardenController {
 			}
 
 			// Import students
-			const result = await wardenService.importStudents(
+			const result = await officeService.importStudents(
 				validated.data.rows,
 			);
 
@@ -471,7 +471,7 @@ export class WardenController {
 	}
 
 	/**
-	 * POST /api/v1/warden/hostels/import
+	 * POST /api/v1/office/hostels/import
 	 * Expects multipart form-data with 'file' field containing CSV
 	 * CSV columns: hostel_name, gender, room_number, capacity
 	 */
@@ -513,7 +513,7 @@ export class WardenController {
 				);
 			}
 
-			const result = await wardenService.importHostelsAndRooms(
+			const result = await officeService.importHostelsAndRooms(
 				validated.data.rows,
 			);
 
@@ -532,7 +532,7 @@ export class WardenController {
 		next: NextFunction,
 	): Promise<void> {
 		try {
-			const mappings = await wardenService.getHostelMessMappings();
+			const mappings = await officeService.getHostelMessMappings();
 			res.json({ success: true, data: mappings });
 		} catch (error) {
 			next(error);
@@ -567,7 +567,7 @@ export class WardenController {
 				);
 			}
 
-			const result = await wardenService.assignMessToHostel(
+			const result = await officeService.assignMessToHostel(
 				hostelId,
 				validated.data.messId,
 				req.user.userId,
@@ -609,7 +609,7 @@ export class WardenController {
 				);
 			}
 
-			const result = await wardenService.updateHostelMess(
+			const result = await officeService.updateHostelMess(
 				hostelId,
 				validated.data.messId,
 				req.user.userId,
@@ -633,7 +633,7 @@ export class WardenController {
 				"Hostel ID",
 			);
 
-			const result = await wardenService.unassignMessFromHostel(hostelId);
+			const result = await officeService.unassignMessFromHostel(hostelId);
 
 			res.json({ success: true, data: result });
 		} catch (error) {
@@ -642,4 +642,4 @@ export class WardenController {
 	}
 }
 
-export const wardenController = new WardenController();
+export const officeController = new OfficeController();

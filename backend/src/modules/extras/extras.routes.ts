@@ -8,14 +8,14 @@ const router = Router();
 router.get(
 	"/messes/:messId/extras",
 	authenticate,
-	authorize("WARDEN", "MESS_INCHARGE"),
+	authorize("OFFICE", "MESS_INCHARGE"),
 	extrasController.getMessExtras.bind(extrasController),
 );
 
 router.post(
 	"/messes/:messId/extras",
 	authenticate,
-	authorize("WARDEN"),
+	authorize("OFFICE"),
 	extrasController.createMessExtraItem.bind(extrasController),
 );
 

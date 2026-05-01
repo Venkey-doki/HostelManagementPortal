@@ -4,7 +4,7 @@ import {
 	applyLeaveSchema,
 	studentLeaveIdParamsSchema,
 	studentReturnLeaveSchema,
-	wardenRejectLeaveSchema,
+	officeRejectLeaveSchema,
 } from "./leaves.schema.js";
 import { leavesService } from "./leaves.service.js";
 
@@ -210,7 +210,7 @@ export class LeavesController {
 				throw new AppError("Invalid leave id", 422, "VALIDATION_ERROR");
 			}
 
-			const parsed = wardenRejectLeaveSchema.safeParse(req.body);
+			const parsed = officeRejectLeaveSchema.safeParse(req.body);
 			if (!parsed.success) {
 				throw new AppError(
 					"Invalid request body",

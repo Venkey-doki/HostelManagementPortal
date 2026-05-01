@@ -14,7 +14,7 @@ export default function ImportPage() {
 		try {
 			const formData = new FormData();
 			formData.append("file", file);
-			const res = await api.post("/warden/students/import", formData, {
+			const res = await api.post("/office/students/import", formData, {
 				headers: { "Content-Type": "multipart/form-data" },
 			});
 			setMessage(`Imported ${res.data.data.imported} students successfully.`);

@@ -8,7 +8,7 @@ const router = Router();
 router.get(
 	"/",
 	authenticate,
-	authorize("WARDEN", "MESS_INCHARGE"),
+	authorize("OFFICE", "MESS_INCHARGE"),
 	messesController.list.bind(messesController),
 );
 

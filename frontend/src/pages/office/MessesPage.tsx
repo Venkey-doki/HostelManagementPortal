@@ -52,7 +52,7 @@ export default function MessesPage() {
 		lastName: "",
 		phone: "",
 		password: "",
-		role: "MESS_INCHARGE" as "MESS_INCHARGE" | "WARDEN",
+		role: "MESS_INCHARGE" as "MESS_INCHARGE" | "OFFICE",
 		messId: "",
 	});
 	const [recentStaffId, setRecentStaffId] = useState("");
@@ -73,7 +73,7 @@ export default function MessesPage() {
 		setLoading(true);
 		setError("");
 		try {
-			const res = await api.get("/warden/messes");
+			const res = await api.get("/office/messes");
 			setMesses(res.data.data);
 			setMonthlyRateInputByMess((current) => {
 				const next = { ...current };
@@ -116,7 +116,7 @@ export default function MessesPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.post("/warden/messes", {
+			await api.post("/office/messes", {
 				name,
 				gender,
 				perDayCharge: Number(perDayCharge),
@@ -137,7 +137,7 @@ export default function MessesPage() {
 		setError("");
 		setSuccess("");
 		try {
-			const res = await api.post<AdminUserResponse>("/warden/users", {
+			const res = await api.post<AdminUserResponse>("/office/users", {
 				email: staffForm.email,
 				role: staffForm.role,
 				firstName: staffForm.firstName,
@@ -174,7 +174,7 @@ export default function MessesPage() {
 		setSuccess("");
 		try {
 			await api.post(
-				`/warden/messes/${staffForm.messId}/incharge-assignment`,
+				`/office/messes/${staffForm.messId}/incharge-assignment`,
 				{ userId: recentStaffId, startDate: new Date().toISOString() },
 			);
 			setSuccess("Incharge assigned.");
@@ -198,7 +198,7 @@ export default function MessesPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.patch(`/warden/messes/${mess.id}`, {
+			await api.patch(`/office/messes/${mess.id}`, {
 				name: nextName.trim(),
 				perDayCharge: Number(chargeInput),
 			});
@@ -215,7 +215,7 @@ export default function MessesPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.patch(`/warden/messes/${mess.id}`, {
+			await api.patch(`/office/messes/${mess.id}`, {
 				isActive: !mess.isActive,
 			});
 			setSuccess(
@@ -233,7 +233,7 @@ export default function MessesPage() {
 		setError("");
 		try {
 			const res = await api.get(
-				`/warden/messes/${messId}/incharge-assignment`,
+				`/office/messes/${messId}/incharge-assignment`,
 			);
 			setInchargeHistory((c) => ({ ...c, [messId]: res.data.data }));
 		} catch (err: any) {
@@ -251,7 +251,7 @@ export default function MessesPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.patch(`/warden/incharge-assignment/${assignmentId}/end`, {
+			await api.patch(`/office/incharge-assignment/${assignmentId}/end`, {
 				endDate: new Date().toISOString(),
 			});
 			setSuccess("Incharge assignment ended.");
@@ -276,7 +276,7 @@ export default function MessesPage() {
 		setError("");
 		setSuccess("");
 		try {
-			await api.post(`/warden/messes/${mess.id}/monthly-rates`, {
+			await api.post(`/office/messes/${mess.id}/monthly-rates`, {
 				month: monthlyRateMonth,
 				perDayCharge: parsedRate,
 			});
@@ -297,7 +297,7 @@ export default function MessesPage() {
 		setError("");
 		try {
 			const res = await api.get(
-				`/warden/messes/${messId}/monthly-rates`,
+				`/office/messes/${messId}/monthly-rates`,
 				{ params: { limit: 6 } },
 			);
 			setMonthlyRatesHistory((current) => ({
@@ -435,7 +435,7 @@ export default function MessesPage() {
 									<option value="MESS_INCHARGE">
 										Mess incharge
 									</option>
-									<option value="WARDEN">Warden</option>
+									<option value="OFFICE">Office</option>
 								</select>
 							</div>
 							<div>

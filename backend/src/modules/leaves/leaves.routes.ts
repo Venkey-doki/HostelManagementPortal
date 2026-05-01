@@ -42,21 +42,21 @@ router.patch(
 router.get(
 	"/pending",
 	authenticate,
-	authorize("WARDEN"),
+	authorize("OFFICE"),
 	leavesController.getPendingLeaves.bind(leavesController),
 );
 
 router.patch(
 	"/:id/approve",
 	authenticate,
-	authorize("WARDEN"),
+	authorize("OFFICE"),
 	leavesController.approveLeave.bind(leavesController),
 );
 
 router.patch(
 	"/:id/reject",
 	authenticate,
-	authorize("WARDEN"),
+	authorize("OFFICE"),
 	leavesController.rejectLeave.bind(leavesController),
 );
 

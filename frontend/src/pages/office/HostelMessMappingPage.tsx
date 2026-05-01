@@ -51,8 +51,8 @@ export default function HostelMessMappingPage() {
 		setError("");
 		try {
 			const [hostelsResponse, messesResponse] = await Promise.all([
-				api.get("/warden/hostels"),
-				api.get("/warden/messes"),
+				api.get("/office/hostels"),
+				api.get("/office/messes"),
 			]);
 			setHostels(hostelsResponse.data.data || []);
 			setMesses(messesResponse.data.data || []);
@@ -90,12 +90,12 @@ export default function HostelMessMappingPage() {
 		setSuccess("");
 		try {
 			if (selectedHostelAlreadyMapped) {
-				await api.patch(`/warden/hostels/${selectedHostelId}/mess`, {
+				await api.patch(`/office/hostels/${selectedHostelId}/mess`, {
 					messId: selectedMessId,
 				});
 				setSuccess("Mess mapping updated successfully");
 			} else {
-				await api.post(`/warden/hostels/${selectedHostelId}/mess`, {
+				await api.post(`/office/hostels/${selectedHostelId}/mess`, {
 					messId: selectedMessId,
 				});
 				setSuccess("Mess assigned to hostel successfully");
@@ -123,7 +123,7 @@ export default function HostelMessMappingPage() {
 		try {
 			setError("");
 			setSuccess("");
-			await api.delete(`/warden/hostels/${hostelId}/mess`);
+			await api.delete(`/office/hostels/${hostelId}/mess`);
 			setSuccess("Mess unassigned from hostel successfully");
 			if (selectedHostelId === hostelId) {
 				setSelectedMessId("");
